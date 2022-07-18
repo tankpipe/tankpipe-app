@@ -1,8 +1,10 @@
-`<script>	
+`<script>
+	import Accounts from './Accounts.svelte';	
 	import Transactions from './Transactions.svelte';
 
 	let accounts = []; 
-	let curAccount = undefined;
+	let curAccount = undefined
+	let mode = "ACCOUNTS"
 
 
 	const loadAccounts = async () => {
@@ -12,6 +14,11 @@
 		}	
 	};
 	loadAccounts();
+
+	const setMode = (newMode) => {
+		mode = newMode;
+		console.log(mode)
+	}
 	
 </script>
 
@@ -19,14 +26,19 @@
 	<div class="app">
 		<div class="column left">
 			<div class="menu-left"> 
-			<ul>
-				<li>Transactions</li>
-				<li>Accounts</li>
-			</ul>	
+				<ul>
+					<li on:click={() => setMode("TRANSACTIONS")}>Transactions</li>
+					<li on:click={() => setMode("ACCOUNTS")}>Accounts</li>
+				</ul>	
 			</div>
 		</div>		
 		<div class="column middle">			
+			{#if mode=="TRANSACTIONS"}
 			<Transactions {curAccount} {accounts}/>
+			{/if}
+			{#if mode=="ACCOUNTS"}
+			<Accounts {curAccount} {accounts} {loadAccounts}/>
+			{/if}
 		</div>		
 	</div>
 </main>

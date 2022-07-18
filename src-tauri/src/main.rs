@@ -7,7 +7,7 @@
 #![allow(dead_code)]
 
 use accounts::{books::Books, book_repo, account::Transaction, account::Account};
-use account_display::NewTransaction;
+use account_display::{NewTransaction, NewAccount};
 use uuid::Uuid;
 use std::{
   collections::HashMap,
@@ -43,7 +43,7 @@ fn main() {
     } else {
       tauri::Menu::default()
     })
-    .invoke_handler(tauri::generate_handler![greet, transactions, accounts, add_transaction])
+    .invoke_handler(tauri::generate_handler![greet, transactions, accounts, add_transaction, add_account])
     .run(context)
     .expect("error while running tauri application");
 }
@@ -64,6 +64,7 @@ fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Vec<Transa
 
 #[tauri::command]
 fn accounts(state: tauri::State<BooksState>) -> Vec<Account> {
+  println!("Fetching accounts");
   let mutex_guard = state.0.lock().unwrap();
   mutex_guard.accounts()  
 }
@@ -77,6 +78,13 @@ fn add_transaction(state: tauri::State<BooksState>,transaction: NewTransaction) 
     Ok(_) => x.unwrap(),
     Err(e) => println!("{}", e.error),
   }
+}
+
+#[tauri::command]
+fn add_account(state: tauri::State<BooksState>, account: NewAccount)  {
+  println!("Adding transaction {}", account.name);
+  let mut mutex_guard = state.0.lock().unwrap();
+  let x = mutex_guard.add_account(account.to_account());  
 }
 
 

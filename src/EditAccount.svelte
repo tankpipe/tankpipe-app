@@ -1,76 +1,55 @@
 <script>
-    import { DateInput } from 'date-picker-svelte'
     import {Errors} from './errors.js'
     
     export let close
     export let curAccount
-    export let accounts = []
-    
-    let otherAccount
+    export let loadAccounts
+        
     let msg = ""
-    let errors = new Errors();
-    let date = new Date(), description, amount 
-    let isDebit = !curAccount || curAccount.account_type === 'Debit'
-    let otherAccountLabel = isDebit ? "From" : "To"
-    let format="yyyy-MM-dd"
+    let errors = new Errors()
+    let name, startingBalance
+    let isDebit = true
 
-    $: {
-        otherAccountLabel = isDebit ? "From" : "To"
-    }
+    
     const onCancel = () => {
         close()
     }
 
-    const handleSelectAccount = (e) => {
-		console.log("selected: " + e);   
-		console.log(otherAccount)			
-	};
-
     const onAdd = () => {
         msg = "";
         errors = new Errors();
-        if (!description || description.length < 1) {
-             errors.addError("description", "Description is required")
+        if (!name || name.length < 1) {
+             errors.addError("name", "Name is required")
         }
       
-        if (!date || date.length < 1) {
-            errors.addError("date", "Date is required")
-        }
-
-        if (!amount || amount.length < 1 || isNaN(amount)) {
-            errors.addError("amount", "A valid amount is required")
+        if (!startingBalance || startingBalance.length < 1 || isNaN(startingBalance)) {
+            errors.addError("startingBalance", "A valid startingBalance is required")
         }
 
         if (!errors.hasErrors()) {
-            let otherAccountId = otherAccount ? otherAccount.id : null
-            let drAccountId = isDebit? curAccount.id : otherAccountId
-            let crAccountId = isDebit? otherAccountId : curAccount.id
-            let dateStr = date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
-
-            const transaction = {
-                date: dateStr, 
-                description: description, 
-                amount: amount, 
-                dr_account_id: drAccountId,
-                cr_account_id: crAccountId,
-                status: "Recorded"
+            const accountType = isDebit ? "Debit" : "Credit"
+            const account = {
+                name: name,
+                starting_balance: startingBalance, 
+                account_type: accountType
             }
 
-            addTransaction(transaction)
+            addAccount(account)
         }
         
     }
     function resolved(result) {
-      msg = "Transaction added."
+      msg = "Account added."
     }
 
     function rejected(result) {
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
-    const addTransaction = async (transaction) => {
-        console.log(transaction)
-   		await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
+    const addAccount = async (account) => {
+        console.log(account)
+   		await invoke('add_account', {account: account}).then(resolved, rejected)
+        loadAccounts()
 	};
 
 </script>
@@ -78,17 +57,13 @@
 <div class="form">
     <div class="panel">
         <div class="form-row">
-            <div class="widget date-time-field" class:error-input={errors.isInError("date")}>
-                <label for="date">Date</label>
-                <DateInput bind:value={date} {format} placeholder="" />
+            <div class="widget">
+                <label for="name">Name</label>
+                <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>                
             </div>
             <div class="widget">
-                <label for="desc">Description</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description}>                
-            </div>
-            <div class="widget">
-                <label for="amount">Amount</label>
-                <input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={amount}>
+                <label for="startingBalance">Starting balance</label>
+                <input id="startingBalance" class="money-input" class:error={errors.isInError("startingBalance")} bind:value={startingBalance}>
             </div>
             <div class="widget2">            
                 <input id="debit" type="radio" bind:group={isDebit} value={true} class="" name="transactionType" >
@@ -97,17 +72,7 @@
                 <input id="credit" type="radio" bind:group={isDebit} value={false} class="" name="transactionType">
                 <label for="credit">Credit</label>
             </div>
-        </div>
-        <div class="form-row2">
-            <div class="widget">
-                <label for="account2">{otherAccountLabel}</label>
-                <select bind:value={otherAccount} on:change="{handleSelectAccount}">
-                    <option value={null}>None</option>
-                    {#each accounts as a}
-                    <option value={a}>{a.name}</option>
-                    {/each}	
-                </select>
-            </div>
+
         </div>
     </div>
     <div class="form-button-row">
@@ -171,7 +136,7 @@
         clear:both;
     }
 
-    .form-row2, .form-button-row {
+    .form-button-row {
         display: block;
         text-align: left;
     }
@@ -201,7 +166,9 @@
     .panel {
         background-color: #E0E0E0;
         margin: 15px 15px 0 15px;
+        padding: 5px;
         border-radius: 10px;
+        float: left;
     }
 
     .widget {
@@ -228,7 +195,7 @@
     }
 
     .money-input {
-		width: 100px;
+		width: 110px;
 	}
 
     .money-input {
