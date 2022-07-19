@@ -12,7 +12,7 @@
     let name, startingBalance
     let isDebit = true
     let addButtonLabel = "Add"
-
+    
     onMount(() => { 
         if (editMode == "EDIT") {
             name = curAccount.name 
@@ -98,10 +98,10 @@
                 <input id="startingBalance" class="money-input" class:error={errors.isInError("startingBalance")} bind:value={startingBalance}>
             </div>
             <div class="widget2">            
-                <input id="debit" type="radio" bind:group={isDebit} value={true} class="" name="transactionType" >
+                <input id="debit" type="radio" bind:group={isDebit} value={true} class="" name="transactionType" disabled={editMode == "EDIT"}>
                 <label for="debit">Debit</label>
                 <br/>
-                <input id="credit" type="radio" bind:group={isDebit} value={false} class="" name="transactionType">
+                <input id="credit" type="radio" bind:group={isDebit} value={false} class="" name="transactionType" disabled={editMode == "EDIT"}>
                 <label for="credit">Credit</label>
             </div>
 
