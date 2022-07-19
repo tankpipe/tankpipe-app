@@ -1,15 +1,28 @@
 <script>
     import {Errors} from './errors.js'
+    import {onMount} from "svelte"
     
     export let close
     export let curAccount
     export let loadAccounts
+    export let editMode = "NEW"
         
     let msg = ""
     let errors = new Errors()
     let name, startingBalance
     let isDebit = true
+    let addButtonLabel = "Add"
 
+    onMount(() => { 
+        if (editMode == "EDIT") {
+            name = curAccount.name 
+            startingBalance = curAccount.starting_balance
+            isDebit = curAccount.account_type == "Debit"
+            addButtonLabel = "Update"
+        } else {
+            addButtonLabel = "Add"
+        }
+    });
     
     const onCancel = () => {
         close()
@@ -23,18 +36,31 @@
         }
       
         if (!startingBalance || startingBalance.length < 1 || isNaN(startingBalance)) {
-            errors.addError("startingBalance", "A valid startingBalance is required")
+            errors.addError("startingBalance", "A valid starting balance is required")
         }
 
         if (!errors.hasErrors()) {
-            const accountType = isDebit ? "Debit" : "Credit"
-            const account = {
-                name: name,
-                starting_balance: startingBalance, 
-                account_type: accountType
-            }
 
-            addAccount(account)
+            if (editMode == "ADD") {
+                const accountType = isDebit ? "Debit" : "Credit"
+                const account = {
+                    name: name,
+                    starting_balance: startingBalance, 
+                    account_type: accountType
+                }
+
+                addAccount(account)
+            } else if (editMode == "EDIT") {
+                const account = {
+                    name: name,
+                    starting_balance: startingBalance, 
+                    account_type: curAccount.account_type,
+                    id: curAccount.id,
+                    balance: 0
+                }
+                saveAccount(account)
+            } 
+
         }
         
     }
@@ -47,10 +73,16 @@
         errors.addError("all", "We hit a snag: " + result)
     }
     const addAccount = async (account) => {
-        console.log(account)
    		await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
 	};
+
+    const saveAccount = async (account) => {
+        console.log(account)
+   		await invoke('edit_account', {account: account}).then(resolved, rejected)
+         loadAccounts()
+	};
+
 
 </script>
 
@@ -86,7 +118,7 @@
         </div>
         <div class="widget buttons">
             <button on:click={onCancel}>Close</button>
-            <button on:click={onAdd}>Add</button>
+            <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>

@@ -43,7 +43,7 @@ fn main() {
     } else {
       tauri::Menu::default()
     })
-    .invoke_handler(tauri::generate_handler![greet, transactions, accounts, add_transaction, add_account])
+    .invoke_handler(tauri::generate_handler![greet, transactions, accounts, add_transaction, add_account, edit_account])
     .run(context)
     .expect("error while running tauri application");
 }
@@ -85,6 +85,13 @@ fn add_account(state: tauri::State<BooksState>, account: NewAccount)  {
   println!("Adding transaction {}", account.name);
   let mut mutex_guard = state.0.lock().unwrap();
   let x = mutex_guard.add_account(account.to_account());  
+}
+
+#[tauri::command]
+fn edit_account(state: tauri::State<BooksState>, account: Account)  {
+  println!("Adding transaction {}", account.name);
+  let mut mutex_guard = state.0.lock().unwrap();
+  let x = mutex_guard.add_account(account);  
 }
 
 

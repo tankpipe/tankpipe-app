@@ -1,11 +1,12 @@
 <script>
-import EditAccount from "./EditAccount.svelte"
+    import EditAccount from "./EditAccount.svelte"    
 
     export let curAccount
     export let accounts = []
     export let loadAccounts
 
-    let mode = "ACCOUNTS";
+    let mode = "ACCOUNTS"
+    let editMode = "ADD"
 
 	const close = () => {
         console.log("close")
@@ -13,7 +14,8 @@ import EditAccount from "./EditAccount.svelte"
     }
 
     const handleAddClick = () => {
-		mode = "EDIT";
+        editMode = "ADD"
+		mode = "EDIT"
 	}
 
     const handleSelectAccount = (e) => {
@@ -21,6 +23,13 @@ import EditAccount from "./EditAccount.svelte"
 		console.log(curAccount)	
 	};
 	
+    const selectAccount = (account) => {
+        curAccount = account
+        editMode = "EDIT"
+		mode = "EDIT"        
+        console.log("selected: " + curAccount.name);   
+    }
+
 </script>
 
 <div class="account-heading">
@@ -28,21 +37,23 @@ import EditAccount from "./EditAccount.svelte"
 	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
 	{/if}
 </div>
+
 {#if mode === "EDIT"}
-<EditAccount {curAccount} {loadAccounts} {close} />
+<EditAccount {curAccount} {loadAccounts} {close} {editMode}/>
 {/if}
 {#if mode === "ACCOUNTS"}
 <div class="scroller">
     <ul>
     {#each accounts as a}
-        <li>{a.name}</li>		
+        <li on:click={() => selectAccount(a) }>{a.name}</li>		
     {/each}	
     </ul>
 </div>
 {/if}
 <style>
     .scroller {
-        min-height: 200px;
+        min-width: 200px;
+        float: left;
     }
     .account-heading {
 		text-align: left;
