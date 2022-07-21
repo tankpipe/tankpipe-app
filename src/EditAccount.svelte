@@ -79,7 +79,7 @@
 
     const saveAccount = async (account) => {
         console.log(account)
-   		await invoke('edit_account', {account: account}).then(resolved, rejected)
+   		await invoke('update_account', {account: account}).then(resolved, rejected)
          loadAccounts()
 	};
 
@@ -122,7 +122,6 @@
         </div>
     </div>
 </div>
-
 
 <style>
 

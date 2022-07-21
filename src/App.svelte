@@ -4,7 +4,7 @@
 
 	let accounts = []; 
 	let curAccount = undefined
-	let mode = "ACCOUNTS"
+	let mode = "TRANSACTIONS"
 
 
 	const loadAccounts = async () => {
