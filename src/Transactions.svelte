@@ -1,9 +1,11 @@
 `<script>
-	import EditTransaction from './EditTransaction.svelte';
+	import EditTransaction from './EditTransaction.svelte'
 	
-	export let curAccount;
-	export let accounts = [];
-	let mode = "TRANSACTIONS";
+	export let curAccount
+	export let accounts = []
+	let mode = "TRANSACTIONS"
+	let editMode = "ADD"
+	let curTransaction
 
 	const close = () => {
         console.log("close")
@@ -20,6 +22,12 @@
 		console.log(curAccount)	
 		loadTransactions();
 	};
+
+	const selectTransaction = (transaction) => {
+		curTransaction = transaction
+		editMode = "EDIT"
+		mode = "EDIT"
+	}
 
 	let transactions = [];
 	const loadTransactions = async () => {
@@ -51,33 +59,35 @@
 		return formatter.format(transaction.balance)
 	}
 
-	const handleAddClick = (curAccount) => {
-		mode = "EDIT";
+	const handleAddClick = () => {
+		editMode = "ADD"
+		mode = "EDIT"		
 	}
 	
 </script>
 
 
 <div class="account-heading">
+	{#if mode === "TRANSACTIONS"}
 	<select bind:value={curAccount} on:change="{handleSelectAccount}">
 		{#each accounts as a}
 		<option value={a}>{a.name}</option>
 		{/each}	
 	</select>
 	{#if curAccount} <!-- curAccount: {curAccount.id} --> {/if}
-	{#if mode === "TRANSACTIONS"}
+	
 	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
 	{/if}
 </div>
 {#if mode === "EDIT"}
-<EditTransaction {close} {curAccount} {accounts}/>
+<EditTransaction {close} {curAccount} {accounts} {editMode} {curTransaction} />
 {/if}
 {#if mode === "TRANSACTIONS"}
 <div class="scroller">
 	<table>
 		<tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
-			<tr><!--{t.id}--><td>{t.date}</td><td class="description">{t.description}</td><td class="money">{getDebitAmount(t, curAccount)}</td><td class="money">{getCreditAmount(t, curAccount)}</td><td class="money">{getBalance(t)}</td></tr>
+			<tr on:click={() => selectTransaction(t)}><!--{t.id}--><td>{t.date}</td><td class="description">{t.description}</td><td class="money">{getDebitAmount(t, curAccount)}</td><td class="money">{getCreditAmount(t, curAccount)}</td><td class="money">{getBalance(t)}</td></tr>
 		{/each}			
 	</table>
 </div>
@@ -101,6 +111,11 @@
 		background-color: #444;
 		font-weight: 400;
 		font-size: .8em;
+	}
+
+	tr:hover td {
+		cursor: pointer;
+		background-color: #FFF;
 	}
 
 	.money {

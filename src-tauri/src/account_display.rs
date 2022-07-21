@@ -1,18 +1,31 @@
-use accounts::account::{Transaction, AccountType, TransactionStatus};
+use accounts::account::{Transaction, AccountType, TransactionStatus, Account};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use accounts::serializer::*;
+use rust_decimal_macros::dec;
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct Account {
-    pub id: Uuid,
+pub struct NewAccount {
 	pub name: String,
 	pub account_type: AccountType,
-	pub balance: Decimal,
 	pub starting_balance: Decimal
 }
+
+impl NewAccount {
+	pub fn to_account(self) -> Account {
+		Account {
+			id: Uuid::new_v4(), 
+			name: self.name,
+			starting_balance: self.starting_balance,
+			account_type: self.account_type,
+            balance: dec!(0)
+		}
+	}
+
+}
+
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NewTransaction {
