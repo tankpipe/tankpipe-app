@@ -1,5 +1,6 @@
 `<script>
 	import EditTransaction from './EditTransaction.svelte'
+import Select from './Select.svelte'
 	
 	export let curAccount
 	export let accounts = []
@@ -16,12 +17,6 @@
 	$: {
 		if (curAccount) loadTransactions();
     }
-
-	const handleSelectAccount = (e) => {
-		console.log("selected: " + e);   
-		console.log(curAccount)	
-		loadTransactions();
-	};
 
 	const selectTransaction = (transaction) => {
 		curTransaction = transaction
@@ -69,13 +64,7 @@
 
 <div class="account-heading">
 	{#if mode === "TRANSACTIONS"}
-	<select bind:value={curAccount} on:change="{handleSelectAccount}">
-		{#each accounts as a}
-		<option value={a}>{a.name}</option>
-		{/each}	
-	</select>
-	{#if curAccount} <!-- curAccount: {curAccount.id} --> {/if}
-	
+	<Select bind:item={curAccount} items={accounts}/>			
 	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
 	{/if}
 </div>

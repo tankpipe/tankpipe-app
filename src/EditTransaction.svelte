@@ -2,6 +2,7 @@
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
+    import Select from './Select.svelte'
     
     export let close
     export let curAccount
@@ -125,25 +126,8 @@
             </div>
         </div>
         <div class="form-row2">
-            <div class="widget">
-                <label for="account1">Debit</label>
-                <select bind:value={drAccount} >
-                    <option value={null}>None</option>
-                    {#each accounts as a}
-                    <option value={a}>{a.name}</option>
-                    {/each}	
-                </select>
-            </div>
-            <div class="widget">
-                <label for="account2">Credit</label>
-                <select bind:value={crAccount} >
-                    <option value={null}>None</option>
-                    {#each accounts as a}
-                    <option value={a}>{a.name}</option>
-                    {/each}	
-                </select>
-            </div>
-
+            <Select bind:item={drAccount} items={accounts} label="Debit" none={true}/>
+            <Select bind:item={crAccount} items={accounts} label="Credit" none={true} />
         </div>
     </div>
     <div class="form-button-row">
@@ -225,6 +209,7 @@
         float: left;
         background-color: #F0f0f0;        
         margin-top: 20px;
+        border-radius: 10px;
     }
 
     .form label {
@@ -249,19 +234,6 @@
     .widget p {
         max-width: 500px;
         font-size: 0.9em;
-    }
-
-    .widget2 {
-        padding: 5px 0px 5px 10px;  
-        margin: 13px 12px 0px 0px;
-    }
-    
-    .widget2 label {
-        display: inline-block;
-    }
-
-    .widget2 input {
-        margin: 0px;
     }
 
     .money-input {
