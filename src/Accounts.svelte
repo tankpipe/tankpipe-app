@@ -18,11 +18,6 @@
 		mode = "EDIT"
 	}
 
-    const handleSelectAccount = (e) => {
-		console.log("selected: " + e);   
-		console.log(curAccount)	
-	};
-	
     const selectAccount = (account) => {
         curAccount = account
         editMode = "EDIT"

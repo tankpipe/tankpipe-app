@@ -185,6 +185,7 @@
         float: left;
         background-color: #F0f0f0;        
         margin-top: 20px;
+        border-radius: 10px;
     }
 
     .form label {
