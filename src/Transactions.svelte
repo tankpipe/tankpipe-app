@@ -1,4 +1,4 @@
-`<script>
+<script>
 	import EditTransaction from './EditTransaction.svelte'
 import Select from './Select.svelte'
 	
