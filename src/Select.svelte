@@ -3,12 +3,13 @@
     export let item
     export let label = null
     export let none = false
+    export let flat = false
     const cssClass =  label ? "widget" : "widgetNoLabel"
 </script>
 
 <div class={cssClass}>
     {#if label}<label for="itemSelect">{label}</label>{/if}
-    <select bind:value={item} name="itemSelect">
+    <select bind:value={item} name="itemSelect" class:flat={flat}>
         {#if none}
         <option value={null}>None</option>
         {/if}
@@ -33,5 +34,11 @@
         font-size: .8em;
         color: #333;
         margin-bottom: 3px;
+    }
+
+    .flat {
+        border: none; 
+        background-color: #F0F0F0; 
+        appearance: button;
     }
 </style>

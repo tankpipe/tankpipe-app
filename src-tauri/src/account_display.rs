@@ -1,4 +1,4 @@
-use accounts::account::{Transaction, AccountType, TransactionStatus, Account};
+use accounts::account::{Transaction, AccountType, TransactionStatus, Account, ScheduleEnum, ScheduledTransaction};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Serialize, Deserialize};
@@ -50,6 +50,40 @@ impl NewTransaction {
             amount: self.amount, 
             status: self.status,
             balance: None			
+		}
+	}
+
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct NewSchedule {
+	pub name: String,
+	pub period: ScheduleEnum,
+	pub frequency: i64,
+    #[serde(serialize_with = "serialize_naivedate")]
+    #[serde(deserialize_with = "deserialize_naivedate")]
+	pub start_date: NaiveDate,
+    #[serde(serialize_with = "serialize_naivedate")]
+    #[serde(deserialize_with = "deserialize_naivedate")]
+    pub last_date: NaiveDate,
+	pub amount: Decimal,
+	pub description: String,
+	pub dr_account_id: Option<Uuid>,
+	pub cr_account_id: Option<Uuid>}
+
+impl NewSchedule {
+	pub fn to_transaction(self) -> ScheduledTransaction {
+		ScheduledTransaction{
+			id: Uuid::new_v4(), 
+			name: self.name,
+			period: self.period,
+			frequency: self.frequency,
+            start_date: self.start_date, 
+			last_date: self.last_date, 
+			amount: self.amount,           
+            description: self.description, 
+			dr_account_id: self.dr_account_id, 
+            cr_account_id: self.cr_account_id,   
 		}
 	}
 

@@ -6,8 +6,8 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use accounts::{books::Books, book_repo, account::Transaction, account::Account};
-use account_display::{NewTransaction, NewAccount};
+use accounts::{books::Books, book_repo, account::{Transaction, ScheduledTransaction}, account::Account};
+use account_display::{NewTransaction, NewAccount, NewSchedule};
 use uuid::Uuid;
 use std::{
   collections::HashMap,
@@ -43,7 +43,11 @@ fn main() {
     } else {
       tauri::Menu::default()
     })
-    .invoke_handler(tauri::generate_handler![greet, transactions, accounts, add_transaction, add_account, update_account, update_transaction])
+    .invoke_handler(tauri::generate_handler![
+        transactions, add_transaction, update_transaction, 
+        accounts, add_account, update_account, 
+        schedules, add_schedule, update_schedule
+    ])
     .run(context)
     .expect("error while running tauri application");
 }
@@ -60,13 +64,6 @@ fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Vec<Transa
   let mutex_guard = state.0.lock().unwrap();
   let x = mutex_guard.account_transactions(account_id);
   x.unwrap()
-}
-
-#[tauri::command]
-fn accounts(state: tauri::State<BooksState>) -> Vec<Account> {
-  println!("Fetching accounts");
-  let mutex_guard = state.0.lock().unwrap();
-  mutex_guard.accounts()  
 }
 
 #[tauri::command]
@@ -92,19 +89,55 @@ fn update_transaction(state: tauri::State<BooksState>,transaction: Transaction) 
 }
 
 #[tauri::command]
+fn accounts(state: tauri::State<BooksState>) -> Vec<Account> {
+  println!("Fetching accounts");
+  let mutex_guard = state.0.lock().unwrap();
+  mutex_guard.accounts()  
+}
+
+#[tauri::command]
 fn add_account(state: tauri::State<BooksState>, account: NewAccount)  {
   println!("Adding transaction {}", account.name);
   let mut mutex_guard = state.0.lock().unwrap();
-  let x = mutex_guard.add_account(account.to_account());  
+  let _x = mutex_guard.add_account(account.to_account());  
 }
 
 #[tauri::command]
 fn update_account(state: tauri::State<BooksState>, account: Account)  {
   println!("Adding transaction {}", account.name);
   let mut mutex_guard = state.0.lock().unwrap();
-  let x = mutex_guard.add_account(account);  
+  let _x = mutex_guard.add_account(account);  
 }
 
+#[tauri::command]
+fn schedules(state: tauri::State<BooksState>) -> Vec<ScheduledTransaction> {
+  println!("Fetching scheduled transactions");
+  let mutex_guard = state.0.lock().unwrap();
+  mutex_guard.schedules().to_vec()
+}
+
+
+#[tauri::command]
+fn add_schedule(state: tauri::State<BooksState>, schedule: NewSchedule)  {
+  println!("Adding transaction {}", schedule.description);
+  let mut mutex_guard = state.0.lock().unwrap();
+  let x = mutex_guard.add_schedule(schedule.to_transaction());
+  match x {
+    Ok(_) => x.unwrap(),
+    Err(e) => println!("{}", e.error),
+  }
+}
+
+#[tauri::command]
+fn update_schedule(state: tauri::State<BooksState>, schedule: ScheduledTransaction)  {
+  println!("Adding schedule {}", schedule.name);
+  let mut mutex_guard = state.0.lock().unwrap();
+  let x = mutex_guard.update_schedule(schedule);
+  match x {
+    Ok(_) => x.unwrap(),
+    Err(e) => println!("{}", e.error),
+  }
+}
 
 
 // #[tauri::command]
