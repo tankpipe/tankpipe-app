@@ -1,6 +1,6 @@
 <script>
 	import EditTransaction from './EditTransaction.svelte'
-import Select from './Select.svelte'
+    import Select from './Select.svelte'
 	
 	export let curAccount
 	export let accounts = []
@@ -25,7 +25,7 @@ import Select from './Select.svelte'
 	}
 
 	let transactions = [];
-	const loadTransactions = async () => {
+	export const loadTransactions = async () => {
 		console.log("loadTransactions: " + curAccount.id);   	
    		transactions = await invoke('transactions', {accountId: curAccount.id});
 	};
@@ -63,7 +63,7 @@ import Select from './Select.svelte'
 
 
 <div class="account-heading">
-	{#if mode === "TRANSACTIONS"}
+	{#if mode === "TRANSACTIONS" && curAccount}
 	<Select bind:item={curAccount} items={accounts}/>			
 	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
 	{/if}
@@ -83,7 +83,10 @@ import Select from './Select.svelte'
 {/if}
 
 <style>
-
+    .scroller{
+		height: 100%;
+		overflow: scroll;
+	}
 	td {
 		text-align: left;
 		overflow: hidden;

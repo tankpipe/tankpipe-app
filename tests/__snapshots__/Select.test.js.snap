@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`is displayed correctly 1`] = `"<body><div><div class=\\"widget svelte-1y2a7fc\\"><label for=\\"itemSelect\\" class=\\"svelte-1y2a7fc\\">Label 1</label> <select name=\\"itemSelect\\"><option value=\\"null\\">None</option></select></div></div></body>"`;
+exports[`is displayed correctly 1`] = `"<body><div><div class=\\"widget svelte-1ilk91j\\"><label for=\\"itemSelect\\" class=\\"svelte-1ilk91j\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-1ilk91j\\"><option value=\\"null\\">None</option></select></div></div></body>"`;
 
-exports[`is displayed correctly with no label and no none 1`] = `"<body><div><div class=\\"widgetNoLabel svelte-1y2a7fc\\"> <select name=\\"itemSelect\\"><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`is displayed correctly with no label and no none 1`] = `"<body><div><div class=\\"widgetNoLabel svelte-1ilk91j\\"> <select name=\\"itemSelect\\" class=\\"svelte-1ilk91j\\"><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;

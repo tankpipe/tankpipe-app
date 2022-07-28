@@ -61,26 +61,33 @@
 {/if}
 {#if mode === "SCHEDULES"}
 <div class="scroller">
-		{#each schedules as t}
-			<div class="card" on:click={() => selectSchedule(t)}>
+		{#each schedules as s}
+			<div class="card" on:click={() => selectSchedule(s)}>
 				<div class="row">
 					<div class="widget">
-						<div class="description">{t.name}</div>
+						<div class="description">{s.name}</div>
 					</div>
 					<div class="widget">
-						<div class="money">{formatter.format(t.amount)}</div>
+						<div class="money">{formatter.format(s.amount)}</div>
 					</div>	
 				</div>		
 				<div class="row">
 					<div class="widget">
 						<div class="label">Debit</div>
-						<div class="account">{getAccountName(t.dr_account_id)}</div>
+						<div class="account">{getAccountName(s.dr_account_id)}</div>
 					</div>
 					<div class="widget">
 						<div class="label">Credit</div>
-						<div class="account">{getAccountName(t.cr_account_id)}</div>
+						<div class="account">{getAccountName(s.cr_account_id)}</div>
 					</div>
 				</div>
+				<div class="row">
+					<div class="widget">
+						<div class="label">Last</div>
+						<div class="account">{s.last_date}</div>
+					</div>
+				</div>
+
 			</div>
 		{/each}			
 </div>
@@ -134,10 +141,6 @@
 		font-weight: bold;
 	}
 	
-	.date {
-		min-width: 100px;
-	}
-
 	.account {
 		min-width: 200px;
 		white-space: nowrap;		

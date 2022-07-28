@@ -6,8 +6,9 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use accounts::{books::Books, book_repo, account::{Transaction, ScheduledTransaction}, account::Account};
-use account_display::{NewTransaction, NewAccount, NewSchedule};
+use accounts::{books::Books, book_repo, account::{Transaction, Schedule}, account::Account};
+use account_display::{NewTransaction, NewAccount, NewSchedule, DateParam};
+use chrono::NaiveDate;
 use uuid::Uuid;
 use std::{
   collections::HashMap,
@@ -46,7 +47,8 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
         transactions, add_transaction, update_transaction, 
         accounts, add_account, update_account, 
-        schedules, add_schedule, update_schedule
+        schedules, add_schedule, update_schedule,
+        generate, end_date
     ])
     .run(context)
     .expect("error while running tauri application");
@@ -110,7 +112,7 @@ fn update_account(state: tauri::State<BooksState>, account: Account)  {
 }
 
 #[tauri::command]
-fn schedules(state: tauri::State<BooksState>) -> Vec<ScheduledTransaction> {
+fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
   println!("Fetching scheduled transactions");
   let mutex_guard = state.0.lock().unwrap();
   mutex_guard.schedules().to_vec()
@@ -129,7 +131,7 @@ fn add_schedule(state: tauri::State<BooksState>, schedule: NewSchedule)  {
 }
 
 #[tauri::command]
-fn update_schedule(state: tauri::State<BooksState>, schedule: ScheduledTransaction)  {
+fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule)  {
   println!("Adding schedule {}", schedule.name);
   let mut mutex_guard = state.0.lock().unwrap();
   let x = mutex_guard.update_schedule(schedule);
@@ -139,6 +141,26 @@ fn update_schedule(state: tauri::State<BooksState>, schedule: ScheduledTransacti
   }
 }
 
+#[tauri::command]
+fn end_date(state: tauri::State<BooksState>) -> Option<DateParam> {
+  let mutext_guard = state.0.lock().unwrap();
+  
+  match mutext_guard.end_date() {
+    Some(d) => {
+      println!("{}", d);
+      Some(DateParam{date: d})      
+  },
+    None => None,
+}
+  
+}
+
+#[tauri::command]
+fn generate(state: tauri::State<BooksState>, date: DateParam) {
+  println!("Generating to {}", date.date);
+  let mut mutex_guard = state.0.lock().unwrap();
+   mutex_guard.generate(date.date);   
+}
 
 // #[tauri::command]
 // fn load_books() -> crate::book::Books {

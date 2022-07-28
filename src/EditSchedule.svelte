@@ -292,8 +292,4 @@
         float: right;
     }
 
-    .date-input input {
-        border: none;
-    }
-
 </style>

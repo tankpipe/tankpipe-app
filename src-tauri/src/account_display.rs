@@ -1,4 +1,4 @@
-use accounts::account::{Transaction, AccountType, TransactionStatus, Account, ScheduleEnum, ScheduledTransaction};
+use accounts::account::{Transaction, AccountType, TransactionStatus, Account, ScheduleEnum, Schedule};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Serialize, Deserialize};
@@ -49,7 +49,8 @@ impl NewTransaction {
             cr_account_id: self.cr_account_id, 
             amount: self.amount, 
             status: self.status,
-            balance: None			
+            balance: None,
+			schedule_id: None			
 		}
 	}
 
@@ -72,14 +73,14 @@ pub struct NewSchedule {
 	pub cr_account_id: Option<Uuid>}
 
 impl NewSchedule {
-	pub fn to_transaction(self) -> ScheduledTransaction {
-		ScheduledTransaction{
+	pub fn to_transaction(self) -> Schedule {
+		Schedule {
 			id: Uuid::new_v4(), 
 			name: self.name,
 			period: self.period,
 			frequency: self.frequency,
             start_date: self.start_date, 
-			last_date: self.last_date, 
+			last_date: None, 
 			amount: self.amount,           
             description: self.description, 
 			dr_account_id: self.dr_account_id, 
@@ -89,5 +90,10 @@ impl NewSchedule {
 
 }
 
-
+#[derive(Clone, Serialize, Deserialize)]
+pub struct DateParam {
+    #[serde(serialize_with = "serialize_naivedate")]
+    #[serde(deserialize_with = "deserialize_naivedate")]
+	pub date: NaiveDate
+}
 

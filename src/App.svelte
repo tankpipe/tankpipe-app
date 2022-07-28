@@ -2,11 +2,12 @@
 	import Accounts from './Accounts.svelte';	
 	import Schedules from './Schedules.svelte';
 	import Transactions from './Transactions.svelte';
+	import Settings from './Settings.svelte';
 
 	let accounts = []; 
 	let curAccount = undefined
-	let mode = "SCHEDULES"
-
+	let mode = "TRANSACTIONS"
+	export let transactions
 
 	const loadAccounts = async () => {
    		accounts = await invoke('accounts');
@@ -24,27 +25,31 @@
 </script>
 
 <main>	
-	<div class="app">
+	<div class="app">				
 		<div class="column left">
 			<div class="menu-left"> 
 				<ul>
 					<li on:click={() => setMode("TRANSACTIONS")} class:menu-selected={mode=="TRANSACTIONS"}>Transactions</li>
 					<li on:click={() => setMode("ACCOUNTS")} class:menu-selected={mode=="ACCOUNTS"}>Accounts</li>
 					<li on:click={() => setMode("SCHEDULES")} class:menu-selected={mode=="SCHEDULES"}>Schedules</li>
+					<li on:click={() => setMode("SETTINGS")} class:menu-selected={mode=="SETTINGS"}>Settings</li>
 				</ul>	
 			</div>
-		</div>		
+		</div>				
 		<div class="column middle">			
 			{#if mode=="TRANSACTIONS"}
-			<Transactions {curAccount} {accounts}/>
+			<Transactions bind:this={transactions} {curAccount} {accounts}/>
 			{/if}
 			{#if mode=="ACCOUNTS"}
 			<Accounts {curAccount} {accounts} {loadAccounts}/>
 			{/if}
 			{#if mode=="SCHEDULES"}			
 			<Schedules {accounts}/>			
-			{/if}
-		</div>		
+			{/if}						
+			{#if mode=="SETTINGS"}			
+			<Settings/>
+			{/if}	
+		</div>			
 	</div>
 </main>
 
@@ -63,7 +68,6 @@
 
 	.column.middle {
 		margin: 20px;
-		overflow: scroll;
 		padding-top: 20px;
 		height: 100%;
 	}

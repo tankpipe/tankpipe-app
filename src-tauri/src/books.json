@@ -15,32 +15,35 @@
         "starting_balance": "0"
       }
     },
-    "scheduled_transactions": [
-      {
-        "id": "8565ba58-2df8-4690-b4f1-7849b2b4b48f",
-        "name": "Some income",
-        "period": "Months",
-        "frequency": 1,
-        "start_date": "2022-06-04",
-        "last_date": "2022-06-04",
-        "amount": "200",
-        "description": "Money in",
-        "dr_account_id": "44742ea3-f835-4267-b62e-0c1d4796d575",
-        "cr_account_id": null
-      },
-      {
-        "id": "b84c6712-15b7-4e55-b65e-3cc5666a7df0",
-        "name": "CC Payment",
-        "period": "Months",
-        "frequency": 1,
-        "start_date": "2022-06-04",
-        "last_date": "2022-06-04",
-        "amount": "200",
-        "description": "Money in",
-        "dr_account_id": "66ac7995-4991-495a-b44e-d9882d579260",
-        "cr_account_id": "44742ea3-f835-4267-b62e-0c1d4796d575"
-      }
-    ],
+    "scheduler": {
+      "schedules": [
+        {
+          "id": "8565ba58-2df8-4690-b4f1-7849b2b4b48f",
+          "name": "Some income",
+          "period": "Months",
+          "frequency": 1,
+          "start_date": "2022-06-04",
+          "last_date": "2022-06-04",
+          "amount": "200",
+          "description": "Money in",
+          "dr_account_id": "44742ea3-f835-4267-b62e-0c1d4796d575",
+          "cr_account_id": null
+        },
+        {
+          "id": "b84c6712-15b7-4e55-b65e-3cc5666a7df0",
+          "name": "CC Payment",
+          "period": "Months",
+          "frequency": 1,
+          "start_date": "2022-06-04",
+          "last_date": "2022-06-04",
+          "amount": "200",
+          "description": "CC Payment",
+          "dr_account_id": "66ac7995-4991-495a-b44e-d9882d579260",
+          "cr_account_id": "44742ea3-f835-4267-b62e-0c1d4796d575"
+        }
+      ],
+      "end_date": "2022-07-01"
+    },  
     "transactions": [
       {
         "id": "4ed6200e-4d96-4c40-b140-36de0cfc7bc8",
