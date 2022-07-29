@@ -5,11 +5,11 @@
     export let none = false
     export let flat = false
     export let inError = false
-    const cssClass =  label ? "widget" : "widgetNoLabel"    
+    const cssClass =  label ? "widget" : "widgetNoLabel"  
 </script>
 
 <div class={cssClass}>
-    {#if label}<label for="itemSelect">{label}</label>{/if}
+    {#if label}<label for="itemSelect">{label}</label>{/if}    
     <select bind:value={item} name="itemSelect" class:flat={flat} class:error={inError}>
         {#if none}
         <option value={null}>None</option>
