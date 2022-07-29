@@ -54,7 +54,6 @@ fn main() {
     .expect("error while running tauri application");
 }
 
-
 #[tauri::command]
 fn greet(name: &str) -> String {
    format!("Hello, {}!", name)
@@ -69,25 +68,17 @@ fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Vec<Transa
 }
 
 #[tauri::command]
-fn add_transaction(state: tauri::State<BooksState>,transaction: NewTransaction)  {
+fn add_transaction(state: tauri::State<BooksState>,transaction: NewTransaction) -> Result<(), String> {
   println!("Adding transaction {}", transaction.description);
   let mut mutex_guard = state.0.lock().unwrap();
-  let x = mutex_guard.add_transaction(transaction.to_transaction());
-  match x {
-    Ok(_) => x.unwrap(),
-    Err(e) => println!("{}", e.error),
-  }
+  error_handler(mutex_guard.add_transaction(transaction.to_transaction()))
 }
 
 #[tauri::command]
-fn update_transaction(state: tauri::State<BooksState>,transaction: Transaction)  {
+fn update_transaction(state: tauri::State<BooksState>,transaction: Transaction) -> Result<(), String> {
   println!("Adding transaction {}", transaction.description);
   let mut mutex_guard = state.0.lock().unwrap();
-  let x = mutex_guard.update_transaction(transaction);
-  match x {
-    Ok(_) => x.unwrap(),
-    Err(e) => println!("{}", e.error),
-  }
+  error_handler(mutex_guard.update_transaction(transaction))
 }
 
 #[tauri::command]
@@ -120,25 +111,17 @@ fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 
 
 #[tauri::command]
-fn add_schedule(state: tauri::State<BooksState>, schedule: NewSchedule)  {
+fn add_schedule(state: tauri::State<BooksState>, schedule: NewSchedule) -> Result<(), String> {
   println!("Adding transaction {}", schedule.description);
   let mut mutex_guard = state.0.lock().unwrap();
-  let x = mutex_guard.add_schedule(schedule.to_transaction());
-  match x {
-    Ok(_) => x.unwrap(),
-    Err(e) => println!("{}", e.error),
-  }
+  error_handler(mutex_guard.add_schedule(schedule.to_schedule()))
 }
 
 #[tauri::command]
-fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule)  {
+fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule) -> Result<(), String> {
   println!("Adding schedule {}", schedule.name);
   let mut mutex_guard = state.0.lock().unwrap();
-  let x = mutex_guard.update_schedule(schedule);
-  match x {
-    Ok(_) => x.unwrap(),
-    Err(e) => println!("{}", e.error),
-  }
+  error_handler(mutex_guard.update_schedule(schedule))
 }
 
 #[tauri::command]
@@ -166,6 +149,16 @@ fn generate(state: tauri::State<BooksState>, date: DateParam) {
 // fn load_books() -> crate::book::Books {
 //   crate::book_repo::load_books("/Users/connecting/dev/rust/money/src-tauri/src/books.json").unwrap()
 // }
+
+fn error_handler(x: Result<(), accounts::books::BooksError>) -> Result<(), String> {
+  match x {
+      Ok(_) => Ok(()),
+      Err(e) => {
+        println!("{}", e.error);
+        Err(e.error)
+      }
+  }
+}
 
 
 #[cfg(test)]
