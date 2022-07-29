@@ -2,7 +2,7 @@
 	import EditSchedule from './EditSchedule.svelte'
 	
 	export let accounts = []
-	let mode = "EDIT"
+	let mode = "SCHEDULES"
 	let editMode = "ADD"
 	let curSchedule	
 

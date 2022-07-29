@@ -4,10 +4,10 @@
 	import Transactions from './Transactions.svelte';
 	import Settings from './Settings.svelte';
 
-	let accounts = []; 
+	let accounts = [] 
 	let curAccount = undefined
-	let mode = "SCHEDULES"
-	export let transactions
+	let mode = "TRANSACTIONS"
+	export let transactions = []
 
 	const loadAccounts = async () => {
    		accounts = await invoke('accounts');

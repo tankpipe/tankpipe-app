@@ -18,11 +18,10 @@
     let endDate
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
-    let period = {value:"Monthly", name:"Months"}
+    let period = {value:"Months", name:"Months"}
     let periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
     
     onMount(() => { 
-        console.log(editMode, curSchedule)        
         if (editMode == "EDIT") {
             name = curSchedule.name
             amount = curSchedule.amount
@@ -31,8 +30,8 @@
             crAccount = matchAccount(curSchedule.cr_account_id)
             period = matchPeriod(curSchedule.period)
             frequency = curSchedule.frequency
-            endDate = curSchedule.end_date
-            date = curSchedule.start_date
+            endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
+            date = new Date(curSchedule.start_date)
 
         } else {
             drAccount = null
@@ -73,6 +72,14 @@
             errors.addError("amount", "A valid amount is required")
         }
 
+        if (!drAccount && !crAccount) {
+            errors.addError("accounts", "At least one account needs to be selected")
+        }
+
+        if (!period) {
+            errors.addError("period", "A period needs to be selected")
+        }
+
         if (!errors.hasErrors()) {
             let drAccountId = drAccount? drAccount.id : null
             let crAccountId = crAccount? crAccount.id : null
@@ -85,7 +92,7 @@
                     period: period.value,
                     frequency: parseInt(frequency),
                     start_date: dateStr, 
-                    last_date: dateStr,
+                    last_date: "null",
                     end_date: endDateStr,
                     amount: amount,  
                     description: name,                    
@@ -101,7 +108,7 @@
                     period: period.value,
                     frequency: parseInt(frequency),
                     start_date: dateStr, 
-                    last_date: dateStr,
+                    last_date: curSchedule.last_date,
                     end_date: endDateStr,
                     amount: amount,  
                     description: name,                    
@@ -128,7 +135,7 @@
     */
 
     function resolved(result) {
-      msg = "Transaction added."
+      msg = "Schedule added."
     }
 
     function rejected(result) {
@@ -160,20 +167,20 @@
             </div>
         </div>
         <div class="form-row2">
-            <Select bind:item={drAccount} items={accounts} label="Debit" none={true}/>
-            <Select bind:item={crAccount} items={accounts} label="Credit" none={true} />
+            <Select bind:item={drAccount} items={accounts} label="Debit" none={true} inError={errors.isInError("accounts")}/>
+            <Select bind:item={crAccount} items={accounts} label="Credit" none={true} inError={errors.isInError("accounts")}/>
         </div>
         <div class="form-row2">
             <div class="widget">
                 Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-                &nbsp;<Select bind:item={period} items={periods} flat={true}/>  
+                &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>  
                 starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>        
             </div>
         </div>
         <div class="form-row2">
             <div class="widget2">            
                 <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-                <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" enabled={false}/></div></div>
+                <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" /></div></div>
                 <br/>
                 <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
                 <label for="noEnd">No end date</label>
