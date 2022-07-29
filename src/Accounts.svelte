@@ -38,11 +38,11 @@
 {/if}
 {#if mode === "ACCOUNTS"}
 <div class="scroller">
-    <ul>
+    
     {#each accounts as a}
-        <li on:click={() => selectAccount(a) }>{a.name}</li>		
+        <div class="card" on:click={() => selectAccount(a) }>{a.name}</div>		
     {/each}	
-    </ul>
+    
 </div>
 {/if}
 <style>
@@ -64,18 +64,20 @@
 		border-color: #f0f0f0;
 	}
 
-    li, ul {
-		list-style-type: none;
-		margin-bottom: 1em;
-		font-weight: bold;
-		color: #C0C0C0;
-		padding: 0;
-		text-align: left;
+	.card {
+		float: left;
+		clear: both;
+		margin: 10px;
+		background-color: #524e4e;
+		padding: 5px;
+		border-radius: 10px;
+		color: #F0F0F0;
+		min-width: 300px;
 	}
 
-	li:hover, ul:hover {
-		color: #F0F0F0;
+	.card:hover {
 		cursor: pointer;
+		color: #FFF;
 	}
 
     .gg-add-r {
