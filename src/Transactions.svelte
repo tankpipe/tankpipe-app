@@ -91,11 +91,9 @@
 		text-align: left;
 		overflow: hidden;
 		line-height: 1em;
-		font-family: 'Courier New', Courier, monospace;
-		font-weight: bold;
 		color: #444;
 		background-color: #f0f0f0;
-		padding: 8px;
+		padding: 8px;		
 	}
 
 	th {
@@ -113,10 +111,13 @@
 	.money {
 		text-align: right !important;
 		min-width: 100px;		
+		font-family: 'Courier New', Courier, monospace;
+		font-weight: bold;		
 	}
 
 	.description {
 		min-width: 300px;
+		font-size: 1.05em;		
 	}
 
 	.account-heading {
