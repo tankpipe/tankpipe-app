@@ -64,7 +64,10 @@ pub struct NewSchedule {
     #[serde(serialize_with = "serialize_naivedate")]
     #[serde(deserialize_with = "deserialize_naivedate")]
 	pub start_date: NaiveDate,
-    #[serde(serialize_with = "serialize_naivedate")]
+    #[serde(serialize_with = "serialize_option_naivedate")]
+    #[serde(deserialize_with = "deserialize_option_naivedate")]    
+    pub end_date: Option<NaiveDate>,
+	#[serde(serialize_with = "serialize_naivedate")]
     #[serde(deserialize_with = "deserialize_naivedate")]
     pub last_date: NaiveDate,
 	pub amount: Decimal,
@@ -80,6 +83,7 @@ impl NewSchedule {
 			period: self.period,
 			frequency: self.frequency,
             start_date: self.start_date, 
+			end_date: self.end_date,
 			last_date: None, 
 			amount: self.amount,           
             description: self.description, 

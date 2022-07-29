@@ -9,11 +9,13 @@
     export let accounts = []
     export let editMode = "ADD"
     
+    let hasEnd = true
     let drAccount
     let crAccount
     let msg = ""
     let errors = new Errors();
     let date = new Date(), name, amount, frequency = 1 
+    let endDate
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let period = {value:"Monthly", name:"Months"}
@@ -29,6 +31,8 @@
             crAccount = matchAccount(curSchedule.cr_account_id)
             period = matchPeriod(curSchedule.period)
             frequency = curSchedule.frequency
+            endDate = curSchedule.end_date
+            date = curSchedule.start_date
 
         } else {
             drAccount = null
@@ -73,6 +77,7 @@
             let drAccountId = drAccount? drAccount.id : null
             let crAccountId = crAccount? crAccount.id : null
             let dateStr = date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
+            let endDateStr = hasEnd ? date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate() : "null"
 
             if (editMode == "ADD") {
                 const schedule = {
@@ -81,6 +86,7 @@
                     frequency: parseInt(frequency),
                     start_date: dateStr, 
                     last_date: dateStr,
+                    end_date: endDateStr,
                     amount: amount,  
                     description: name,                    
                     dr_account_id: drAccountId,
@@ -96,6 +102,7 @@
                     frequency: parseInt(frequency),
                     start_date: dateStr, 
                     last_date: dateStr,
+                    end_date: endDateStr,
                     amount: amount,  
                     description: name,                    
                     dr_account_id: drAccountId,
@@ -161,6 +168,15 @@
                 Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
                 &nbsp;<Select bind:item={period} items={periods} flat={true}/>  
                 starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>        
+            </div>
+        </div>
+        <div class="form-row2">
+            <div class="widget2">            
+                <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
+                <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" enabled={false}/></div></div>
+                <br/>
+                <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
+                <label for="noEnd">No end date</label>
             </div>
         </div>
     </div>
@@ -270,6 +286,19 @@
         font-size: 0.9em;
     }
 
+    .widget2 {
+        padding: 5px 0px 5px 10px;  
+        margin: 13px 12px 0px 0px;
+    }
+    
+    .widget2 label {
+        display: inline-block;
+    }
+
+    .widget2 input {
+        margin: 0px;
+    }
+
     .money-input {
 		width: 100px;
 	}
@@ -279,6 +308,14 @@
         border: none;
         background-color: #F0F0F0;
 	}
+
+    .raise {
+        margin-top: -7px;
+    }
+
+    .left {
+        padding-left: 0px;
+    }
 
     .money-input {
 		text-align: right;

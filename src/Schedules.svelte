@@ -2,9 +2,9 @@
 	import EditSchedule from './EditSchedule.svelte'
 	
 	export let accounts = []
-	let mode = "SCHEDULES"
+	let mode = "EDIT"
 	let editMode = "ADD"
-	let curSchedule
+	let curSchedule	
 
 	const close = () => {
         console.log("close")
@@ -87,7 +87,6 @@
 						<div class="account">{s.last_date}</div>
 					</div>
 				</div>
-
 			</div>
 		{/each}			
 </div>

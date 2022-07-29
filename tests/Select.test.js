@@ -14,7 +14,7 @@ it('is displayed correctly', async () => {
 
     let item = null
     const label = "Label 1"
-    const select = render(Select, {account: item, accounts: items, label, none:true})  
+    const select = render(Select, {item: item, items: items, label, none:true})  
 
     expect(select.container.outerHTML).toMatchSnapshot();
 });
@@ -33,7 +33,7 @@ it('is displayed correctly with no label and no none', async () => {
 
     let item = null
     const label = "Label 1"
-    const select = render(Select, {account: item, items: items})  
+    const select = render(Select, {item: item, items: items})  
 
     expect(select.container.outerHTML).toMatchSnapshot();
 });

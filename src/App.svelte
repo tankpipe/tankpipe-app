@@ -6,7 +6,7 @@
 
 	let accounts = []; 
 	let curAccount = undefined
-	let mode = "TRANSACTIONS"
+	let mode = "SCHEDULES"
 	export let transactions
 
 	const loadAccounts = async () => {
