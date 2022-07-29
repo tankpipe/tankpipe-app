@@ -9,26 +9,31 @@
     export let accounts = []
     export let editMode = "ADD"
     
+    let hasEnd = false
     let drAccount
     let crAccount
     let msg = ""
     let errors = new Errors();
-    let date = new Date(), name, amount, frequency = 1 
+    let date = new Date(), name, description, amount, frequency = 1 
+    let endDate
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
-    let period = {value:"Monthly", name:"Months"}
-    let periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
+    let period = {value:"Months", name:"Months"}
+    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
     
     onMount(() => { 
-        console.log(editMode, curSchedule)        
         if (editMode == "EDIT") {
             name = curSchedule.name
+            description = curSchedule.description
             amount = curSchedule.amount
             addButtonLabel = "Update"
             drAccount = matchAccount(curSchedule.dr_account_id)
             crAccount = matchAccount(curSchedule.cr_account_id)
             period = matchPeriod(curSchedule.period)
             frequency = curSchedule.frequency
+            endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
+            hasEnd = endDate != null
+            date = new Date(curSchedule.start_date)
 
         } else {
             drAccount = null
@@ -69,38 +74,38 @@
             errors.addError("amount", "A valid amount is required")
         }
 
+        if (!drAccount && !crAccount) {
+            errors.addError("accounts", "At least one account needs to be selected")
+        }
+
+        if (!period) {
+            errors.addError("period", "A period needs to be selected")
+        }
+
         if (!errors.hasErrors()) {
             let drAccountId = drAccount? drAccount.id : null
             let crAccountId = crAccount? crAccount.id : null
             let dateStr = date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
+            let endDateStr = hasEnd ? date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate() : "null"
+
+            let schedule = {
+                    name: name, 
+                    period: period.value,
+                    frequency: parseInt(frequency),
+                    start_date: dateStr, 
+                    last_date: "null",
+                    end_date: endDateStr,
+                    amount: amount,  
+                    description: description ? description : name,                    
+                    dr_account_id: drAccountId,
+                    cr_account_id: crAccountId,
+                }
 
             if (editMode == "ADD") {
-                const schedule = {
-                    name: name, 
-                    period: period.value,
-                    frequency: parseInt(frequency),
-                    start_date: dateStr, 
-                    last_date: dateStr,
-                    amount: amount,  
-                    description: name,                    
-                    dr_account_id: drAccountId,
-                    cr_account_id: crAccountId,
-                }
-
                 addSchedule(schedule)
             } else if (editMode == "EDIT") {
-                const schedule = {
-                    id: curSchedule.id,                    
-                    name: name, 
-                    period: period.value,
-                    frequency: parseInt(frequency),
-                    start_date: dateStr, 
-                    last_date: dateStr,
-                    amount: amount,  
-                    description: name,                    
-                    dr_account_id: drAccountId,
-                    cr_account_id: crAccountId,
-                }
+                schedule["id"] = curSchedule.id
+                schedule["last_date"] = curSchedule.last_date
                 saveSchedule(schedule)
             } 
         }
@@ -121,7 +126,7 @@
     */
 
     function resolved(result) {
-      msg = "Transaction added."
+      msg = "Schedule added."
     }
 
     function rejected(result) {
@@ -144,8 +149,15 @@
     <div class="panel">
         <div class="form-row">
             <div class="widget">
+                <label for="desc">Schedule name</label>
+                <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>                
+            </div>
+        </div>
+        <hr/>
+        <div class="form-row">
+            <div class="widget">
                 <label for="desc">Description</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={name}>                
+                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description} placeholder={name}>                
             </div>
             <div class="widget">
                 <label for="amount">Amount</label>
@@ -153,14 +165,25 @@
             </div>
         </div>
         <div class="form-row2">
-            <Select bind:item={drAccount} items={accounts} label="Debit" none={true}/>
-            <Select bind:item={crAccount} items={accounts} label="Credit" none={true} />
+            <Select bind:item={drAccount} items={accounts} label="Debit" none={true} inError={errors.isInError("accounts")}/>
+            <Select bind:item={crAccount} items={accounts} label="Credit" none={true} inError={errors.isInError("accounts")}/>
         </div>
+        <hr/>
         <div class="form-row2">
             <div class="widget">
+                {period.value}
                 Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-                &nbsp;<Select bind:item={period} items={periods} flat={true}/>  
+                &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>  
                 starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>        
+            </div>
+        </div>
+        <div class="form-row2">
+            <div class="widget2">            
+                <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
+                <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" /></div></div>
+                <br/>
+                <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
+                <label for="noEnd">No end date</label>
             </div>
         </div>
     </div>
@@ -270,6 +293,19 @@
         font-size: 0.9em;
     }
 
+    .widget2 {
+        padding: 5px 0px 5px 10px;  
+        margin: 13px 12px 0px 0px;
+    }
+    
+    .widget2 label {
+        display: inline-block;
+    }
+
+    .widget2 input {
+        margin: 0px;
+    }
+
     .money-input {
 		width: 100px;
 	}
@@ -279,6 +315,14 @@
         border: none;
         background-color: #F0F0F0;
 	}
+
+    .raise {
+        margin-top: -7px;
+    }
+
+    .left {
+        padding-left: 0px;
+    }
 
     .money-input {
 		text-align: right;
@@ -290,6 +334,12 @@
 
     .date-input {
         float: right;
+    }
+
+    hr {
+        border-style: none;
+        border: 1px solid #F0F0F0;
+        margin-right: -10px;
     }
 
 </style>

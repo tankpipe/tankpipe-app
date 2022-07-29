@@ -4,7 +4,7 @@
 	export let accounts = []
 	let mode = "SCHEDULES"
 	let editMode = "ADD"
-	let curSchedule
+	let curSchedule	
 
 	const close = () => {
         console.log("close")
@@ -67,6 +67,12 @@
 					<div class="widget">
 						<div class="description">{s.name}</div>
 					</div>
+				</div>		
+				<hr/>
+				<div class="row">
+					<div class="widget">
+						<div class="description">{s.description}</div>
+					</div>
 					<div class="widget">
 						<div class="money">{formatter.format(s.amount)}</div>
 					</div>	
@@ -84,10 +90,9 @@
 				<div class="row">
 					<div class="widget">
 						<div class="label">Last</div>
-						<div class="account">{s.last_date}</div>
+						<div class="account">{s.last_date == "null"?"-":s.last_date}</div>
 					</div>
 				</div>
-
 			</div>
 		{/each}			
 </div>
@@ -148,6 +153,11 @@
 
 	.account-heading {
 		text-align: left;
+	}
+	
+	hr {
+		border: 1px solid #444;
+		margin: 0 -5px;
 	}
 
 	.toolbar {

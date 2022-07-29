@@ -64,22 +64,26 @@ pub struct NewSchedule {
     #[serde(serialize_with = "serialize_naivedate")]
     #[serde(deserialize_with = "deserialize_naivedate")]
 	pub start_date: NaiveDate,
-    #[serde(serialize_with = "serialize_naivedate")]
-    #[serde(deserialize_with = "deserialize_naivedate")]
-    pub last_date: NaiveDate,
+    #[serde(serialize_with = "serialize_option_naivedate")]
+    #[serde(deserialize_with = "deserialize_option_naivedate")]    
+    pub end_date: Option<NaiveDate>,
+	#[serde(serialize_with = "serialize_option_naivedate")]
+    #[serde(deserialize_with = "deserialize_option_naivedate")]    
+    pub last_date: Option<NaiveDate>,
 	pub amount: Decimal,
 	pub description: String,
 	pub dr_account_id: Option<Uuid>,
 	pub cr_account_id: Option<Uuid>}
 
 impl NewSchedule {
-	pub fn to_transaction(self) -> Schedule {
+	pub fn to_schedule(self) -> Schedule {
 		Schedule {
 			id: Uuid::new_v4(), 
 			name: self.name,
 			period: self.period,
 			frequency: self.frequency,
             start_date: self.start_date, 
+			end_date: self.end_date,
 			last_date: None, 
 			amount: self.amount,           
             description: self.description, 
