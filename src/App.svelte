@@ -3,6 +3,7 @@
 	import Schedules from './Schedules.svelte';
 	import Transactions from './Transactions.svelte';
 	import Settings from './Settings.svelte';
+	import { BaseDirectory, createDir, writeFile } from "@tauri-apps/api/fs";
 
 	let accounts = [] 
 	let curAccount = undefined
@@ -22,6 +23,22 @@
 		console.log(mode)
 	}
 	
+	const createDataFile = async () => {
+		try {
+			await writeFile(
+			{
+				contents: "[]",
+				path: `lindsay.json`,
+			},
+			{
+				dir: BaseDirectory.Home,
+			}
+			);
+		} catch (e) {
+			console.log(e);
+		}
+	};
+	createDataFile();
 </script>
 
 <main>	
