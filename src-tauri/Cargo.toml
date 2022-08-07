@@ -25,8 +25,11 @@ chrono = "0.4"
 chronoutil = "0.2.3"
 csv = "1.1"
 uuid = { version = "0.8", features = ["serde", "v4"] }
+directories = "4.0"
 accounts = { path = "../../accounts"}
 
+[dev-dependencies]
+serial_test = "*"
 
 [features]
 # by default Tauri runs in production mode
