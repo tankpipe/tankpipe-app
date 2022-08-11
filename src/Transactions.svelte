@@ -1,7 +1,7 @@
 <script>
 	import EditTransaction from './EditTransaction.svelte'
     import Select from './Select.svelte'
-	
+
 	export let curAccount
 	export let accounts = []
 	let mode = "TRANSACTIONS"
@@ -11,9 +11,9 @@
 	const close = () => {
         console.log("close")
         mode = "TRANSACTIONS";
-		if (curAccount) loadTransactions();        
+		if (curAccount) loadTransactions();
     }
-	
+
 	$: {
 		if (curAccount) loadTransactions();
     }
@@ -26,8 +26,9 @@
 
 	let transactions = [];
 	export const loadTransactions = async () => {
-		console.log("loadTransactions: " + curAccount.id);   	
+		console.log("loadTransactions: " + curAccount.id);
    		transactions = await invoke('transactions', {accountId: curAccount.id});
+		console.log(transactions)
 	};
 
 	const formatter = new Intl.NumberFormat('en-AU', {
@@ -35,19 +36,11 @@
 		maximumFractionDigits: 2,
 	});
 	const getDebitAmount = (transaction, curAccount) => {
-		if (curAccount && curAccount.id === transaction.dr_account_id) {
-			return formatter.format(transaction.amount)
-		} else {
-			return ''
-		}
+		return transaction.transaction_type === "Debit" ? formatter.format(transaction.amount) : ''
 	}
-	
+
 	const getCreditAmount = (transaction, curAccount) => {
-		if (curAccount && curAccount.id === transaction.cr_account_id) {
-			return formatter.format(transaction.amount)
-		} else {
-			return ''
-		}
+		return transaction.transaction_type === "Credit" ? formatter.format(transaction.amount) : ''
 	}
 
 	const getBalance = (transaction) => {
@@ -56,15 +49,15 @@
 
 	const handleAddClick = () => {
 		editMode = "ADD"
-		mode = "EDIT"		
+		mode = "EDIT"
 	}
-	
+
 </script>
 
 
 <div class="account-heading">
 	{#if mode === "TRANSACTIONS" && curAccount}
-	<Select bind:item={curAccount} items={accounts}/>			
+	<Select bind:item={curAccount} items={accounts}/>
 	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
 	{/if}
 </div>
@@ -77,7 +70,7 @@
 		<tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
 			<tr on:click={() => selectTransaction(t)}><!--{t.id}--><td>{t.date}</td><td class="description">{t.description}</td><td class="money">{getDebitAmount(t, curAccount)}</td><td class="money">{getCreditAmount(t, curAccount)}</td><td class="money">{getBalance(t)}</td></tr>
-		{/each}			
+		{/each}
 	</table>
 </div>
 {/if}
@@ -93,7 +86,7 @@
 		line-height: 1em;
 		color: #444;
 		background-color: #f0f0f0;
-		padding: 8px;		
+		padding: 8px;
 	}
 
 	th {
@@ -110,14 +103,14 @@
 
 	.money {
 		text-align: right !important;
-		min-width: 100px;		
+		min-width: 100px;
 		font-family: 'Courier New', Courier, monospace;
-		font-weight: bold;		
+		font-weight: bold;
 	}
 
 	.description {
 		min-width: 300px;
-		font-size: 1.05em;		
+		font-size: 1.05em;
 	}
 
 	.account-heading {
@@ -164,6 +157,6 @@
 		height: 10px;
 		top: 4px;
 		left: 8px
-	} 	
+	}
 
 </style>

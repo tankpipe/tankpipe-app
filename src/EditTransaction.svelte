@@ -3,29 +3,27 @@
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
-    
+
     export let close
     export let curAccount
     export let curTransaction
     export let accounts = []
     export let editMode = "ADD"
-    
+
     let drAccount
     let crAccount
     let msg = ""
     let errors = new Errors();
-    let date = new Date(), description, amount 
+    let date = new Date(), description, amount
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
-    
-    onMount(() => { 
-        console.log(editMode, curTransaction)        
+
+    onMount(() => {
+        console.log(editMode, curTransaction)
         if (editMode == "EDIT") {
-            description = curTransaction.description
-            amount = curTransaction.amount
-            addButtonLabel = "Update"
-            drAccount = matchAccount(curTransaction.dr_account_id)
-            crAccount = matchAccount(curTransaction.cr_account_id)
+            console.log(curTransaction)
+            fetchTransaction(curTransaction.transaction_id)
+
         } else {
             drAccount = null
             crAccount = curAccount
@@ -33,10 +31,18 @@
         }
     });
 
-    const matchAccount = (accountId) =>  {
-        if (!accountId) return null
+    const matchAccount = (transaction, type) =>  {
+        let typeEntries = transaction["entries"].filter(e => e.transaction_type === type)
+        if (typeEntries.length == 0) return null
+        let accountId = typeEntries[0].account_id
         let match = accounts.filter(a => a.id == accountId)
         return match.length > 0 ? match[0] : null
+    }
+
+    const getAmount = (transaction) =>  {
+        let entries = transaction["entries"].filter(e => e.account_id === curAccount.id)
+        if (entries.length == 0) return 0
+        return entries[0].amount
     }
 
     const onCancel = () => {
@@ -49,7 +55,7 @@
         if (!description || description.length < 1) {
              errors.addError("description", "Description is required")
         }
-      
+
         if (!date || date.length < 1) {
             errors.addError("date", "Date is required")
         }
@@ -62,35 +68,60 @@
             let drAccountId = drAccount? drAccount.id : null
             let crAccountId = crAccount? crAccount.id : null
             let dateStr = date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
+            const transaction = {
+                    date: dateStr,
+                    description: description,
+                    entries: [
+                    {
+                        date: dateStr,
+                        description: description,
+                        account_id: drAccountId,
+                        transaction_type: "Debit",
+                        amount: amount,
+                        status: "Recorded",
+                        schedule_id: null
+                    },
+                    {
+                        date: dateStr,
+                        description: description,
+                        account_id: crAccountId,
+                        transaction_type: "Credit",
+                        amount: amount,
+                        status: "Recorded",
+                        schedule_id: null
+                    }
+                ]
+            }
 
             if (editMode == "ADD") {
-                const transaction = {
-                    date: dateStr, 
-                    description: description, 
-                    amount: amount, 
-                    dr_account_id: drAccountId,
-                    cr_account_id: crAccountId,
-                    status: "Recorded"
-                }
-
+                transaction["id"] = "00000000-0000-0000-0000-000000000000";
+                transaction["entries"][0]["id"] = "00000000-0000-0000-0000-000000000000";
+                transaction["entries"][0]["transaction_id"] = "00000000-0000-0000-0000-000000000000";
+                transaction["entries"][1]["id"] = "00000000-0000-0000-0000-000000000000";
+                transaction["entries"][1]["transaction_id"] = "00000000-0000-0000-0000-000000000000";
                 addTransaction(transaction)
             } else if (editMode == "EDIT") {
-                const transaction = {
-                    id: curTransaction.id,
-                    date: dateStr, 
-                    description: description, 
-                    amount: amount, 
-                    dr_account_id: drAccountId,
-                    cr_account_id: crAccountId,
-                    status: "Recorded"
-                }
+                transaction["id"] = curTransaction.id;
+                transaction["entries"][0]["id"] = curTransaction["entries"][0]["id"];
+                transaction["entries"][0]["transaction_id"] = curTransaction.id;
+                transaction["entries"][1]["id"] = curTransaction["entries"][1]["id"];
+                transaction["entries"][1]["transaction_id"] = curTransaction.id;
                 saveTransaction(transaction)
-            } 
+            }
         }
-        
+
     }
     function resolved(result) {
-      msg = "Transaction added."
+      msg = "Transaction saved.."
+    }
+
+    function fetched(result) {
+        curTransaction = result
+        description = curTransaction.description
+        amount = getAmount(curTransaction)
+        addButtonLabel = "Update"
+        drAccount = matchAccount(curTransaction, "Debit")
+        crAccount = matchAccount(curTransaction, "Credit")
     }
 
     function rejected(result) {
@@ -107,6 +138,12 @@
    		await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
 	};
 
+    const fetchTransaction = async (transactionId) => {
+        console.log(transactionId)
+   		await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
+	};
+
+
 </script>
 
 <div class="form">
@@ -118,7 +155,7 @@
             </div>
             <div class="widget">
                 <label for="desc">Description</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description}>                
+                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description}>
             </div>
             <div class="widget">
                 <label for="amount">Amount</label>
@@ -156,7 +193,7 @@
     }
 
     :root {
-		--date-input-width: 110px;	
+		--date-input-width: 110px;
 	}
 
     .error-msg {
@@ -202,12 +239,12 @@
     }
 
     input {
-        margin-right: 0px;    
+        margin-right: 0px;
     }
 
     .form {
         float: left;
-        background-color: #F0f0f0;        
+        background-color: #F0f0f0;
         margin-top: 20px;
         border-radius: 10px;
     }
@@ -228,7 +265,7 @@
 
     .widget {
         display: inline-block;
-        padding: 5px 0px 5px 10px;        
+        padding: 5px 0px 5px 10px;
     }
 
     .widget p {
