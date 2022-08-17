@@ -1,12 +1,14 @@
-class Errors{   
+class Errors{
     constructor() {
-        this.errors = []            
+        this.errors = []
         this.fields = {}
     }
 
     addError(field, message) {
-         this.errors.push(message)   
-         this.fields[field] = message
+        if (!this.errors.includes(message)) {
+            this.errors.push(message)
+        }
+        this.fields[field] = message
     }
 
     isInError(field) {
@@ -14,11 +16,11 @@ class Errors{
     }
 
     getErrorMessages() {
-        return this.errors; 
+        return this.errors;
     }
 
     hasErrors() {
-        return this.errors.length > 0; 
+        return this.errors.length > 0;
     }
 }
 
