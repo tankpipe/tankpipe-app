@@ -62,7 +62,7 @@
 	{/if}
 </div>
 {#if mode === "EDIT"}
-<EditTransaction {close} {curAccount} {accounts} {editMode} {curTransaction} />
+<EditTransaction {close} {accounts} {editMode} {curTransaction} />
 {/if}
 {#if mode === "TRANSACTIONS"}
 <div class="scroller">

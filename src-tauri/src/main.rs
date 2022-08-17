@@ -98,7 +98,7 @@ fn add_transaction(
     state: tauri::State<BooksState>,
     mut transaction: Transaction,
 ) -> Result<(), String> {
-    println!("Adding transaction {}", transaction.description);
+    println!("Adding transaction {:?}", transaction);
     transaction.id = Uuid::new_v4();
     for mut e in transaction.entries.as_mut_slice() {
         e.id = Uuid::new_v4();
@@ -115,7 +115,7 @@ fn update_transaction(
     state: tauri::State<BooksState>,
     transaction: Transaction,
 ) -> Result<(), String> {
-    println!("Adding transaction {}", transaction.description);
+    println!("Updating transaction {:?}", transaction);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_transaction(transaction))?;
     error_handler(mutex_guard.save())

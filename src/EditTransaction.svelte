@@ -9,12 +9,11 @@
     export let accounts = []
     export let editMode = "ADD"
 
-    let mode = "NONE"
+    const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
     let errors = new Errors();
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
-    let modeButtonLabel = ""
     let drTotal = 0
     let crTotal = 0
     let simpleAllowed = false
@@ -32,16 +31,17 @@
         } else {
             let date = new Date();
             entries = [
-                {realDate: new Date(date), description: "", amount: 0, account: {}},
-                {realDate: new Date(date), description: "", amount: 0, account: {}},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}, status:"Recorded"},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Credit", account: {}, status:"Recorded"},
             ]
             addButtonLabel = "Add"
+            simpleAllowed = true
         }
 
     });
 
     const handleAddClick = () => {
-        entries = [...entries, {date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit", status:"Recorded"}]
+        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit", status:"Recorded"}]
     }
 
     const handleRemoveClick = () => {
@@ -83,7 +83,7 @@
             errors.addError(index + "_account", "Account is required")
         }
 
-        if (drTotal != crTotal) {
+        if (compound && (drTotal != crTotal)) {
             errors.addError("totals", "Totals should balance")
         }
 
@@ -97,7 +97,7 @@
     const onAdd = () => {
         msg = "";
         errors = new Errors();
-        if (mode === "SIMPLE") syncSecondEntry(entries)
+        if (!compound) syncSecondEntry(entries)
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
         if (!errors.hasErrors()) {
@@ -111,12 +111,13 @@
                 e => {
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
-                    e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                    if (compound) {
+                        e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                    }
                 }
             )
 
             if (editMode == "ADD") {
-                const zeros = '00000000-0000-0000-0000-000000000000'
                 transaction["id"] = zeros
                 transaction.entries.forEach (
                     e => {
@@ -169,8 +170,6 @@
             e.account = matchAccount(e.account_id)
         })
         simpleAllowed = canBeSimple(entries)
-        mode = simpleAllowed ? "SIMPLE" : "COMPOUND"
-        modeButtonLabel = simpleAllowed ?  "Compound" : "Simple"
         compound = !simpleAllowed
         console.log(entries)
     }
@@ -221,11 +220,7 @@
 
 
     const toggleMode = () => {
-        const isSimple = mode === "SIMPLE"
-        if (isSimple) syncSecondEntry(entries)
-        mode = isSimple ? "COMPOUND" : "SIMPLE"
-        modeButtonLabel = isSimple ? "Simple" : "Compound"
-        compound = isSimple
+        if (!compound) syncSecondEntry(entries)
     }
 
     $: {
@@ -236,7 +231,7 @@
 </script>
 <div class="form">
     <div class="panel">
-        {#if entries.length > 0 && mode === "SIMPLE"}
+        {#if entries.length > 0 && !compound}
         <div class="entries">
             <table>
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
@@ -248,7 +243,7 @@
             </table>
         </div>
         <div class="form-row2">
-            {#if entries[0].transaction_type === "Debit"}
+            {#if entries[0].transaction_type !== "Credit"}
             <Select bind:item={entries[0].account} items={accounts} label="Debit" none={true}/>
             <Select bind:item={entries[1].account} items={accounts} label="Credit" none={true} />
             {/if}
@@ -258,7 +253,7 @@
             {/if}
         </div>
         {/if}
-        {#if mode === "COMPOUND"}
+        {#if compound}
         <div class="entries">
             <table>
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
@@ -272,7 +267,7 @@
                         {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
                     </td>
                     <td class="money">
-                        {#if showAmount(e, "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.crAmount}>{/if}
+                        {#if showAmount(e, "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>{/if}
                         {#if !showAmount(e, "Credit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
                     </td>
                 </tr>
@@ -289,7 +284,7 @@
     </div>
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compound} on:change={toggleMode} disabled={!(mode === "COMPOUND" && canBeSimple(entries) || mode === "SIMPLE" && simpleAllowed)}>
+            <input id="compound" type=checkbox bind:checked={compound} on:change={toggleMode} disabled={!(compound && canBeSimple(entries) || !compound && simpleAllowed)}>
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget buttons">
@@ -319,13 +314,6 @@
 		--date-input-width: 110px;
 	}
 
-    .form-row {
-        display: inline-flex;
-        float: left;
-        width: 100%;
-        clear:both;
-    }
-
     .form-row2, .form-button-row {
         display: block;
         text-align: left;
@@ -343,6 +331,7 @@
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
+        max-width: 350px;
     }
 
     .success-msg {
@@ -378,7 +367,7 @@
         margin: 10px 12px 0 0;
     }
 
-    .buttons button, .buttons-left button {
+    .buttons button {
         min-width: 80px;
     }
 
@@ -426,11 +415,6 @@
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
-    }
-
-    .widget p {
-        max-width: 500px;
-        font-size: 0.9em;
     }
 
     .widget2 {
