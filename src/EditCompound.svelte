@@ -9,15 +9,15 @@
     export let accounts = []
     export let editMode = "ADD"
 
-    const zeros = '00000000-0000-0000-0000-000000000000'
+    let mode = "NONE"
     let msg = ""
     let errors = new Errors();
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
+    let modeButtonLabel = ""
     let drTotal = 0
     let crTotal = 0
     let simpleAllowed = false
-    let compound = false
     console.log(accounts)
 
     let entries = []
@@ -31,17 +31,16 @@
         } else {
             let date = new Date();
             entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}, status:"Recorded"},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Credit", account: {}, status:"Recorded"},
+                {realDate: new Date(date), description: "", amount: 0, account: {}},
+                {realDate: new Date(date), description: "", amount: 0, account: {}},
             ]
             addButtonLabel = "Add"
-            simpleAllowed = true
         }
 
     });
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit", status:"Recorded"}]
+        entries = [...entries, {date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit", status:"Recorded"}]
     }
 
     const handleRemoveClick = () => {
@@ -55,26 +54,22 @@
     }
 
     const validateEntry = (entry, index, errors) => {
-        const prefix = compound ? index + "_" : ""
+        console.log(entry)
         if (!entry.description || entry.description.length < 1) {
-             errors.addError(prefix + "description", "Description is required")
+             errors.addError(index + "_description", "Description is required")
         }
 
         if (!entry.realDate || entry.realDate.length < 1) {
-            errors.addError(prefix + "date", "Date is required")
+            errors.addError(index + "_date", "Date is required")
         }
 
-        if (!compound) {
-            if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
-                errors.addError("amount", "A valid amount is required")
-            }
-        } else if (entry.transaction_type === "Credit") {
+        if (entry.transaction_type === "Credit") {
             if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
-                errors.addError(prefix + "crAmount", "A valid amount is required")
+                errors.addError(index + "_crAmount", "A valid amount is required")
             }
         } else {
             if (!entry.drAmount || entry.drAmount.length < 1 || isNaN(entry.drAmount)) {
-                errors.addError(prefix + "drAmount", "A valid amount is required")
+                errors.addError(index + "_drAmount", "A valid amount is required")
                 console.log(entry.drAmount)
             }
         }
@@ -83,7 +78,7 @@
             errors.addError(index + "_account", "Account is required")
         }
 
-        if (compound && (drTotal != crTotal)) {
+        if (drTotal != crTotal) {
             errors.addError("totals", "Totals should balance")
         }
 
@@ -97,7 +92,7 @@
     const onAdd = () => {
         msg = "";
         errors = new Errors();
-        if (!compound) syncSecondEntry(entries)
+        if (mode === "SIMPLE") syncSecondEntry(entries)
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
         if (!errors.hasErrors()) {
@@ -111,13 +106,12 @@
                 e => {
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
-                    if (compound) {
-                        e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
-                    }
+                    e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
                 }
             )
 
             if (editMode == "ADD") {
+                const zeros = '00000000-0000-0000-0000-000000000000'
                 transaction["id"] = zeros
                 transaction.entries.forEach (
                     e => {
@@ -155,7 +149,7 @@
             (entries.length == 2 &&
             entries[0].description === entries[1].description &&
             entries[0].amount === entries[1].amount &&
-            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime())
+            entries[0].realDate.getTime() == entries[1].realDate.getTime())
         )
     }
 
@@ -170,7 +164,8 @@
             e.account = matchAccount(e.account_id)
         })
         simpleAllowed = canBeSimple(entries)
-        compound = !simpleAllowed
+        mode = simpleAllowed ? "SIMPLE" : "COMPOUND"
+        modeButtonLabel = simpleAllowed ?  "Compound" : "Simple"
         console.log(entries)
     }
 
@@ -220,7 +215,10 @@
 
 
     const toggleMode = () => {
-        if (!compound) syncSecondEntry(entries)
+        const isSimple = mode === "SIMPLE"
+        if (isSimple) syncSecondEntry(entries)
+        mode = isSimple ? "COMPOUND" : "SIMPLE"
+        modeButtonLabel = isSimple ? "Simple" : "Compound"
     }
 
     $: {
@@ -231,19 +229,23 @@
 </script>
 <div class="form">
     <div class="panel">
-        {#if entries.length > 0 && !compound}
-        <div class="entries">
-            <table>
-                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
-                <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" /></div></td>
-                    <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount}></td>
-                </tr>
-            </table>
+        {#if entries.length > 0 && mode === "SIMPLE"}
+        <div class="form-row">
+            <div class="widget date-time-field" class:error-input={errors.isInError("date")}>
+                <label for="date">Date</label>
+                <DateInput bind:value={entries[0].realDate} {format} placeholder="" />
+            </div>
+            <div class="widget">
+                <label for="desc">Description</label>
+                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}>
+            </div>
+            <div class="widget">
+                <label for="amount">Amount</label>
+                <input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount}>
+            </div>
         </div>
         <div class="form-row2">
-            {#if entries[0].transaction_type !== "Credit"}
+            {#if entries[0].transaction_type === "Debit"}
             <Select bind:item={entries[0].account} items={accounts} label="Debit" none={true}/>
             <Select bind:item={entries[1].account} items={accounts} label="Credit" none={true} />
             {/if}
@@ -253,21 +255,21 @@
             {/if}
         </div>
         {/if}
-        {#if compound}
+        {#if mode === "COMPOUND"}
         <div class="entries">
             <table>
-                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
+                <tr><td><div class="heading">Date</div></td><td><div class="heading">Account</div></td><td><div class="heading">Description</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
                 {#each entries as e, i}
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" /></div></td>
-                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
                     <td><div class="select-adjust"><Select bind:item={e["account"]} items={accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
                     <td class="money">
                         {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
                         {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
                     </td>
                     <td class="money">
-                        {#if showAmount(e, "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>{/if}
+                        {#if showAmount(e, "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.crAmount}>{/if}
                         {#if !showAmount(e, "Credit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
                     </td>
                 </tr>
@@ -283,14 +285,6 @@
         {/if}
     </div>
     <div class="form-button-row">
-        <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compound} on:change={toggleMode} disabled={!(compound && canBeSimple(entries) || !compound && simpleAllowed)}>
-            <label for="compound">Compound entry</label>
-        </div>
-        <div class="widget buttons">
-            <button on:click={onCancel}>Close</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
-        </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}
             <div class="error-msg">{e}</div>
@@ -298,6 +292,15 @@
             {#if msg}
             <div class="success-msg">{msg}</div>
             {/if}
+        </div>
+        {#if mode === "COMPOUND" && canBeSimple(entries) || mode === "SIMPLE" && simpleAllowed}
+        <div class="buttons-left">
+            <button on:click={toggleMode}>{modeButtonLabel}</button>
+        </div>
+        {/if}
+        <div class="widget buttons">
+            <button on:click={onCancel}>Close</button>
+            <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
@@ -314,24 +317,25 @@
 		--date-input-width: 110px;
 	}
 
+    .form-row {
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear:both;
+    }
+
     .form-row2, .form-button-row {
         display: block;
         text-align: left;
     }
 
-    .form-row2{
-        min-height: 70px;
-    }
-
     .errors {
-        float: right;
+        float: left;
     }
     .error-msg {
         color: red;
         text-align: left;
         margin-bottom: 3px;
-        font-size: 0.9em;
-        max-width: 350px;
     }
 
     .success-msg {
@@ -367,7 +371,7 @@
         margin: 10px 12px 0 0;
     }
 
-    .buttons button {
+    .buttons button, .buttons-left button {
         min-width: 80px;
     }
 
@@ -402,7 +406,6 @@
 
     .total {
         text-align: right;
-        margin: 0px 5px -3px 0px;
     }
 
     .panel {
@@ -417,18 +420,9 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
-
-    .widget2 label {
-        display: inline-block;
-        margin-left: 3px;
-    }
-
-    .widget2 input {
-        margin: 0px;
+    .widget p {
+        max-width: 500px;
+        font-size: 0.9em;
     }
 
     .money-input {
