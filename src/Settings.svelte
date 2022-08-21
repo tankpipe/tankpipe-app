@@ -1,4 +1,5 @@
 <script>
+	export let settings
     let dateStr
 
 	$: {
@@ -6,6 +7,7 @@
 			generate()
 		}
 	}
+
 	function resolved(result) {
       const msg = "Generation complete."
 	  console.log(msg)
@@ -21,13 +23,23 @@
 		if (dateStr) {
 			console.log("generating to " + dateStr)
 			await invoke('generate', {date: {date: dateStr}}).then(resolved, rejected)
-		}	
+		}
 	}
 
-	const getEndDate = async () => {		
+	const updateSettings = async () => {
+		if (settings) {
+			await invoke('update_settings', {settings: settings}).then(
+				() => console.log("settings saved"),
+				() => console.log("settings not saved " + result)
+			)
+		}
+	}
+
+
+	const getEndDate = async () => {
         console.log("getEndDate")
    		let tempDate = await invoke('end_date')
-		if (tempDate) dateStr = tempDate.date		
+		if (tempDate) dateStr = tempDate.date
 
 	}
 	getEndDate()
@@ -36,22 +48,29 @@
 <div class="controls">
     <div class="form-row2">
 		<div class="widget">
+			<div class="label">Enforce double entry</div><input type="checkbox" bind:checked={settings.require_double_entry} on:change={updateSettings}/>
+		</div>
+	</div>
+    <div class="form-row2">
+		<div class="widget">
 			<div class="label">Schedule until </div><div class="date-input"><input type="date" bind:value={dateStr}/></div>
 		</div>
 	</div>
-</div> 
+</div>
 <style>
 	.controls {
 		padding: 10px 0 0 0;
 		text-align: center;
 	}
+
 	.form-row2 {
         display: block;
     }
 
     .widget {
-        display: inline-block;
-        padding: 5px 0px 5px 10px;        
+        padding: 5px 0px 5px 10px;
+		float: left;
+		clear: both;
     }
 
 	.date-input {

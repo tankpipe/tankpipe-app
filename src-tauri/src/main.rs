@@ -7,6 +7,7 @@
 
 use account_display::{DateParam, NewAccount, NewSchedule};
 use accounts::book_repo::load_books;
+use accounts::books::Settings;
 use accounts::{
     account::{Account, Entry},
     account::{Schedule, Transaction},
@@ -65,7 +66,9 @@ fn main() {
             update_schedule,
             generate,
             end_date,
-            transaction
+            transaction,
+            update_settings,
+            settings,
         ])
         .run(context)
         .expect("error while running tauri application");
@@ -185,6 +188,21 @@ fn generate(state: tauri::State<BooksState>, date: DateParam) {
     println!("Generating to {}", date.date);
     let mut mutex_guard = state.0.lock().unwrap();
     mutex_guard.books.generate(date.date);
+}
+
+#[tauri::command]
+fn update_settings(state: tauri::State<BooksState>, settings: Settings) -> Result<(), String> {
+    println!("Updating settings: {:?}", settings);
+    let mut mutex_guard = state.0.lock().unwrap();
+    mutex_guard.books.settings = settings;
+    error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+fn settings(state: tauri::State<BooksState>) -> Settings {
+    println!("Fetching settings");
+    let mutex_guard = state.0.lock().unwrap();
+    mutex_guard.books.settings.clone()
 }
 
 fn error_handler(x: Result<(), accounts::books::BooksError>) -> Result<(), String> {

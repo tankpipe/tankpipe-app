@@ -7,7 +7,7 @@ pub struct FileDetails {
     #[serde(serialize_with = "serialize_osstring")]
     #[serde(deserialize_with = "deserialize_osstring")]
     pub path: OsString,
-}    
+}
 
 impl FileDetails {
     pub fn empty() -> FileDetails {
@@ -27,7 +27,7 @@ pub struct Config {
     #[serde(serialize_with = "serialize_osstring")]
     #[serde(deserialize_with = "deserialize_osstring")]
     pub config_dir: OsString,
-    pub last_file: FileDetails,    
+    pub last_file: FileDetails,
     pub recent_files: Vec<FileDetails>,
 }
 

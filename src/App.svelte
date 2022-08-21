@@ -3,12 +3,14 @@
 	import Schedules from './Schedules.svelte';
 	import Transactions from './Transactions.svelte';
 	import Settings from './Settings.svelte';
-	import { BaseDirectory, createDir, writeFile } from "@tauri-apps/api/fs";
 
-	let accounts = []
+	let accounts
 	let curAccount = undefined
 	let mode = "TRANSACTIONS"
+	let initializing = true
+
 	export let transactions = []
+	let settings
 
 	const loadAccounts = async () => {
    		accounts = await invoke('accounts');
@@ -16,61 +18,81 @@
 			curAccount = accounts[0];
 		}
 	};
-	loadAccounts();
+
+	const loadSettings = async () => {
+   		settings = await invoke('settings');
+	};
+
+	const initialize = async () => {
+		initializing = true
+		await loadSettings()
+		await loadAccounts()
+		if (accounts.length < 1) {
+			mode = "ACCOUNTS"
+		}
+		initializing = false
+	}
+	initialize()
 
 	const setMode = (newMode) => {
 		mode = newMode;
-		console.log(mode)
 	}
 
-	const createDataFile = async () => {
-		try {
-			await writeFile(
-			{
-				contents: "[]",
-				path: `lindsay.json`,
-			},
-			{
-				dir: BaseDirectory.Home,
-			}
-			);
-		} catch (e) {
-			console.log(e);
-		}
-	};
-	createDataFile();
 </script>
 
 <main>
 	<div class="app">
-		<div class="column left">
-			<div class="menu-left">
-				<ul>
-					<li on:click={() => setMode("TRANSACTIONS")} class:menu-selected={mode=="TRANSACTIONS"}>Transactions</li>
-					<li on:click={() => setMode("ACCOUNTS")} class:menu-selected={mode=="ACCOUNTS"}>Accounts</li>
-					<li on:click={() => setMode("SCHEDULES")} class:menu-selected={mode=="SCHEDULES"}>Schedules</li>
-					<li on:click={() => setMode("SETTINGS")} class:menu-selected={mode=="SETTINGS"}>Settings</li>
-				</ul>
+		{#if initializing}
+			<div class="loading">Loading...</div>
+		{/if}
+
+		{#if !initializing}
+			<div class="column left">
+				<div class="menu-left">
+					<ul>
+						{#if accounts.length < 1 }
+						<li class="disabled">Transactions</li>
+						{/if}
+						{#if accounts.length > 0 }
+						<li on:click={() => setMode("TRANSACTIONS")} class:menu-selected={mode=="TRANSACTIONS"}>Transactions</li>
+						{/if}
+						<li on:click={() => setMode("ACCOUNTS")} class:menu-selected={mode=="ACCOUNTS"}>Accounts</li>
+						{#if accounts.length < 1 }
+						<li class="disabled">Schedules</li>
+						{/if}
+						{#if accounts.length > 0 }
+						<li on:click={() => setMode("SCHEDULES")} class:menu-selected={mode=="SCHEDULES"}>Schedules</li>
+						{/if}
+						<li on:click={() => setMode("SETTINGS")} class:menu-selected={mode=="SETTINGS"}>Settings</li>
+					</ul>
+				</div>
 			</div>
-		</div>
-		<div class="column middle">
-			{#if mode=="TRANSACTIONS"}
-			<Transactions bind:this={transactions} {curAccount} {accounts}/>
-			{/if}
-			{#if mode=="ACCOUNTS"}
-			<Accounts {curAccount} {accounts} {loadAccounts}/>
-			{/if}
-			{#if mode=="SCHEDULES"}
-			<Schedules {accounts}/>
-			{/if}
-			{#if mode=="SETTINGS"}
-			<Settings/>
-			{/if}
-		</div>
+			<div class="column middle">
+
+					{#if mode=="TRANSACTIONS"}
+					<Transactions bind:this={transactions} {curAccount} {accounts} {settings}/>
+					{/if}
+					{#if mode=="ACCOUNTS"}
+					<Accounts {curAccount} {accounts} {loadAccounts}/>
+					{/if}
+					{#if mode=="SCHEDULES"}
+					<Schedules {accounts}/>
+					{/if}
+					{#if mode=="SETTINGS"}
+					<Settings bind:settings={settings}/>
+					{/if}
+
+			</div>
+		{/if}
 	</div>
 </main>
 
 <style>
+	.loading {
+		margin: 50px 50px;
+		color: #C0C0C0;
+	}
+
 	.column {
 		float:left;
 		-webkit-user-select: none; /* Chrome/Safari */
@@ -97,6 +119,7 @@
 	.app {
 		background-color: #444;
 		height: 100%;
+		display: flex;
 	}
 
 	.menu-left {
@@ -119,6 +142,10 @@
 
 	.menu-selected {
 		color: #F0F0F0 !important;
+	}
+
+	.disabled {
+		color: #555555 !important;
 	}
 
 	main {

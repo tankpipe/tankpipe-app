@@ -4,6 +4,7 @@
 
 	export let curAccount
 	export let accounts = []
+	export let settings
 	let mode = "TRANSACTIONS"
 	let editMode = "ADD"
 	let curTransaction
@@ -57,21 +58,26 @@
 
 <div class="account-heading">
 	{#if mode === "TRANSACTIONS" && curAccount}
-	<Select bind:item={curAccount} items={accounts}/>
+	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry}/>
 	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
 	{/if}
 </div>
 {#if mode === "EDIT"}
-<EditTransaction {close} {accounts} {editMode} {curTransaction} />
+<EditTransaction {close} {accounts} {editMode} {curTransaction} {settings}/>
 {/if}
 {#if mode === "TRANSACTIONS"}
 <div class="scroller">
+	{#if transactions.length > 0}
 	<table>
 		<tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
 			<tr on:click={() => selectTransaction(t)}><!--{t.id}--><td>{t.date}</td><td class="description">{t.description}</td><td class="money">{getDebitAmount(t, curAccount)}</td><td class="money">{getCreditAmount(t, curAccount)}</td><td class="money">{getBalance(t)}</td></tr>
 		{/each}
 	</table>
+	{/if}
+	{#if transactions.length < 1}
+	<div class="message">No transactions</div>
+	{/if}
 </div>
 {/if}
 
@@ -120,11 +126,21 @@
 	.toolbar {
 		float: right;
 		color: #C0C0C0;
+		margin-left: 10px;
 	}
 
 	.toolbar i:hover{
 		color: #F0F0F0;
 		border-color: #f0f0f0;
+	}
+
+	.message {
+		color: #EFEFEF;
+		margin-bottom: 20px;
+		text-align: left;
+		background-color: #303030;
+		padding:10px;
+		border-radius: 10px;
 	}
 
 	.gg-add-r {

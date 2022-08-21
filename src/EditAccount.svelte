@@ -1,29 +1,31 @@
 <script>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
-    
+
     export let close
     export let curAccount
     export let loadAccounts
     export let editMode = "NEW"
-        
+
     let msg = ""
     let errors = new Errors()
     let name, startingBalance
     let isDebit = true
     let addButtonLabel = "Add"
-    
-    onMount(() => { 
+    let initialize = !curAccount
+
+    onMount(() => {
         if (editMode == "EDIT") {
-            name = curAccount.name 
+            name = curAccount.name
             startingBalance = curAccount.starting_balance
             isDebit = curAccount.account_type == "Debit"
             addButtonLabel = "Update"
         } else {
             addButtonLabel = "Add"
+            startingBalance = "0"
         }
     });
-    
+
     const onCancel = () => {
         close()
     }
@@ -34,7 +36,7 @@
         if (!name || name.length < 1) {
              errors.addError("name", "Name is required")
         }
-      
+
         if (!startingBalance || startingBalance.length < 1 || isNaN(startingBalance)) {
             errors.addError("startingBalance", "A valid starting balance is required")
         }
@@ -45,7 +47,7 @@
                 const accountType = isDebit ? "Debit" : "Credit"
                 const account = {
                     name: name,
-                    starting_balance: startingBalance, 
+                    starting_balance: startingBalance,
                     account_type: accountType
                 }
 
@@ -53,16 +55,16 @@
             } else if (editMode == "EDIT") {
                 const account = {
                     name: name,
-                    starting_balance: startingBalance, 
+                    starting_balance: startingBalance,
                     account_type: curAccount.account_type,
                     id: curAccount.id,
                     balance: 0
                 }
                 saveAccount(account)
-            } 
+            }
 
         }
-        
+
     }
     function resolved(result) {
       msg = "Account added."
@@ -75,6 +77,7 @@
     const addAccount = async (account) => {
    		await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
+        initialize = false
 	};
 
     const saveAccount = async (account) => {
@@ -85,19 +88,22 @@
 
 
 </script>
+{#if initialize}
+<div class="message">To get started add your first account. Typically this will be your main bank account used for everyday transactions.</div>
+{/if}
 
 <div class="form">
     <div class="panel">
         <div class="form-row">
             <div class="widget">
                 <label for="name">Name</label>
-                <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>                
+                <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
             </div>
             <div class="widget">
                 <label for="startingBalance">Starting balance</label>
                 <input id="startingBalance" class="money-input" class:error={errors.isInError("startingBalance")} bind:value={startingBalance}>
             </div>
-            <div class="widget2">            
+            <div class="widget2">
                 <input id="debit" type="radio" bind:group={isDebit} value={true} class="" name="transactionType" disabled={editMode == "EDIT"}>
                 <label for="debit">Debit</label>
                 <br/>
@@ -132,7 +138,16 @@
     }
 
     :root {
-		--date-input-width: 110px;	
+		--date-input-width: 110px;
+	}
+
+    .message {
+		color: #EFEFEF;
+		margin-bottom: 20px;
+		text-align: left;
+		background-color: #303030;
+		padding:10px;
+		border-radius: 10px;
 	}
 
     .error-msg {
@@ -178,12 +193,12 @@
     }
 
     input {
-        margin-right: 0px;    
+        margin-right: 0px;
     }
 
     .form {
         float: left;
-        background-color: #F0f0f0;        
+        background-color: #F0f0f0;
         margin-top: 20px;
         border-radius: 10px;
     }
@@ -205,7 +220,7 @@
 
     .widget {
         display: inline-block;
-        padding: 5px 0px 5px 10px;        
+        padding: 5px 0px 5px 10px;
     }
 
     .widget p {
@@ -214,10 +229,11 @@
     }
 
     .widget2 {
-        padding: 5px 0px 5px 10px;  
+        padding: 5px 0px 5px 10px;
         margin: 13px 12px 0px 0px;
+        min-width: 53px;
     }
-    
+
     .widget2 label {
         display: inline-block;
     }

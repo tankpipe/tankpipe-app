@@ -8,6 +8,7 @@
     export let curTransaction
     export let accounts = []
     export let editMode = "ADD"
+    export let settings
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
@@ -27,7 +28,6 @@
         if (editMode == "EDIT") {
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
-
         } else {
             let date = new Date();
             entries = [
@@ -80,7 +80,9 @@
         }
 
         if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            errors.addError(index + "_account", "Account is required")
+            if (settings.require_double_entry || compound) {
+                errors.addError(index + "_account", "Account is required")
+            }
         }
 
         if (compound && (drTotal != crTotal)) {
@@ -105,6 +107,10 @@
                     date: toDateStr(new Date()),
                     description: "",
                     entries: [...entries]
+            }
+
+            if (!compound && !settings.require_double_entry) {
+                transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
             }
 
             transaction.entries.forEach (
@@ -162,13 +168,22 @@
     function fetched(result) {
         curTransaction = result
         addButtonLabel = "Update"
-        console.log(accounts)
+        console.log(result)
         entries = curTransaction.entries
+
         entries.forEach(e => {
             e.transaction_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
         })
+
+        if (entries.length == 1) {
+            entries.push({})
+            syncSecondEntry(entries)
+            entries[1].account = null
+            entries[0].transaction_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
+        }
+
         simpleAllowed = canBeSimple(entries)
         compound = !simpleAllowed
         console.log(entries)
@@ -243,6 +258,7 @@
             </table>
         </div>
         <div class="form-row2">
+            {#if entries.length > 1}
             {#if entries[0].transaction_type !== "Credit"}
             <Select bind:item={entries[0].account} items={accounts} label="Debit" none={true}/>
             <Select bind:item={entries[1].account} items={accounts} label="Credit" none={true} />
@@ -250,6 +266,7 @@
             {#if entries[0].transaction_type === "Credit"}
             <Select bind:item={entries[1].account} items={accounts} label="Debit" none={true}/>
             <Select bind:item={entries[0].account} items={accounts} label="Credit" none={true} />
+            {/if}
             {/if}
         </div>
         {/if}
@@ -309,7 +326,7 @@
         border-radius: 2px !important;
         height: 33px;
     }
-
+    
     :root {
 		--date-input-width: 110px;
 	}
