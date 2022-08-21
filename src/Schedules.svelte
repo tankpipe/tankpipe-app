@@ -1,17 +1,17 @@
 <script>
 	import EditSchedule from './EditSchedule.svelte'
-	
+
 	export let accounts = []
 	let mode = "SCHEDULES"
 	let editMode = "ADD"
-	let curSchedule	
+	let curSchedule
 
 	const close = () => {
         console.log("close")
         mode = "SCHEDULES";
-		loadSchedules()        
+		loadSchedules()
     }
-	
+
 	$: {
 		loadSchedules()
     }
@@ -24,7 +24,7 @@
 
 	let schedules = [];
 	const loadSchedules = async () => {
-		console.log("loadSchedules");   	
+		console.log("loadSchedules");
    		schedules = await invoke('schedules');
 	};
 
@@ -43,12 +43,12 @@
 		const account = matchAccount(accountId)
 		return account ? account.name : "None"
 	}
-	
+
 	const handleAddClick = () => {
 		editMode = "ADD"
-		mode = "EDIT"		
+		mode = "EDIT"
 	}
-	
+
 </script>
 
 <div class="account-heading">
@@ -61,13 +61,16 @@
 {/if}
 {#if mode === "SCHEDULES"}
 <div class="scroller">
+	{#if schedules.length < 1}
+	<div class="message">No schedules</div>
+	{/if}
 		{#each schedules as s}
 			<div class="card" on:click={() => selectSchedule(s)}>
 				<div class="row">
 					<div class="widget">
 						<div class="description">{s.name}</div>
 					</div>
-				</div>		
+				</div>
 				<hr/>
 				<div class="row">
 					<div class="widget">
@@ -75,8 +78,8 @@
 					</div>
 					<div class="widget">
 						<div class="money">{formatter.format(s.amount)}</div>
-					</div>	
-				</div>		
+					</div>
+				</div>
 				<div class="row">
 					<div class="widget">
 						<div class="label">Debit</div>
@@ -94,12 +97,12 @@
 					</div>
 				</div>
 			</div>
-		{/each}			
+		{/each}
 </div>
 {/if}
 
 <style>
-	.widget {		
+	.widget {
 		display: inline-block;
 		text-align: left;
 		margin: 10px 10px;
@@ -137,7 +140,7 @@
 
 	.money {
 		text-align: right !important;
-		min-width: 100px;		
+		min-width: 100px;
 	}
 
 	.description {
@@ -145,24 +148,34 @@
 		white-space: nowrap;
 		font-weight: bold;
 	}
-	
+
 	.account {
 		min-width: 200px;
-		white-space: nowrap;		
+		white-space: nowrap;
 	}
 
 	.account-heading {
 		text-align: left;
 	}
-	
+
 	hr {
 		border: 1px solid #444;
 		margin: 0 -5px;
 	}
 
+	.message {
+		color: #EFEFEF;
+		margin-bottom: 20px;
+		text-align: left;
+		background-color: #303030;
+		padding:10px;
+		border-radius: 10px;
+	}
+
 	.toolbar {
 		float: right;
 		color: #C0C0C0;
+		margin-bottom: 10px;
 	}
 
 	.toolbar i:hover{
@@ -200,6 +213,6 @@
 		height: 10px;
 		top: 4px;
 		left: 8px
-	} 	
+	}
 
 </style>

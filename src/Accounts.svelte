@@ -1,12 +1,21 @@
 <script>
-    import EditAccount from "./EditAccount.svelte"    
+    import EditAccount from "./EditAccount.svelte"
 
     export let curAccount
-    export let accounts = []
+    export let accounts
     export let loadAccounts
 
     let mode = "ACCOUNTS"
     let editMode = "ADD"
+
+	$: {
+		if (accounts)
+		console.log("accounts: " + accounts.length)
+			if (accounts.length < 1) {
+				mode = "EDIT"
+			}
+	}
+
 
 	const close = () => {
         console.log("close")
@@ -21,8 +30,8 @@
     const selectAccount = (account) => {
         curAccount = account
         editMode = "EDIT"
-		mode = "EDIT"        
-        console.log("selected: " + curAccount.name);   
+		mode = "EDIT"
+        console.log("selected: " + curAccount.name);
     }
 
 </script>
@@ -33,19 +42,19 @@
 	{/if}
 </div>
 
+
 {#if mode === "EDIT"}
 <EditAccount {curAccount} {loadAccounts} {close} {editMode}/>
 {/if}
 {#if mode === "ACCOUNTS"}
 <div class="scroller">
-    
     {#each accounts as a}
-        <div class="card" on:click={() => selectAccount(a) }>{a.name}</div>		
-    {/each}	
-    
+        <div class="card" on:click={() => selectAccount(a) }>{a.name}</div>
+    {/each}
 </div>
 {/if}
 <style>
+
     .scroller {
         min-width: 200px;
         float: left;
@@ -110,6 +119,6 @@
 		height: 10px;
 		top: 4px;
 		left: 8px
-	} 	
+	}
 
 </style>

@@ -3,25 +3,25 @@
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
-    
+
     export let close
     export let curSchedule
     export let accounts = []
     export let editMode = "ADD"
-    
+
     let hasEnd = false
     let drAccount
     let crAccount
     let msg = ""
     let errors = new Errors();
-    let date = new Date(), name, description, amount, frequency = 1 
+    let date = new Date(), name, description, amount, frequency = 1
     let endDate
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let period = {value:"Months", name:"Months"}
     const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
-    
-    onMount(() => { 
+
+    onMount(() => {
         if (editMode == "EDIT") {
             name = curSchedule.name
             description = curSchedule.description
@@ -65,7 +65,7 @@
         if (!name || name.length < 1) {
              errors.addError("description", "Description is required")
         }
-      
+
         if (!date || date.length < 1) {
             errors.addError("date", "Date is required")
         }
@@ -89,14 +89,14 @@
             let endDateStr = hasEnd ? date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate() : "null"
 
             let schedule = {
-                    name: name, 
+                    name: name,
                     period: period.value,
                     frequency: parseInt(frequency),
-                    start_date: dateStr, 
+                    start_date: dateStr,
                     last_date: "null",
                     end_date: endDateStr,
-                    amount: amount,  
-                    description: description ? description : name,                    
+                    amount: amount,
+                    description: description ? description : name,
                     dr_account_id: drAccountId,
                     cr_account_id: crAccountId,
                 }
@@ -107,22 +107,22 @@
                 schedule["id"] = curSchedule.id
                 schedule["last_date"] = curSchedule.last_date
                 saveSchedule(schedule)
-            } 
+            }
         }
-        
+
     }
-    
+
     /*
-            id: Uuid::new_v4(), 
+            id: Uuid::new_v4(),
 			name: self.name,
 			period: self.period,
 			frequency: self.frequency,
-            start_date: self.start_date, 
-			last_date: self.last_date, 
-			amount: self.amount,           
-            description: self.description, 
-			dr_account_id: self.dr_account_id, 
-            cr_account_id: self.cr_account_id,   
+            start_date: self.start_date,
+			last_date: self.last_date,
+			amount: self.amount,
+            description: self.description,
+			dr_account_id: self.dr_account_id,
+            cr_account_id: self.cr_account_id,
     */
 
     function resolved(result) {
@@ -150,14 +150,14 @@
         <div class="form-row">
             <div class="widget">
                 <label for="desc">Schedule name</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>                
+                <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
             </div>
         </div>
         <hr/>
         <div class="form-row">
             <div class="widget">
                 <label for="desc">Description</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description} placeholder={name}>                
+                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description} placeholder={name}>
             </div>
             <div class="widget">
                 <label for="amount">Amount</label>
@@ -173,12 +173,12 @@
             <div class="widget">
                 {period.value}
                 Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-                &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>  
-                starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>        
+                &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
+                starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>
             </div>
         </div>
         <div class="form-row2">
-            <div class="widget2">            
+            <div class="widget2">
                 <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
                 <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" /></div></div>
                 <br/>
@@ -213,7 +213,7 @@
     }
 
     :root {
-		--date-input-width: 110px;	
+		--date-input-width: 110px;
 	}
 
     .error-msg {
@@ -259,12 +259,12 @@
     }
 
     input {
-        margin-right: 0px;    
+        margin-right: 0px;
     }
 
     .form {
         float: left;
-        background-color: #F0f0f0;        
+        background-color: #F0f0f0;
         margin-top: 20px;
         border-radius: 10px;
     }
@@ -285,7 +285,7 @@
 
     .widget {
         display: inline-block;
-        padding: 5px 0px 5px 10px;        
+        padding: 5px 0px 5px 10px;
     }
 
     .widget p {
@@ -294,10 +294,10 @@
     }
 
     .widget2 {
-        padding: 5px 0px 5px 10px;  
+        padding: 5px 0px 5px 10px;
         margin: 13px 12px 0px 0px;
     }
-    
+
     .widget2 label {
         display: inline-block;
     }
