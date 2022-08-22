@@ -171,7 +171,6 @@
         <hr/>
         <div class="form-row2">
             <div class="widget">
-                {period.value}
                 Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
                 &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
                 starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>
