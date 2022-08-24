@@ -1,16 +1,18 @@
 <script>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
+    import Select from './Select.svelte';
 
     export let close
     export let curAccount
     export let loadAccounts
     export let editMode = "NEW"
 
+    const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
+
     let msg = ""
     let errors = new Errors()
-    let name, startingBalance
-    let isDebit = true
+    let name, startingBalance, accountType
     let addButtonLabel = "Add"
     let initialize = !curAccount
 
@@ -18,13 +20,19 @@
         if (editMode == "EDIT") {
             name = curAccount.name
             startingBalance = curAccount.starting_balance
-            isDebit = curAccount.account_type == "Debit"
+            accountType = matchAccountType(curAccount.account_type)
             addButtonLabel = "Update"
         } else {
             addButtonLabel = "Add"
             startingBalance = "0"
         }
     });
+
+    const matchAccountType = (value) =>  {
+        if (!value) return null
+        let match = ACCOUNT_TYPES.filter(p => p.value == value)
+        return match.length > 0 ? match[0] : null
+    }
 
     const onCancel = () => {
         close()
@@ -41,14 +49,17 @@
             errors.addError("startingBalance", "A valid starting balance is required")
         }
 
+        if (!accountType || !accountType.value) {
+            errors.addError("accountType", "Account type needs to be selected")
+        }
+
         if (!errors.hasErrors()) {
 
             if (editMode == "ADD") {
-                const accountType = isDebit ? "Debit" : "Credit"
                 const account = {
                     name: name,
                     starting_balance: startingBalance,
-                    account_type: accountType
+                    account_type: accountType.value
                 }
 
                 addAccount(account)
@@ -103,14 +114,9 @@
                 <label for="startingBalance">Starting balance</label>
                 <input id="startingBalance" class="money-input" class:error={errors.isInError("startingBalance")} bind:value={startingBalance}>
             </div>
-            <div class="widget2">
-                <input id="debit" type="radio" bind:group={isDebit} value={true} class="" name="transactionType" disabled={editMode == "EDIT"}>
-                <label for="debit">Debit</label>
-                <br/>
-                <input id="credit" type="radio" bind:group={isDebit} value={false} class="" name="transactionType" disabled={editMode == "EDIT"}>
-                <label for="credit">Credit</label>
-            </div>
-
+        </div>
+        <div class="form-row">
+            <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Account type" none={false} inError={errors.isInError("accountType")}/>
         </div>
     </div>
     <div class="form-button-row">
