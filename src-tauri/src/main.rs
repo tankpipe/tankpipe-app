@@ -15,6 +15,7 @@ use accounts::{
 };
 use chrono::NaiveDate;
 use config::Config;
+use std::path::Path;
 use std::{
     collections::HashMap,
     str::FromStr,
@@ -28,9 +29,11 @@ use uuid::Uuid;
 use tauri::State;
 
 use crate::money_repo::Repo;
+use crate::reader::load_transactions;
 pub mod account_display;
 pub mod config;
 pub mod money_repo;
+pub mod reader;
 
 pub struct BooksState(Mutex<Repo>);
 
@@ -69,6 +72,7 @@ fn main() {
             transaction,
             update_settings,
             settings,
+            load_csv,
         ])
         .run(context)
         .expect("error while running tauri application");
@@ -204,6 +208,27 @@ fn settings(state: tauri::State<BooksState>) -> Settings {
     let mutex_guard = state.0.lock().unwrap();
     mutex_guard.books.settings.clone()
 }
+
+#[tauri::command]
+fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<(), String> {
+    println!("load_csv: {:?}, for account:{:?}", path, account.id);
+    let load_result = load_transactions(path, &account);
+
+    match load_result {
+        Ok(transactions) => {
+            let mut mutex_guard = state.0.lock().unwrap();
+            for t in transactions {
+                let add_result = mutex_guard.books.add_transaction(t);
+                if add_result.is_err() {
+                    return Err(add_result.unwrap_err().error);
+                }
+            }
+            error_handler(mutex_guard.save())
+        },
+        Err(e) => Err(e.error),
+    }
+}
+
 
 fn error_handler(x: Result<(), accounts::books::BooksError>) -> Result<(), String> {
     match x {
