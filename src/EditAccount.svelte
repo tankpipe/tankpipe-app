@@ -234,20 +234,6 @@
         font-size: 0.9em;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-        min-width: 53px;
-    }
-
-    .widget2 label {
-        display: inline-block;
-    }
-
-    .widget2 input {
-        margin: 0px;
-    }
-
     .money-input {
 		width: 110px;
 	}
