@@ -113,7 +113,6 @@
 	.column.middle {
 		margin: 20px;
 		padding-top: 20px;
-		height: 100%;
 	}
 
 	.app {
