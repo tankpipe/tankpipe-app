@@ -116,7 +116,13 @@
 	<table>
 		<tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
-			<tr on:click={() => selectTransaction(t)}><!--{t.id}--><td>{t.date}</td><td class="description">{t.description}</td><td class="money">{getDebitAmount(t, curAccount)}</td><td class="money">{getCreditAmount(t, curAccount)}</td><td class="money">{getBalance(t)}</td></tr>
+			<tr on:click={() => selectTransaction(t)}><!--{t.id}-->
+				<td>{t.date}</td>
+				<td title="{t.description}"><div class="description">{t.description}</div></td>
+				<td class="money">{getDebitAmount(t, curAccount)}</td>
+				<td class="money">{getCreditAmount(t, curAccount)}</td>
+				<td class="money">{getBalance(t)}</td>
+			</tr>
 		{/each}
 	</table>
 	{/if}
@@ -162,8 +168,11 @@
 	}
 
 	.description {
-		min-width: 300px;
 		font-size: 1.05em;
+		min-width: 350px;
+		max-width: 33vw;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.account-heading {
@@ -283,4 +292,11 @@
 		bottom: 4px;
 		transform: rotate(45deg)
 	}
+
+	@media (min-width: 1010px) {
+		.description {
+			max-width: calc(70vw - 350px);
+		}
+	}
+
 </style>
