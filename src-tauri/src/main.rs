@@ -120,9 +120,17 @@ fn add_transaction(
 #[tauri::command]
 fn update_transaction(
     state: tauri::State<BooksState>,
-    transaction: Transaction,
+    mut transaction: Transaction,
 ) -> Result<(), String> {
     println!("Updating transaction {:?}", transaction);
+    for mut e in transaction.entries.as_mut_slice() {
+        let zeros = Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
+        if e.id == zeros {
+            e.id = Uuid::new_v4();
+            e.transaction_id = transaction.id;
+        }
+
+    }
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_transaction(transaction))?;
     error_handler(mutex_guard.save())
@@ -137,7 +145,7 @@ fn accounts(state: tauri::State<BooksState>) -> Vec<Account> {
 
 #[tauri::command]
 fn add_account(state: tauri::State<BooksState>, account: NewAccount) -> Result<(), String> {
-    println!("Adding transaction {}", account.name);
+    println!("Adding account {}", account.name);
     let mut mutex_guard = state.0.lock().unwrap();
     let _ = mutex_guard.books.add_account(account.to_account());
     error_handler(mutex_guard.save())
@@ -145,7 +153,7 @@ fn add_account(state: tauri::State<BooksState>, account: NewAccount) -> Result<(
 
 #[tauri::command]
 fn update_account(state: tauri::State<BooksState>, account: Account) -> Result<(), String> {
-    println!("Adding transaction {}", account.name);
+    println!("Updating account {}", account.name);
     let mut mutex_guard = state.0.lock().unwrap();
     let _x = mutex_guard.books.add_account(account);
     error_handler(mutex_guard.save())

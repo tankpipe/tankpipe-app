@@ -168,7 +168,6 @@
 	}
 
 	.description {
-		font-size: 1.05em;
 		min-width: 350px;
 		max-width: 33vw;
 		overflow: hidden;

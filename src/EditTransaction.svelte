@@ -150,9 +150,13 @@
     }
 
     const syncSecondEntry = (entries) => {
+        entries[1].id = zeros
+        entries[1].transaction_id = entries[0].transaction_id
+        entries[1].transaction_type =  "Credit"
         entries[1].realDate = new Date(entries[0].realDate)
         entries[1].description = entries[0].description
         entries[1].amount = entries[0].amount
+        entries[1].status = "Recorded"
     }
 
     const canBeSimple = (entries) => {
@@ -326,7 +330,7 @@
         border-radius: 2px !important;
         height: 33px;
     }
-    
+
     :root {
 		--date-input-width: 110px;
 	}

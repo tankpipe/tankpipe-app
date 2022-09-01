@@ -78,7 +78,7 @@
 
     }
     function resolved(result) {
-      msg = "Account added."
+      msg = "Account saved."
     }
 
     function rejected(result) {
@@ -116,7 +116,7 @@
             </div>
         </div>
         <div class="form-row">
-            <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Account type" none={false} inError={errors.isInError("accountType")}/>
+            <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Account type" none={false} inError={errors.isInError("accountType")} disabled={editMode == "EDIT"}/>
         </div>
     </div>
     <div class="form-button-row">
