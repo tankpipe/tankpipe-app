@@ -5,8 +5,16 @@
     export let accounts
     export let loadAccounts
 
+	let ACCOUNT_TYPES = {
+		Asset: "Assets",
+		Liability: "Liabilities",
+		Revenue: "Revenues",
+		Expense: "Expenses",
+		Equity: "Equity"
+	}
     let mode = "ACCOUNTS"
     let editMode = "ADD"
+	let lastAccountType = "";
 
 	$: {
 		if (accounts)
@@ -15,7 +23,6 @@
 				mode = "EDIT"
 			}
 	}
-
 
 	const close = () => {
         console.log("close")
@@ -34,6 +41,14 @@
         console.log("selected: " + curAccount.name);
     }
 
+	const checkAccountType = (account) => {
+		if (account.account_type !== lastAccountType) {
+			lastAccountType = account.account_type
+			return true
+		}
+		return false
+	}
+
 </script>
 
 <div class="account-heading">
@@ -48,17 +63,34 @@
 {/if}
 {#if mode === "ACCOUNTS"}
 <div class="scroller">
+	<div class="accounts">
     {#each accounts as a}
+	{#if checkAccountType(a)}
+		<div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
+	{/if}
         <div class="card" on:click={() => selectAccount(a) }>{a.name}</div>
     {/each}
+	</div>
 </div>
 {/if}
 <style>
 
-    .scroller {
-        min-width: 200px;
-        float: left;
-    }
+	.scroller{
+		height: 100%;
+		width: 100%;
+		overflow: scroll;
+		margin-top: 30px;
+	}
+
+	.accounts {
+		margin-right: 20px;
+	}
+
+	.account-type {
+		text-align: left;
+		margin-left: 10px;
+	}
+
     .account-heading {
 		text-align: left;
 	}
@@ -78,10 +110,11 @@
 		clear: both;
 		margin: 10px;
 		background-color: #524e4e;
-		padding: 5px;
+		padding: 10px;
 		border-radius: 10px;
 		color: #F0F0F0;
 		min-width: 300px;
+		text-align: left;
 	}
 
 	.card:hover {
