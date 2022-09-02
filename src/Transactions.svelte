@@ -148,8 +148,8 @@
 		text-align: left;
 		overflow: hidden;
 		line-height: 1em;
-		color: #444;
-		background-color: #f0f0f0;
+		color: #ccc;
+		background-color: #393939;
 		padding: 8px;
 		white-space: nowrap;
 	}
@@ -163,7 +163,7 @@
 
 	tr:hover td {
 		cursor: pointer;
-		background-color: #FFF;
+		color: #FFF;
 	}
 
 	.money {
