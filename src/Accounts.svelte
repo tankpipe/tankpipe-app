@@ -1,9 +1,11 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
+	import Icon from '@iconify/svelte';
 
     export let curAccount
     export let accounts
     export let loadAccounts
+	export let selectMenu
 
 	let ACCOUNT_TYPES = {
 		Asset: "Assets",
@@ -35,6 +37,13 @@
 	}
 
     const selectAccount = (account) => {
+		console.log(account)
+        curAccount = account
+		console.log(curAccount.id)
+        selectMenu("TRANSACTIONS")
+    }
+
+	const editAccount = (account) => {
         curAccount = account
         editMode = "EDIT"
 		mode = "EDIT"
@@ -68,7 +77,7 @@
 	{#if checkAccountType(a)}
 		<div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
 	{/if}
-        <div class="card" on:click={() => selectAccount(a) }>{a.name}</div>
+        <div class="card" on:click={() => selectAccount(a) }>{a.name}<div class="edit-icon" on:click={() => editAccount(a) }><Icon icon="mdi:pencil" /></div></div>
     {/each}
 	</div>
 </div>
@@ -94,6 +103,19 @@
 		clear: both;
 	}
 
+	.edit-icon {
+		float: right;
+		color: #524e4e;
+	}
+
+	.card:hover .edit-icon {
+		color: #666;
+	}
+
+	.edit-icon:hover {
+		color: #C0C0C0 !important;
+	}
+
     .account-heading {
 		text-align: left;
 	}
@@ -115,7 +137,7 @@
 		background-color: #524e4e;
 		padding: 10px;
 		border-radius: 10px;
-		color: #F0F0F0;
+		color: #E0E0E0;
 		min-width: 300px;
 		text-align: left;
 	}

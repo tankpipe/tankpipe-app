@@ -5,8 +5,8 @@
 	import Settings from './Settings.svelte';
 
 	let accounts
-	let curAccount = undefined
-	let mode = "TRANSACTIONS"
+	export let curAccount = undefined
+	let mode = "ACCOUNTS"
 	let initializing = true
 
 	export let transactions = []
@@ -34,7 +34,7 @@
 	}
 	initialize()
 
-	const setMode = (newMode) => {
+	const selectMenu = (newMode) => {
 		mode = newMode;
 	}
 
@@ -53,17 +53,17 @@
 						{#if accounts.length < 1 }
 						<li class="disabled">Transactions</li>
 						{/if}
+						<li on:click={() => selectMenu("ACCOUNTS")} class:menu-selected={mode=="ACCOUNTS"}>Accounts</li>
 						{#if accounts.length > 0 }
-						<li on:click={() => setMode("TRANSACTIONS")} class:menu-selected={mode=="TRANSACTIONS"}>Transactions</li>
+						<li on:click={() => selectMenu("TRANSACTIONS")} class:menu-selected={mode=="TRANSACTIONS"}>Transactions</li>
 						{/if}
-						<li on:click={() => setMode("ACCOUNTS")} class:menu-selected={mode=="ACCOUNTS"}>Accounts</li>
 						{#if accounts.length < 1 }
 						<li class="disabled">Schedules</li>
 						{/if}
 						{#if accounts.length > 0 }
-						<li on:click={() => setMode("SCHEDULES")} class:menu-selected={mode=="SCHEDULES"}>Schedules</li>
+						<li on:click={() => selectMenu("SCHEDULES")} class:menu-selected={mode=="SCHEDULES"}>Schedules</li>
 						{/if}
-						<li on:click={() => setMode("SETTINGS")} class:menu-selected={mode=="SETTINGS"}>Settings</li>
+						<li on:click={() => selectMenu("SETTINGS")} class:menu-selected={mode=="SETTINGS"}>Settings</li>
 					</ul>
 				</div>
 			</div>
@@ -73,7 +73,7 @@
 					<Transactions bind:this={transactions} {curAccount} {accounts} {settings}/>
 					{/if}
 					{#if mode=="ACCOUNTS"}
-					<Accounts {curAccount} {accounts} {loadAccounts}/>
+					<Accounts bind:curAccount={curAccount} {accounts} {loadAccounts} {selectMenu}/>
 					{/if}
 					{#if mode=="SCHEDULES"}
 					<Schedules {accounts}/>
