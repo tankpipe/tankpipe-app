@@ -1,5 +1,6 @@
 <script>
 	import EditSchedule from './EditSchedule.svelte'
+	import Icon from '@iconify/svelte'
 
 	export let accounts = []
 	let mode = "SCHEDULES"
@@ -53,7 +54,7 @@
 
 <div class="account-heading">
 	{#if mode === "SCHEDULES"}
-	<div class="toolbar"><i class="gg-add-r" on:click={handleAddClick}></i></div>
+	<div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title="Create a new schedule"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	{/if}
 </div>
 {#if mode === "EDIT"}
@@ -178,41 +179,9 @@
 		margin-bottom: 10px;
 	}
 
-	.toolbar i:hover{
+	.toolbar-icon:hover{
 		color: #F0F0F0;
-		border-color: #f0f0f0;
-	}
-
-	.gg-add-r {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		width: 22px;
-		height: 22px;
-		border: 2px solid;
-		transform: scale(var(--ggs,1));
-		border-radius: 4px
-	}
-
-	.gg-add-r::after,
-	.gg-add-r::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		width: 10px;
-		height: 2px;
-		background: currentColor;
-		border-radius: 5px;
-		top: 8px;
-		left: 4px
-	}
-
-	.gg-add-r::after {
-		width: 2px;
-		height: 10px;
-		top: 4px;
-		left: 8px
+		cursor: pointer;
 	}
 
 </style>

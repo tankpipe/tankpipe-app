@@ -62,7 +62,7 @@
 
 <div class="account-heading">
 	{#if mode === "ACCOUNTS"}
-	<div class="toolbar"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
+	<div class="toolbar"><div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	{/if}
 </div>
 
@@ -125,9 +125,13 @@
 		color: #C0C0C0;
 	}
 
-	.toolbar i:hover{
+	.toolbar-icon {
+		margin-left: 5px;
+	}
+
+	.toolbar-icon:hover{
 		color: #F0F0F0;
-		border-color: #f0f0f0;
+		cursor: pointer;
 	}
 
 	.card {
@@ -145,38 +149,6 @@
 	.card:hover {
 		cursor: pointer;
 		color: #FFF;
-	}
-
-    .gg-add-r {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		width: 22px;
-		height: 22px;
-		border: 2px solid;
-		transform: scale(var(--ggs,1));
-		border-radius: 4px
-	}
-
-	.gg-add-r::after,
-	.gg-add-r::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		width: 10px;
-		height: 2px;
-		background: currentColor;
-		border-radius: 5px;
-		top: 8px;
-		left: 4px
-	}
-
-	.gg-add-r::after {
-		width: 2px;
-		height: 10px;
-		top: 4px;
-		left: 8px
 	}
 
 </style>

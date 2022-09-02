@@ -1,9 +1,10 @@
 <script>
 	import EditTransaction from './EditTransaction.svelte'
     import Select from './Select.svelte'
-	import { open } from '@tauri-apps/api/dialog';
-	import { appDir } from '@tauri-apps/api/path';
-	import { Errors } from './errors';
+	import Icon from '@iconify/svelte'
+	import { open } from '@tauri-apps/api/dialog'
+	import { appDir } from '@tauri-apps/api/path'
+	import { Errors } from './errors'
 
 	export let curAccount
 	export let accounts = []
@@ -94,8 +95,8 @@
 	{#if mode === "TRANSACTIONS" && curAccount}
 	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry}/>
 	<div class="toolbar">
-		<div class="toolbar-icon import-icon"><i class="gg-import" on:click={openFile}></i></div>
-		<div class="toolbar-icon"><i class="gg-add-r" on:click="{handleAddClick(curAccount)}"></i></div>
+		<div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
+		<div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
 	</div>
 	{/if}
 </div>
@@ -138,6 +139,11 @@
 		width: 100%;
 		overflow: scroll;
 	}
+
+	table {
+		padding-right: 10px;
+	}
+
 	td {
 		text-align: left;
 		overflow: hidden;
@@ -185,17 +191,17 @@
 		display: flex;
 	}
 
-	.toolbar i:hover{
-		color: #F0F0F0;
-		border-color: #f0f0f0;
-	}
-
 	.toolbar-icon {
 		margin-left: 5px;
 	}
 
+	.toolbar-icon:hover{
+		color: #F0F0F0;
+		cursor: pointer;
+	}
+
 	.import-icon {
-		margin-top: 7px
+		margin-top: 1px
 	}
 
 	.message {
@@ -219,78 +225,6 @@
         color: green;
         text-align: left;
     }
-
-	.gg-add-r {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		width: 22px;
-		height: 22px;
-		border: 2px solid;
-		transform: scale(var(--ggs,1));
-		border-radius: 4px
-	}
-
-	.gg-add-r::after,
-	.gg-add-r::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		width: 10px;
-		height: 2px;
-		background: currentColor;
-		border-radius: 5px;
-		top: 8px;
-		left: 4px
-	}
-
-	.gg-add-r::after {
-		width: 2px;
-		height: 10px;
-		top: 4px;
-		left: 8px
-	}
-
-	.gg-import {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		transform: scale(var(--ggs,1));
-		width: 18px;
-		height: 14px;
-		border: 2px solid;
-		border-top: 0;
-		box-shadow:
-			-6px -8px 0 -6px,
-			6px -8px 0 -6px
-	}
-
-	.gg-import::after,
-	.gg-import::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute
-	}
-
-	.gg-import::before {
-		background: currentColor;
-		width: 2px;
-		height: 14px;
-		right: 6px;
-		bottom: 5px
-	}
-
-	.gg-import::after {
-		width: 6px;
-		height: 6px;
-		border-right: 2px solid;
-		border-bottom: 2px solid;
-		right: 4px;
-		bottom: 4px;
-		transform: rotate(45deg)
-	}
 
 	@media (min-width: 1010px) {
 		.description {
