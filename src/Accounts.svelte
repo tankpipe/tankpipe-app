@@ -87,8 +87,11 @@
 	}
 
 	.account-type {
-		text-align: left;
-		margin-left: 10px;
+		font-size: 0.8em;
+		color: #666;
+		margin: 5px 0px -5px 10px;
+		float: left;
+		clear: both;
 	}
 
     .account-heading {
