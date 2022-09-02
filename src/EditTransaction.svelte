@@ -147,6 +147,9 @@
 
     function resolved(result) {
       msg = "Transaction saved."
+      if (editMode == "EDIT") {
+        close()
+      }
     }
 
     const syncSecondEntry = (entries) => {
