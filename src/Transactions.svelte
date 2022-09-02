@@ -93,7 +93,7 @@
 
 <div class="account-heading">
 	{#if mode === "TRANSACTIONS" && curAccount}
-	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry}/>
+	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry} flat={true}/>
 	<div class="toolbar">
 		<div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
 		<div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
@@ -115,7 +115,7 @@
 <div class="scroller">
 	{#if transactions.length > 0}
 	<table>
-		<tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+		<tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
 			<tr on:click={() => selectTransaction(t)}><!--{t.id}-->
 				<td>{t.date}</td>
@@ -152,13 +152,18 @@
 		background-color: #393939;
 		padding: 8px;
 		white-space: nowrap;
+		font-size: 0.95em;
 	}
 
 	th {
-		color:#f0f0f0;
+		color:#666666;
 		background-color: #444;
 		font-weight: 400;
 		font-size: .8em;
+	}
+	.justify-left {
+		text-align: left;
+		padding-left: 10px;
 	}
 
 	tr:hover td {
@@ -182,6 +187,12 @@
 
 	.account-heading {
 		text-align: left;
+		margin-bottom: 5px;
+	}
+
+	:global(.account-heading select) {
+		color: #C0C0C0;
+		background-color: #444 !important;
 	}
 
 	.toolbar {
@@ -189,6 +200,7 @@
 		color: #C0C0C0;
 		margin-left: 10px;
 		display: flex;
+		padding-right: 9px;
 	}
 
 	.toolbar-icon {

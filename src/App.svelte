@@ -111,7 +111,7 @@
 	}
 
 	.column.middle {
-		margin: 20px;
+		margin: 20px 20px 30px 20px;
 		padding-top: 20px;
 	}
 
