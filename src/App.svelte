@@ -112,7 +112,7 @@
 
 	.column.middle {
 		margin: 20px 20px 30px 20px;
-		padding-top: 20px;
+		min-width: 200px;
 	}
 
 	.app {
@@ -154,6 +154,44 @@
 		margin: 0;
 		height: 100%;
 	}
+
+	:global(.form label, .heading, .total) {
+        text-align: left;
+        font-size: .8em;
+        margin-bottom: 3px;
+        color: #DDDDDD;
+    }
+
+    :global(.form input) {
+        background-color: #aaa !important;
+    }
+
+
+    :global(.form input, .form select, .form button) {
+        background-color: #aaa;
+
+    }
+
+    :global(.form input:focus, .form select:focus) {
+        outline: #fff solid 1px;
+
+    }
+
+	:global(.panel-title) {
+        font-size: 0.8em;
+        font-weight: 500;
+        text-align: left;
+        color: #757575;
+        margin: 1px 0 7px 0;
+    }
+
+    :global(.form-heading) {
+        font-size: 1.2em;
+        font-weight: 500;
+        margin: 0px 0 10px 0;
+        text-align: left;
+        color: #757575;
+    }
 
 
 	@media (min-width: 640px) {

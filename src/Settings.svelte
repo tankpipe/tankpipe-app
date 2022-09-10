@@ -46,6 +46,7 @@
 
 </script>
 <div class="controls">
+	<div class="form-heading">Settings</div>
     <div class="form-row2">
 		<div class="widget">
 			<div class="label">Enforce double entry</div><input type="checkbox" bind:checked={settings.require_double_entry} on:change={updateSettings}/>

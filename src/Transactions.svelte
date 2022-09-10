@@ -90,7 +90,6 @@
 
 </script>
 
-
 <div class="account-heading">
 	{#if mode === "TRANSACTIONS" && curAccount}
 	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry} flat={true}/>
@@ -187,7 +186,7 @@
 
 	.account-heading {
 		text-align: left;
-		margin-bottom: 5px;
+		margin: 20px 0px 5px 0px;
 	}
 
 	:global(.account-heading select) {

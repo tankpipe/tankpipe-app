@@ -54,7 +54,9 @@
 
 <div class="account-heading">
 	{#if mode === "SCHEDULES"}
+
 	<div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title="Create a new schedule"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
+	<div class="form-heading">Schedules</div>
 	{/if}
 </div>
 {#if mode === "EDIT"}
@@ -157,6 +159,7 @@
 
 	.account-heading {
 		text-align: left;
+		margin-top: 10px;
 	}
 
 	hr {

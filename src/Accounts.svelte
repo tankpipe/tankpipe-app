@@ -71,6 +71,7 @@
 <EditAccount {curAccount} {loadAccounts} {close} {editMode}/>
 {/if}
 {#if mode === "ACCOUNTS"}
+<div class="form-heading">Accounts</div>
 <div class="scroller">
 	<div class="accounts">
     {#each accounts as a}
@@ -88,7 +89,7 @@
 		height: 100%;
 		width: 100%;
 		overflow: scroll;
-		margin-top: 30px;
+		margin-top: 15px;
 	}
 
 	.accounts {
@@ -97,7 +98,8 @@
 
 	.account-type {
 		font-size: 0.8em;
-		color: #666;
+        font-weight: 500;
+        color: #757575;
 		margin: 5px 0px -5px 10px;
 		float: left;
 		clear: both;
@@ -118,6 +120,7 @@
 
     .account-heading {
 		text-align: left;
+		margin-top: 10px;
 	}
 
     .toolbar {

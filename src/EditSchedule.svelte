@@ -146,46 +146,48 @@
 </script>
 
 <div class="form">
-    <div class="panel">
-        <div class="form-row">
-            <div class="widget">
-                <label for="desc">Schedule name</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
-            </div>
-        </div>
-        <hr/>
-        <div class="form-row">
-            <div class="widget">
-                <label for="desc">Description</label>
-                <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description} placeholder={name}>
-            </div>
-            <div class="widget">
-                <label for="amount">Amount</label>
-                <input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={amount}>
-            </div>
-        </div>
-        <div class="form-row2">
-            <Select bind:item={drAccount} items={accounts} label="Debit" none={true} inError={errors.isInError("accounts")}/>
-            <Select bind:item={crAccount} items={accounts} label="Credit" none={true} inError={errors.isInError("accounts")}/>
-        </div>
-        <hr/>
-        <div class="form-row2">
-            <div class="widget">
-                Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-                &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
-                starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>
-            </div>
-        </div>
-        <div class="form-row2">
-            <div class="widget2">
-                <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-                <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" /></div></div>
-                <br/>
-                <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-                <label for="noEnd">No end date</label>
-            </div>
+    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Schedule</div>
+    <div class="form-row">
+        <div class="widget">
+            <label for="desc">Name</label>
+            <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
     </div>
+    <hr/>
+    <div class="panel-title">Transaction</div>
+    <div class="form-row">
+        <div class="widget">
+            <label for="desc">Description</label>
+            <input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={description} placeholder={name}>
+        </div>
+        <div class="widget">
+            <label for="amount">Amount</label>
+            <input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={amount}>
+        </div>
+    </div>
+    <div class="form-row2">
+        <Select bind:item={drAccount} items={accounts} label="Debit" none={true} inError={errors.isInError("accounts")} flat={true}/>
+        <Select bind:item={crAccount} items={accounts} label="Credit" none={true} inError={errors.isInError("accounts")} flat={true}/>
+    </div>
+    <hr/>
+    <div class="panel-title">Schedule</div>
+    <div class="form-row2">
+        <div class="widget">
+            Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
+            &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
+            starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget2">
+            <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
+            <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" /></div></div>
+            <br/>
+            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
+            <label for="noEnd">No end date</label>
+        </div>
+    </div>
+    <hr/>
     <div class="form-button-row">
         <div class="widget">
             {#each errors.getErrorMessages() as e}
@@ -205,18 +207,12 @@
 
 <style>
 
-    :global(.date-time-field input) {
-        border: none !important;
-        border-radius: 2px !important;
-        height: 33px;
-    }
-
     :root {
 		--date-input-width: 110px;
 	}
 
     .error-msg {
-        color: red;
+        color: #FBC969;
     }
 
     .success-msg {
@@ -224,15 +220,12 @@
     }
 
     .error {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 
-    :global(.error-input input) {
-        border: 1px solid red !important;
-    }
 
     .buttons {
-        float: right;
+        float: left;
         margin: 10px 12px 0 0;
     }
 
@@ -263,23 +256,8 @@
 
     .form {
         float: left;
-        background-color: #F0f0f0;
-        margin-top: 20px;
         border-radius: 10px;
-    }
-
-    .form label {
-        text-align: left;
-        font-size: .8em;
-        color: #333;
-        margin-bottom: 3px;
-    }
-
-    .panel {
-        background-color: #E0E0E0;
-        margin: 15px 15px 0 15px;
-        border-radius: 10px;
-        padding-right: 10px;
+        color: #DDDDDD;
     }
 
     .widget {
@@ -299,6 +277,7 @@
 
     .widget2 label {
         display: inline-block;
+        font-size: 1.0em;
     }
 
     .widget2 input {
@@ -311,7 +290,6 @@
     .frequency-input {
 		width: 40px;
         text-align: right;
-        border: none;
         background-color: #F0F0F0;
 	}
 
@@ -337,8 +315,10 @@
 
     hr {
         border-style: none;
-        border: 1px solid #F0F0F0;
-        margin-right: -10px;
+        border: 3px solid #363636;
+        margin-left: -20px;
+        width: 100vw;
+
     }
 
 </style>
