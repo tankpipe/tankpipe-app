@@ -96,7 +96,7 @@
         return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
     }
 
-    const onAdd = () => {
+    const onSave = () => {
         msg = "";
         errors = new Errors();
         if (!compound) syncSecondEntry(entries)
@@ -312,7 +312,7 @@
         </div>
         <div class="widget buttons">
             <button on:click={onCancel}>Close</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button on:click={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}
