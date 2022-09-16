@@ -91,10 +91,12 @@
 </script>
 
 <div class="account-heading">
-	{#if mode === "TRANSACTIONS" && curAccount}
+	{#if mode === "TRANSACTIONS"}
 	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry} flat={true}/>
 	<div class="toolbar">
+		{#if curAccount}
 		<div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
+		{/if}
 		<div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
 	</div>
 	{/if}

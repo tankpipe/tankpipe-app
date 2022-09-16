@@ -5,7 +5,7 @@
 	import Settings from './Settings.svelte';
 
 	let accounts
-	export let curAccount = undefined
+	export let curAccount = null
 	let mode = "ACCOUNTS"
 	let initializing = true
 
@@ -14,9 +14,6 @@
 
 	const loadAccounts = async () => {
    		accounts = await invoke('accounts');
-		if (accounts.length > 0) {
-			curAccount = accounts[0];
-		}
 	};
 
 	const loadSettings = async () => {
@@ -103,7 +100,7 @@
 	}
 
 	.column.left {
-		width: 160px;
+		min-width: 150px;
 		background-color: #363636;
 		min-height:100%;
     	position:relative;
@@ -191,7 +188,22 @@
         margin: 0px 0 10px 0;
         text-align: left;
         color: #757575;
+		float: left;
     }
+
+	:global(.toolbar) {
+		float: right;
+		color: #C0C0C0;
+	}
+
+	:global(.toolbar-icon) {
+		margin-left: 5px;
+	}
+
+	:global(.toolbar-icon:hover) {
+		color: #F0F0F0;
+		cursor: pointer;
+	}
 
 
 	@media (min-width: 640px) {
