@@ -1,12 +1,14 @@
 <script>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
-    import Select from './Select.svelte';
+    import Select from './Select.svelte'
+    import Icon from '@iconify/svelte'
 
     export let close
     export let curAccount
     export let loadAccounts
     export let editMode = "NEW"
+    export let initialize = false
 
     const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
 
@@ -14,7 +16,6 @@
     let errors = new Errors()
     let name, startingBalance, accountType
     let addButtonLabel = "Add"
-    let initialize = !curAccount
 
     onMount(() => {
         if (editMode == "EDIT") {
@@ -25,8 +26,20 @@
         } else {
             addButtonLabel = "Add"
             startingBalance = "0"
+            curAccount = null
         }
     });
+
+    $: {
+		if (curAccount && curAccount.id) loadTransactions();
+    }
+
+    let transactions = [];
+	export const loadTransactions = async () => {
+		console.log("loadTransactions: " + curAccount.id);
+   		transactions = await invoke('transactions', {accountId: curAccount.id});
+		console.log(transactions)
+	};
 
     const matchAccountType = (value) =>  {
         if (!value) return null
@@ -97,6 +110,16 @@
          loadAccounts()
 	};
 
+    function deleteResolved(result) {
+      msg = "Account deleted."
+    }
+
+    const deleteAccount = async (account) => {
+        console.log(account)
+   		await invoke('delete_account', {account: account}).then(deleteResolved, rejected)
+         loadAccounts()
+	};
+
 
 </script>
 {#if initialize}
@@ -104,23 +127,27 @@
 {/if}
 
 <div class="form">
-    <div class="panel">
-        <div class="form-row">
-            <div class="widget">
-                <label for="name">Name</label>
-                <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
-            </div>
-            <div class="widget">
-                <label for="startingBalance">Starting balance</label>
-                <input id="startingBalance" class="money-input" class:error={errors.isInError("startingBalance")} bind:value={startingBalance}>
-            </div>
+    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Account</div>
+    <div class="toolbar">
+        {#if transactions.length < 1}
+        <div class="toolbar-icon" on:click="{deleteAccount(curAccount)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        {/if}
+    </div>
+    <div class="form-row">
+        <div class="widget">
+            <label for="name">Name</label>
+            <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
-        <div class="form-row">
-            <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Account type" none={false} inError={errors.isInError("accountType")} disabled={editMode == "EDIT"}/>
+        <div class="widget">
+            <label for="startingBalance">Starting balance</label>
+            <input id="startingBalance" class="money-input" class:error={errors.isInError("startingBalance")} bind:value={startingBalance}>
         </div>
     </div>
+    <div class="form-row">
+        <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Account type" none={false} inError={errors.isInError("accountType")} disabled={editMode == "EDIT"} flat={true}/>
+    </div>
     <div class="form-button-row">
-        <div class="widget">
+        <div class="msg-panel">
             {#each errors.getErrorMessages() as e}
             <p class="error-msg">{e}</p>
             {/each}
@@ -147,6 +174,12 @@
 		--date-input-width: 110px;
 	}
 
+    .msg-panel {
+        padding-left: 2px;
+        font-size: 0.9em;
+        float:left;
+    }
+
     .message {
 		color: #EFEFEF;
 		margin-bottom: 20px;
@@ -156,8 +189,13 @@
 		border-radius: 10px;
 	}
 
+    .msg-panel p {
+        margin: 8px 0;
+        max-width: 500px;
+    }
+
     .error-msg {
-        color: red;
+        color: #FBC969;
     }
 
     .success-msg {
@@ -165,11 +203,11 @@
     }
 
     .error {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 
     .buttons {
@@ -204,34 +242,12 @@
 
     .form {
         float: left;
-        background-color: #F0f0f0;
-        margin-top: 20px;
         border-radius: 10px;
-    }
-
-    .form label {
-        text-align: left;
-        font-size: .8em;
-        color: #333;
-        margin-bottom: 3px;
-    }
-
-    .panel {
-        background-color: #E0E0E0;
-        margin: 15px 15px 0 15px;
-        padding: 5px;
-        border-radius: 10px;
-        float: left;
     }
 
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
-    }
-
-    .widget p {
-        max-width: 500px;
-        font-size: 0.9em;
     }
 
     .money-input {

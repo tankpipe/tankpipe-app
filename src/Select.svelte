@@ -34,21 +34,31 @@
     label {
         text-align: left;
         font-size: .8em;
-        color: #333;
         margin-bottom: 3px;
     }
 
     .flat {
-        border: none;
-        background-color: #F0F0F0;
-        appearance: button;
+        background-color: #aaa;
+        appearance: none;
+        position: relative;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position-x: 100%;
+        background-position-y: 5px;
+        padding-right: 2rem;
+    }
+
+    .flat::after {
+        content: "\25b6";
+        color: #fff;
+        position: absolute; top: 0; right: 0;
     }
 
     .error {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 </style>

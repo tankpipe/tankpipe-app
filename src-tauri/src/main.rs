@@ -64,6 +64,7 @@ fn main() {
             accounts,
             add_account,
             update_account,
+            delete_account,
             schedules,
             add_schedule,
             update_schedule,
@@ -156,6 +157,14 @@ fn update_account(state: tauri::State<BooksState>, account: Account) -> Result<(
     println!("Updating account {}", account.name);
     let mut mutex_guard = state.0.lock().unwrap();
     let _x = mutex_guard.books.add_account(account);
+    error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+fn delete_account(state: tauri::State<BooksState>, account: Account) -> Result<(), String> {
+    println!("Deleting account {}", account.name);
+    let mut mutex_guard = state.0.lock().unwrap();
+    error_handler(mutex_guard.books.delete_account(&account.id))?;
     error_handler(mutex_guard.save())
 }
 

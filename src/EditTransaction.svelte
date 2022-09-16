@@ -96,7 +96,7 @@
         return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
     }
 
-    const onAdd = () => {
+    const onSave = () => {
         msg = "";
         errors = new Errors();
         if (!compound) syncSecondEntry(entries)
@@ -252,7 +252,7 @@
 
 </script>
 <div class="form">
-    <div class="panel">
+    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Tranasaction</div>
         {#if entries.length > 0 && !compound}
         <div class="entries">
             <table>
@@ -267,12 +267,12 @@
         <div class="form-row2">
             {#if entries.length > 1}
             {#if entries[0].transaction_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={accounts} label="Debit" none={true}/>
-            <Select bind:item={entries[1].account} items={accounts} label="Credit" none={true} />
+            <Select bind:item={entries[0].account} items={accounts} label="Debit" none={true} flat={true} />
+            <Select bind:item={entries[1].account} items={accounts} label="Credit" none={true} flat={true} />
             {/if}
             {#if entries[0].transaction_type === "Credit"}
-            <Select bind:item={entries[1].account} items={accounts} label="Debit" none={true}/>
-            <Select bind:item={entries[0].account} items={accounts} label="Credit" none={true} />
+            <Select bind:item={entries[1].account} items={accounts} label="Debit" none={true} flat={true} />
+            <Select bind:item={entries[0].account} items={accounts} label="Credit" none={true} flat={true} />
             {/if}
             {/if}
         </div>
@@ -305,7 +305,6 @@
             </table>
         </div>
         {/if}
-    </div>
     <div class="form-button-row">
         <div class="widget2 buttons-left">
             <input id="compound" type=checkbox bind:checked={compound} on:change={toggleMode} disabled={!(compound && canBeSimple(entries) || !compound && simpleAllowed)}>
@@ -313,7 +312,7 @@
         </div>
         <div class="widget buttons">
             <button on:click={onCancel}>Close</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button on:click={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}
@@ -332,6 +331,7 @@
         border: 1px solid #CCC !important;
         border-radius: 2px !important;
         height: 33px;
+        background-color: #aaa;
     }
 
     :root {
@@ -351,7 +351,7 @@
         float: right;
     }
     .error-msg {
-        color: red;
+        color: #FBC969;
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
@@ -379,11 +379,11 @@
     }
 
     .error {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid red !important;
+        border: 1px solid #FBC969 !important;
     }
 
     .buttons {
@@ -412,28 +412,12 @@
 
     .form {
         float: left;
-        background-color: #F0f0f0;
-        margin-top: 20px;
         border-radius: 10px;
-    }
-
-    .form label, .heading, .total {
-        text-align: left;
-        font-size: .8em;
-        color: #333;
-        margin-bottom: 3px;
     }
 
     .total {
         text-align: right;
         margin: 0px 5px -3px 0px;
-    }
-
-    .panel {
-        background-color: #E0E0E0;
-        margin: 15px 15px 0 15px;
-        border-radius: 10px;
-        padding-right: 10px;
     }
 
     .widget {

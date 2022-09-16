@@ -20,7 +20,6 @@
 
 	$: {
 		if (accounts)
-		console.log("accounts: " + accounts.length)
 			if (accounts.length < 1) {
 				mode = "EDIT"
 			}
@@ -32,6 +31,7 @@
     }
 
     const handleAddClick = () => {
+		curAccount = null
         editMode = "ADD"
 		mode = "EDIT"
 	}
@@ -62,15 +62,16 @@
 
 <div class="account-heading">
 	{#if mode === "ACCOUNTS"}
-	<div class="toolbar"><div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
+	<div class="toolbar"><div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	{/if}
 </div>
 
 
 {#if mode === "EDIT"}
-<EditAccount {curAccount} {loadAccounts} {close} {editMode}/>
+<EditAccount {curAccount} {loadAccounts} {close} {editMode} initialize={accounts.length < 1}/>
 {/if}
 {#if mode === "ACCOUNTS"}
+<div class="form-heading">Accounts</div>
 <div class="scroller">
 	<div class="accounts">
     {#each accounts as a}
@@ -88,7 +89,7 @@
 		height: 100%;
 		width: 100%;
 		overflow: scroll;
-		margin-top: 30px;
+		margin-top: 15px;
 	}
 
 	.accounts {
@@ -97,7 +98,8 @@
 
 	.account-type {
 		font-size: 0.8em;
-		color: #666;
+        font-weight: 500;
+        color: #757575;
 		margin: 5px 0px -5px 10px;
 		float: left;
 		clear: both;
@@ -118,23 +120,10 @@
 
     .account-heading {
 		text-align: left;
+		margin-top: 10px;
 	}
 
-    .toolbar {
-		float: right;
-		color: #C0C0C0;
-	}
-
-	.toolbar-icon {
-		margin-left: 5px;
-	}
-
-	.toolbar-icon:hover{
-		color: #F0F0F0;
-		cursor: pointer;
-	}
-
-	.card {
+    .card {
 		float: left;
 		clear: both;
 		margin: 10px;

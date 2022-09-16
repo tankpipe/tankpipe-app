@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`is displayed correctly 1`] = `"<body><div><div class=\\"widget svelte-epcrrc\\"><label for=\\"itemSelect\\" class=\\"svelte-epcrrc\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-epcrrc\\"><option value=\\"null\\">None</option><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`is displayed correctly 1`] = `"<body><div><div class=\\"widget svelte-vv6jek\\"><label for=\\"itemSelect\\" class=\\"svelte-vv6jek\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-vv6jek\\"><option value=\\"null\\">None</option><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
 
-exports[`is displayed correctly with no label and no none 1`] = `"<body><div><div class=\\"widgetNoLabel svelte-epcrrc\\"> <select name=\\"itemSelect\\" class=\\"svelte-epcrrc\\"><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`is displayed correctly with no label and no none 1`] = `"<body><div><div class=\\"widgetNoLabel svelte-vv6jek\\"> <select name=\\"itemSelect\\" class=\\"svelte-vv6jek\\"><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
 
-exports[`shows in error 1`] = `"<body><div><div class=\\"widget svelte-epcrrc\\"><label for=\\"itemSelect\\" class=\\"svelte-epcrrc\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-epcrrc error\\"><option value=\\"null\\">None</option><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`shows in error 1`] = `"<body><div><div class=\\"widget svelte-vv6jek\\"><label for=\\"itemSelect\\" class=\\"svelte-vv6jek\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-vv6jek error\\"><option value=\\"null\\">None</option><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
