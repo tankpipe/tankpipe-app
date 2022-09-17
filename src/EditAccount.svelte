@@ -112,12 +112,17 @@
 
     function deleteResolved(result) {
       msg = "Account deleted."
+      loadAccounts()
+      close()
     }
 
     const deleteAccount = async (account) => {
         console.log(account)
-   		await invoke('delete_account', {account: account}).then(deleteResolved, rejected)
-         loadAccounts()
+        if (account) {
+   		    await invoke('delete_account', {account: account}).then(deleteResolved, rejected)
+        } else {
+            close()
+        }
 	};
 
 
