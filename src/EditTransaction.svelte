@@ -3,6 +3,7 @@
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
+    import Icon from '@iconify/svelte'
 
     export let close
     export let curTransaction
@@ -29,6 +30,7 @@
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
         } else {
+            curTransaction = null
             let date = new Date();
             entries = [
                 {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}, status:"Recorded"},
@@ -213,6 +215,21 @@
    		await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
 	};
 
+    function resolvedDelete(result) {
+      msg = "Transaction deleted."
+      close()
+    }
+
+    const deleteTransaction = async (transaction) => {
+        console.log(transaction)
+        if (transaction && transaction.id) {
+   		    await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
+        } else {
+            close()
+        }
+	};
+
+
     const fetchTransaction = async (transactionId) => {
         console.log(transactionId)
    		await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
@@ -256,6 +273,9 @@
 </script>
 <div class="form">
     <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Transaction</div>
+    <div class="toolbar">
+        <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+    </div>
         {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>
