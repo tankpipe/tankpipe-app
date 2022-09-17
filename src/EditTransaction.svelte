@@ -255,7 +255,7 @@
 
 </script>
 <div class="form">
-    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Tranasaction</div>
+    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Transaction</div>
         {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>

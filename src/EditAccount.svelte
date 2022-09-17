@@ -98,6 +98,7 @@
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
+
     const addAccount = async (account) => {
    		await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
@@ -149,7 +150,7 @@
         </div>
     </div>
     <div class="form-row">
-        <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Account type" none={false} inError={errors.isInError("accountType")} disabled={editMode == "EDIT"} flat={true}/>
+        <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Type" none={false} inError={errors.isInError("accountType")} disabled={editMode == "EDIT"} flat={true}/>
     </div>
     <div class="form-button-row">
         <div class="msg-panel">
