@@ -185,7 +185,7 @@
     :global(.form-heading) {
         font-size: 1.2em;
         font-weight: 500;
-        margin: 0px 0 10px 0;
+        margin: 0px 0 20px 0;
         text-align: left;
         color: #757575;
 		float: left;
