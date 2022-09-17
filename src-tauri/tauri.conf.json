@@ -67,7 +67,9 @@
         "height": 1200,
         "resizable": true,
         "title": "Aqueducks",
-        "width": 1025
+        "width": 1025,
+        "minWidth": 600,
+        "theme": "Dark"
       }
     ]
   }
