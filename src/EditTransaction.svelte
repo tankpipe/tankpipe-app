@@ -372,6 +372,7 @@
 
     .errors {
         float: right;
+        margin: 10px 12px 0 0;
     }
     .error-msg {
         color: #FBC969;
