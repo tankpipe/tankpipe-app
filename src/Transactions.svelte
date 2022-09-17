@@ -153,7 +153,7 @@
 		background-color: #393939;
 		padding: 8px;
 		white-space: nowrap;
-		font-size: 0.95em;
+		font-size: 0.9em;
 	}
 
 	th {
