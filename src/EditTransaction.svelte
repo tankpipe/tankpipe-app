@@ -18,7 +18,7 @@
     let drTotal = 0
     let crTotal = 0
     let simpleAllowed = false
-    let compound = false
+    let compoundMode = false
     console.log(accounts)
 
     let entries = []
@@ -55,7 +55,7 @@
     }
 
     const validateEntry = (entry, index, errors) => {
-        const prefix = compound ? index + "_" : ""
+        const prefix = compoundMode ? index + "_" : ""
         if (!entry.description || entry.description.length < 1) {
              errors.addError(prefix + "description", "Description is required")
         }
@@ -64,7 +64,7 @@
             errors.addError(prefix + "date", "Date is required")
         }
 
-        if (!compound) {
+        if (!compoundMode) {
             if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
                 errors.addError("amount", "A valid amount is required")
             }
@@ -80,12 +80,12 @@
         }
 
         if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            if (settings.require_double_entry || compound) {
+            if (settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", "Account is required")
             }
         }
 
-        if (compound && (drTotal != crTotal)) {
+        if (compoundMode && (drTotal != crTotal)) {
             errors.addError("totals", "Totals should balance")
         }
 
@@ -99,7 +99,7 @@
     const onSave = () => {
         msg = "";
         errors = new Errors();
-        if (!compound) syncSecondEntry(entries)
+        if (!compoundMode) syncSecondEntry(entries)
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
         if (!errors.hasErrors()) {
@@ -109,15 +109,15 @@
                     entries: [...entries]
             }
 
-            if (!compound && !settings.require_double_entry) {
-                transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
+            if (!compoundMode && !settings.require_double_entry) {
+                 transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
             }
 
             transaction.entries.forEach (
                 e => {
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
-                    if (compound) {
+                    if (compoundMode) {
                         e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
                     }
                 }
@@ -155,7 +155,7 @@
     const syncSecondEntry = (entries) => {
         entries[1].id = zeros
         entries[1].transaction_id = entries[0].transaction_id
-        entries[1].transaction_type =  "Credit"
+        entries[1].transaction_type =  entries[0].transaction_type == "Credit" ? "Debit" : "Credit"
         entries[1].realDate = new Date(entries[0].realDate)
         entries[1].description = entries[0].description
         entries[1].amount = entries[0].amount
@@ -192,7 +192,10 @@
         }
 
         simpleAllowed = canBeSimple(entries)
-        compound = !simpleAllowed
+        if (!simpleAllowed) {
+            compoundMode = true
+        }
+
         console.log(entries)
     }
 
@@ -242,7 +245,7 @@
 
 
     const toggleMode = () => {
-        if (!compound) syncSecondEntry(entries)
+        if (!compoundMode) syncSecondEntry(entries)
     }
 
     $: {
@@ -253,7 +256,7 @@
 </script>
 <div class="form">
     <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Tranasaction</div>
-        {#if entries.length > 0 && !compound}
+        {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
@@ -277,7 +280,7 @@
             {/if}
         </div>
         {/if}
-        {#if compound}
+        {#if compoundMode}
         <div class="entries">
             <table>
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
@@ -307,7 +310,7 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compound} on:change={toggleMode} disabled={!(compound && canBeSimple(entries) || !compound && simpleAllowed)}>
+            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={toggleMode} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget buttons">
