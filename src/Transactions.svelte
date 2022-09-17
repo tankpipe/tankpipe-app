@@ -186,16 +186,6 @@
 		text-overflow: ellipsis;
 	}
 
-	.account-heading {
-		text-align: left;
-		margin: 20px 0px 5px 0px;
-	}
-
-	:global(.account-heading select) {
-		color: #C0C0C0;
-		background-color: #444 !important;
-	}
-
 	.toolbar {
 		float: right;
 		color: #C0C0C0;
@@ -219,7 +209,7 @@
 
 	.message {
 		color: #EFEFEF;
-		margin-bottom: 20px;
+		margin: 5px 0 20px 0;
 		text-align: left;
 		background-color: #303030;
 		padding:10px;

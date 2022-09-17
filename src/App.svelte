@@ -108,7 +108,7 @@
 	}
 
 	.column.middle {
-		margin: 20px 20px 30px 20px;
+		margin: 40px 20px 30px 20px;
 		min-width: 200px;
 	}
 
@@ -151,6 +151,17 @@
 		margin: 0;
 		height: 100%;
 	}
+
+	:global(.account-heading) {
+		text-align: left;
+		margin: 0;
+	}
+
+	:global(.account-heading select) {
+		color: #C0C0C0;
+		background-color: #444 !important;
+	}
+
 
 	:global(.form label, .heading, .total) {
         text-align: left;
