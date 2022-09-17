@@ -157,11 +157,6 @@
 		white-space: nowrap;
 	}
 
-	.account-heading {
-		text-align: left;
-		margin-top: 10px;
-	}
-
 	hr {
 		border: 1px solid #444;
 		margin: 0 -5px;

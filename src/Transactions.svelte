@@ -153,7 +153,7 @@
 		background-color: #393939;
 		padding: 8px;
 		white-space: nowrap;
-		font-size: 0.95em;
+		font-size: 0.9em;
 	}
 
 	th {
@@ -174,7 +174,7 @@
 
 	.money {
 		text-align: right !important;
-		min-width: 100px;
+		min-width: 92px;
 		font-family: 'Courier New', Courier, monospace;
 		font-weight: bold;
 	}
@@ -184,16 +184,6 @@
 		max-width: 33vw;
 		overflow: hidden;
 		text-overflow: ellipsis;
-	}
-
-	.account-heading {
-		text-align: left;
-		margin: 20px 0px 5px 0px;
-	}
-
-	:global(.account-heading select) {
-		color: #C0C0C0;
-		background-color: #444 !important;
 	}
 
 	.toolbar {
@@ -219,7 +209,7 @@
 
 	.message {
 		color: #EFEFEF;
-		margin-bottom: 20px;
+		margin: 5px 0 20px 0;
 		text-align: left;
 		background-color: #303030;
 		padding:10px;

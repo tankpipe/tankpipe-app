@@ -61,6 +61,7 @@ fn main() {
             transactions,
             add_transaction,
             update_transaction,
+            delete_transaction,
             accounts,
             add_account,
             update_account,
@@ -136,6 +137,15 @@ fn update_transaction(
     error_handler(mutex_guard.books.update_transaction(transaction))?;
     error_handler(mutex_guard.save())
 }
+
+#[tauri::command]
+fn delete_transaction(state: tauri::State<BooksState>, id: Uuid) -> Result<(), String> {
+    println!("Deleting transaction {}", id);
+    let mut mutex_guard = state.0.lock().unwrap();
+    error_handler(mutex_guard.books.delete_transaction(&id))?;
+    error_handler(mutex_guard.save())
+}
+
 
 #[tauri::command]
 fn accounts(state: tauri::State<BooksState>) -> Vec<Account> {

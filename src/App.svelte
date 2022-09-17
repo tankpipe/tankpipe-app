@@ -108,7 +108,7 @@
 	}
 
 	.column.middle {
-		margin: 20px 20px 30px 20px;
+		margin: 40px 20px 30px 20px;
 		min-width: 200px;
 	}
 
@@ -152,6 +152,17 @@
 		height: 100%;
 	}
 
+	:global(.account-heading) {
+		text-align: left;
+		margin: 0;
+	}
+
+	:global(.account-heading select) {
+		color: #C0C0C0;
+		background-color: #444 !important;
+	}
+
+
 	:global(.form label, .heading, .total) {
         text-align: left;
         font-size: .8em;
@@ -185,7 +196,7 @@
     :global(.form-heading) {
         font-size: 1.2em;
         font-weight: 500;
-        margin: 0px 0 10px 0;
+        margin: 0px 0 20px 0;
         text-align: left;
         color: #757575;
 		float: left;

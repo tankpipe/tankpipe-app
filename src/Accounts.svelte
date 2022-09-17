@@ -118,11 +118,6 @@
 		color: #C0C0C0 !important;
 	}
 
-    .account-heading {
-		text-align: left;
-		margin-top: 10px;
-	}
-
     .card {
 		float: left;
 		clear: both;
