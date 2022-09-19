@@ -14,6 +14,7 @@
 	let curTransaction
 	let errors = new Errors()
 	let msg = ""
+	let previousAccount
 
 	const close = () => {
         console.log("close")
@@ -22,7 +23,10 @@
     }
 
 	$: {
-		if (curAccount) loadTransactions();
+		if (curAccount && curAccount !== previousAccount) {
+			loadTransactions()
+			previousAccount = curAccount
+		}
     }
 
 	const selectTransaction = (transaction) => {
