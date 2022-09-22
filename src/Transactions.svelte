@@ -8,7 +8,8 @@
 
 	export let curAccount
 	export let accounts = []
-	export let settings
+	export let context
+
 	let mode = "TRANSACTIONS"
 	let editMode = "ADD"
 	let curTransaction
@@ -20,6 +21,10 @@
         console.log("close")
         mode = "TRANSACTIONS";
 		if (curAccount) loadTransactions();
+    }
+
+	const schedule = () => {
+        selectMenu("SCHEDULES")
     }
 
 	$: {
@@ -96,7 +101,7 @@
 
 <div class="account-heading">
 	{#if mode === "TRANSACTIONS"}
-	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry} flat={true}/>
+	<Select bind:item={curAccount} items={accounts} none={context.settings.require_double_entry} flat={true}/>
 	<div class="toolbar">
 		{#if curAccount}
 		<div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
@@ -106,7 +111,7 @@
 	{/if}
 </div>
 {#if mode === "EDIT"}
-<EditTransaction {close} {accounts} {editMode} {curTransaction} {settings}/>
+<EditTransaction {close} {accounts} {editMode} {curTransaction} {context} {schedule}/>
 {/if}
 {#if mode === "TRANSACTIONS"}
 <div class="widget errors">

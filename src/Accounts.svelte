@@ -1,11 +1,12 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
 	import Icon from '@iconify/svelte';
+    import { modes, views } from "./context";
 
     export let curAccount
     export let accounts
     export let loadAccounts
-	export let selectMenu
+	export let context
 
 	let ACCOUNT_TYPES = {
 		Asset: "Assets",
@@ -27,6 +28,7 @@
 
 	const close = () => {
         console.log("close")
+		context.setView(views.ACCOUNTS)
         mode = "ACCOUNTS";
     }
 
@@ -40,7 +42,7 @@
 		console.log(account)
         curAccount = account
 		console.log(curAccount.id)
-        selectMenu("TRANSACTIONS")
+		context.setView(views.TRANSACTIONS, modes.LIST)
     }
 
 	const editAccount = (account) => {

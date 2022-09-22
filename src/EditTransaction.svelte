@@ -9,7 +9,8 @@
     export let curTransaction
     export let accounts = []
     export let editMode = "ADD"
-    export let settings
+    export let context
+    export let schedule
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
@@ -82,7 +83,7 @@
         }
 
         if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            if (settings.require_double_entry || compoundMode) {
+            if (context.settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", "Account is required")
             }
         }
@@ -274,6 +275,7 @@
 <div class="form">
     <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Transaction</div>
     <div class="toolbar">
+        <div class="toolbar-icon" on:click="{schedule(curTransaction)}" title="Schedule"><Icon icon="mdi:clipboard-text-clock"  width="24"/></div>
         <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
     </div>
         {#if entries.length > 0 && !compoundMode}
