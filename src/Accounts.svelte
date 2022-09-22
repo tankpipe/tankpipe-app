@@ -15,27 +15,24 @@
 		Expense: "Expenses",
 		Equity: "Equity"
 	}
-    let mode = "ACCOUNTS"
-    let editMode = "ADD"
 	let lastAccountType = "";
 
 	$: {
 		if (accounts)
 			if (accounts.length < 1) {
-				mode = "EDIT"
+				context.mode = modes.NEW
 			}
 	}
 
 	const close = () => {
         console.log("close")
 		context.setView(views.ACCOUNTS)
-        mode = "ACCOUNTS";
+        context.mode = modes.LIST
     }
 
     const handleAddClick = () => {
 		curAccount = null
-        editMode = "ADD"
-		mode = "EDIT"
+        context.mode = modes.NEW
 	}
 
     const selectAccount = (account) => {
@@ -47,8 +44,7 @@
 
 	const editAccount = (account) => {
         curAccount = account
-        editMode = "EDIT"
-		mode = "EDIT"
+        context.mode = modes.EDIT
         console.log("selected: " + curAccount.name);
     }
 
@@ -63,16 +59,16 @@
 </script>
 
 <div class="account-heading">
-	{#if mode === "ACCOUNTS"}
+	{#if !context.isEditMode()}
 	<div class="toolbar"><div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	{/if}
 </div>
 
 
-{#if mode === "EDIT"}
-<EditAccount {curAccount} {loadAccounts} {close} {editMode} initialize={accounts.length < 1}/>
+{#if context.isEditMode()}
+<EditAccount {curAccount} {loadAccounts} {close} {context} initialize={accounts.length < 1}/>
 {/if}
-{#if mode === "ACCOUNTS"}
+{#if !context.isEditMode()}
 <div class="form-heading">Accounts</div>
 <div class="scroller">
 	<div class="accounts">

@@ -25,6 +25,10 @@ class Context {
             this.mode = mode
         }
     }
+
+    isEditMode() {
+        return this.mode === modes.EDIT || this.mode === modes.NEW
+    }
 }
 
 export {Context, views, modes}
