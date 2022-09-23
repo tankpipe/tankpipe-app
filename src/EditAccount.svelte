@@ -3,12 +3,11 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { modes } from './context.js';
+    import { page, modes } from './page.js';
 
     export let close
     export let curAccount
     export let loadAccounts
-    export let context
     export let initialize = false
 
     const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
@@ -19,7 +18,7 @@
     let addButtonLabel = "Add"
 
     onMount(() => {
-        if (context.mode === modes.EDIT) {
+        if ($page.mode === modes.EDIT) {
             name = curAccount.name
             startingBalance = curAccount.starting_balance
             accountType = matchAccountType(curAccount.account_type)
@@ -69,7 +68,7 @@
 
         if (!errors.hasErrors()) {
 
-            if (context.mode === modes.NEW) {
+            if ($page.mode === modes.NEW) {
                 const account = {
                     name: name,
                     starting_balance: startingBalance,
@@ -77,7 +76,7 @@
                 }
 
                 addAccount(account)
-            } else if (context.mode === modes.EDIT) {
+            } else if ($page.mode === modes.EDIT) {
                 const account = {
                     name: name,
                     starting_balance: startingBalance,
@@ -134,7 +133,7 @@
 {/if}
 
 <div class="form">
-    <div class="form-heading">{context.mode === modes.EDIT?"Edit":"New"} Account</div>
+    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Account</div>
     <div class="toolbar">
         {#if transactions.length < 1}
         <div class="toolbar-icon" on:click="{deleteAccount(curAccount)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
@@ -151,7 +150,7 @@
         </div>
     </div>
     <div class="form-row">
-        <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Type" none={false} inError={errors.isInError("accountType")} disabled={context.mode === modes.EDIT} flat={true}/>
+        <Select bind:item={accountType} items={ACCOUNT_TYPES} label="Type" none={false} inError={errors.isInError("accountType")} disabled={$page.mode === modes.EDIT} flat={true}/>
     </div>
     <div class="form-button-row">
         <div class="msg-panel">

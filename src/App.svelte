@@ -3,12 +3,12 @@
 	import Schedules from './Schedules.svelte'
 	import Transactions from './Transactions.svelte'
 	import Settings from './Settings.svelte'
-	import {Context} from './context.js'
+	import {page, modes, views} from './page.js'
+	import {settings} from './settings'
 
 	let accounts
 	export let curAccount = null
 	let initializing = true
-	let context = new Context()
 
 	export let transactions = []
 
@@ -17,7 +17,8 @@
 	};
 
 	const loadSettings = async () => {
-		context.settings = await invoke('settings')
+		let result = await invoke('settings')
+		settings.set(result)
 	};
 
 	const initialize = async () => {
@@ -25,15 +26,11 @@
 		await loadSettings()
 		await loadAccounts()
 		if (accounts.length < 1) {
-			context.view = "ACCOUNTS"
+			page.set({view: views.ACCOUNTS, mode: modes.LIST})
 		}
 		initializing = false
 	}
 	initialize()
-
-	const selectMenu = (newView) => {
-		context.view = newView;
-	}
 
 </script>
 
@@ -50,33 +47,34 @@
 						{#if accounts.length < 1 }
 						<li class="disabled">Transactions</li>
 						{/if}
-						<li on:click={() => selectMenu("ACCOUNTS")} class:menu-selected={context.view=="ACCOUNTS"}>Accounts</li>
+						<li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>Accounts</li>
 						{#if accounts.length > 0 }
-						<li on:click={() => selectMenu("TRANSACTIONS")} class:menu-selected={context.view=="TRANSACTIONS"}>Transactions</li>
+						<li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>Transactions</li>
 						{/if}
 						{#if accounts.length < 1 }
 						<li class="disabled">Schedules</li>
 						{/if}
 						{#if accounts.length > 0 }
-						<li on:click={() => selectMenu("SCHEDULES")} class:menu-selected={context.view=="SCHEDULES"}>Schedules</li>
+						<li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
 						{/if}
-						<li on:click={() => selectMenu("SETTINGS")} class:menu-selected={context.view=="SETTINGS"}>Settings</li>
+						<li on:click={() => page.set({view: views.SETTINGS, mode: modes.LIST})} class:menu-selected={$page.view === views.SETTINGS}>Settings</li>
 					</ul>
 				</div>
+
 			</div>
 			<div class="column middle">
 
-					{#if context.view=="TRANSACTIONS"}
-					<Transactions bind:this={transactions} {curAccount} {accounts} {context}/>
+					{#if $page.view === views.TRANSACTIONS}
+					<Transactions bind:this={transactions} {curAccount} {accounts}/>
 					{/if}
-					{#if context.view=="ACCOUNTS"}
-					<Accounts bind:curAccount={curAccount} {accounts} {loadAccounts} {context}/>
+					{#if $page.view === views.ACCOUNTS}
+					<Accounts bind:curAccount={curAccount} {accounts} {loadAccounts}/>
 					{/if}
-					{#if context.view=="SCHEDULES"}
+					{#if $page.view === views.SCHEDULES}
 					<Schedules {accounts}/>
 					{/if}
-					{#if context.view=="SETTINGS"}
-					<Settings bind:settings={context.settings}/>
+					{#if $page.view === views.SETTINGS}
+					<Settings />
 					{/if}
 
 			</div>

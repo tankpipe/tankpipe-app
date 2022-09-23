@@ -4,12 +4,12 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
+    import { page, modes } from './page.js';
+    import { settings } from './settings.js';
 
     export let close
     export let curTransaction
     export let accounts = []
-    export let editMode = "ADD"
-    export let context
     export let schedule
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -26,8 +26,8 @@
     let entries = []
 
     onMount(() => {
-        console.log(editMode, curTransaction)
-        if (editMode == "EDIT") {
+        console.log($page.mode, curTransaction)
+        if ($page.mode === modes.EDIT) {
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
         } else {
@@ -83,7 +83,7 @@
         }
 
         if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            if (context.settings.require_double_entry || compoundMode) {
+            if (settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", "Account is required")
             }
         }
@@ -126,7 +126,7 @@
                 }
             )
 
-            if (editMode == "ADD") {
+            if ($page.mode === modes.NEW) {
                 transaction["id"] = zeros
                 transaction.entries.forEach (
                     e => {
@@ -135,7 +135,7 @@
                     }
                 )
                 addTransaction(transaction)
-            } else if (editMode == "EDIT") {
+            } else if ($page.mode === modes.EDIT) {
                 transaction["id"] = curTransaction.id;
                 saveTransaction(transaction)
             }
@@ -150,7 +150,7 @@
 
     function resolved(result) {
       msg = "Transaction saved."
-      if (editMode == "EDIT") {
+      if ($page.mode === modes.EDIT) {
         close()
       }
     }
@@ -273,7 +273,7 @@
 
 </script>
 <div class="form">
-    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Transaction</div>
+    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Transaction</div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{schedule(curTransaction)}" title="Schedule"><Icon icon="mdi:clipboard-text-clock"  width="24"/></div>
         <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>

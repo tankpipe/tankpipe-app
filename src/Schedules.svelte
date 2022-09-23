@@ -1,15 +1,14 @@
 <script>
 	import EditSchedule from './EditSchedule.svelte'
 	import Icon from '@iconify/svelte'
+    import { page, isEditMode, views, modes } from './page';
 
 	export let accounts = []
-	let mode = "SCHEDULES"
-	let editMode = "ADD"
 	let curSchedule
 
 	const close = () => {
         console.log("close")
-        mode = "SCHEDULES";
+        page.set({view: views.SCHEDULES, mode: modes.LIST})
 		loadSchedules()
     }
 
@@ -19,8 +18,7 @@
 
 	const selectSchedule = (transaction) => {
 		curSchedule = transaction
-		editMode = "EDIT"
-		mode = "EDIT"
+		page.set({view: views.SCHEDULES, mode: modes.EDIT})
 	}
 
 	let schedules = [];
@@ -46,23 +44,21 @@
 	}
 
 	const handleAddClick = () => {
-		editMode = "ADD"
-		mode = "EDIT"
+		page.set({view: views.SCHEDULES, mode: modes.NEW})
 	}
 
 </script>
 
 <div class="account-heading">
-	{#if mode === "SCHEDULES"}
-
+	{#if !isEditMode($page)}
 	<div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title="Create a new schedule"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	<div class="form-heading">Schedules</div>
 	{/if}
 </div>
-{#if mode === "EDIT"}
-<EditSchedule {close} {accounts} {editMode} {curSchedule} />
+{#if isEditMode($page)}
+<EditSchedule {close} {accounts} {curSchedule} />
 {/if}
-{#if mode === "SCHEDULES"}
+{#if !isEditMode($page)}
 <div class="scroller">
 	{#if schedules.length < 1}
 	<div class="message">No schedules</div>

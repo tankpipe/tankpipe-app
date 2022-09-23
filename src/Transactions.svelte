@@ -5,13 +5,12 @@
 	import { open } from '@tauri-apps/api/dialog'
 	import { appDir } from '@tauri-apps/api/path'
 	import { Errors } from './errors'
+    import { page, modes, views, isEditMode } from './page';
+    import { settings } from './settings';
 
 	export let curAccount
 	export let accounts = []
-	export let context
 
-	let mode = "TRANSACTIONS"
-	let editMode = "ADD"
 	let curTransaction
 	let errors = new Errors()
 	let msg = ""
@@ -19,12 +18,13 @@
 
 	const close = () => {
         console.log("close")
-        mode = "TRANSACTIONS";
+		page.set({view: views.TRANSACTIONS, mode: modes.LIST})
 		if (curAccount) loadTransactions();
     }
 
 	const schedule = () => {
-        selectMenu("SCHEDULES")
+		console.log("schedule")
+        page.set({view: views.SCHEDULES, mode: modes.NEW})
     }
 
 	$: {
@@ -36,8 +36,7 @@
 
 	const selectTransaction = (transaction) => {
 		curTransaction = transaction
-		editMode = "EDIT"
-		mode = "EDIT"
+		page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
 	}
 
 	let transactions = [];
@@ -64,8 +63,7 @@
 	}
 
 	const handleAddClick = () => {
-		editMode = "ADD"
-		mode = "EDIT"
+		page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
 	}
 
 	const openFile = async () => {
@@ -100,8 +98,8 @@
 </script>
 
 <div class="account-heading">
-	{#if mode === "TRANSACTIONS"}
-	<Select bind:item={curAccount} items={accounts} none={context.settings.require_double_entry} flat={true}/>
+	{#if !isEditMode($page)}
+	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry} flat={true}/>
 	<div class="toolbar">
 		{#if curAccount}
 		<div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
@@ -110,10 +108,10 @@
 	</div>
 	{/if}
 </div>
-{#if mode === "EDIT"}
-<EditTransaction {close} {accounts} {editMode} {curTransaction} {context} {schedule}/>
+{#if isEditMode($page)}
+<EditTransaction {close} {accounts} {curTransaction} {schedule}/>
 {/if}
-{#if mode === "TRANSACTIONS"}
+{#if !isEditMode($page)}
 <div class="widget errors">
 	{#each errors.getErrorMessages() as e}
 	<div class="error-msg">{e}</div>

@@ -1,12 +1,11 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
 	import Icon from '@iconify/svelte';
-    import { modes, views } from "./context";
+    import { page, isEditMode, modes, views } from "./page";
 
     export let curAccount
     export let accounts
     export let loadAccounts
-	export let context
 
 	let ACCOUNT_TYPES = {
 		Asset: "Assets",
@@ -20,31 +19,32 @@
 	$: {
 		if (accounts)
 			if (accounts.length < 1) {
-				context.mode = modes.NEW
+				page.set({view: views.ACCOUNTS, mode: modes.NEW})
 			}
 	}
 
 	const close = () => {
         console.log("close")
-		context.setView(views.ACCOUNTS)
-        context.mode = modes.LIST
+		page.set({view: views.ACCOUNTS, mode: modes.LIST})
     }
 
     const handleAddClick = () => {
+		console.log("addClick")
 		curAccount = null
-        context.mode = modes.NEW
+		page.set({view: views.ACCOUNTS, mode:modes.NEW})
 	}
 
     const selectAccount = (account) => {
 		console.log(account)
         curAccount = account
 		console.log(curAccount.id)
-		context.setView(views.TRANSACTIONS, modes.LIST)
+		page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
 	const editAccount = (account) => {
+		console.log(account)
         curAccount = account
-        context.mode = modes.EDIT
+		page.set({view: views.ACCOUNTS, mode: modes.EDIT})
         console.log("selected: " + curAccount.name);
     }
 
@@ -59,16 +59,16 @@
 </script>
 
 <div class="account-heading">
-	{#if !context.isEditMode()}
+	{#if !isEditMode($page)}
 	<div class="toolbar"><div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	{/if}
 </div>
 
 
-{#if context.isEditMode()}
-<EditAccount {curAccount} {loadAccounts} {close} {context} initialize={accounts.length < 1}/>
+{#if isEditMode($page)}
+<EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
 {/if}
-{#if !context.isEditMode()}
+{#if !isEditMode($page)}
 <div class="form-heading">Accounts</div>
 <div class="scroller">
 	<div class="accounts">

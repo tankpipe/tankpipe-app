@@ -3,11 +3,11 @@
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
+    import { page, modes } from './page.js'
 
     export let close
     export let curSchedule
     export let accounts = []
-    export let editMode = "ADD"
 
     let hasEnd = false
     let drAccount
@@ -22,7 +22,7 @@
     const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
 
     onMount(() => {
-        if (editMode == "EDIT") {
+        if ($page.mode === modes.EDIT) {
             name = curSchedule.name
             description = curSchedule.description
             amount = curSchedule.amount
@@ -101,9 +101,9 @@
                     cr_account_id: crAccountId,
                 }
 
-            if (editMode == "ADD") {
+            if ($page.mode === modes.NEW) {
                 addSchedule(schedule)
-            } else if (editMode == "EDIT") {
+            } else if ($page.mode === modes.EDIT) {
                 schedule["id"] = curSchedule.id
                 schedule["last_date"] = curSchedule.last_date
                 saveSchedule(schedule)
@@ -146,7 +146,7 @@
 </script>
 
 <div class="form">
-    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Schedule</div>
+    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Schedule</div>
     <div class="form-row">
         <div class="widget">
             <label for="desc">Name</label>
