@@ -58,7 +58,7 @@
 	}
 
 	const handleAddClick = () => {
-		page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
+		page.set({view: views.TRANSACTIONS, mode: modes.NEW})
 	}
 
 	const openFile = async () => {
