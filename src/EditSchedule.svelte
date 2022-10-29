@@ -16,6 +16,10 @@
     let errors = new Errors();
     let date = new Date(), name, description, amount, frequency = 1
     let endDate
+    let max = new Date(), min = new Date()
+    max.setFullYear(date.getFullYear() + 20);
+    min.setFullYear(date.getFullYear() - 10);
+    console.log(max)
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let period = {value:"Months", name:"Months"}
@@ -39,6 +43,15 @@
             drAccount = null
             crAccount = null
             addButtonLabel = "Add"
+
+            if ($page.payload && $page.payload.values) {
+                console.log($page.payload)
+                name = $page.payload.values.description
+                description = $page.payload.values.description
+                amount = $page.payload.values.amount
+                drAccount = $page.payload.values.debitAccount
+                crAccount = $page.payload.values.creditAccount
+            }
         }
     });
 
@@ -85,8 +98,8 @@
         if (!errors.hasErrors()) {
             let drAccountId = drAccount? drAccount.id : null
             let crAccountId = crAccount? crAccount.id : null
-            let dateStr = date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
-            let endDateStr = hasEnd ? date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate() : "null"
+            let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
+            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
 
             let schedule = {
                     name: name,
@@ -175,13 +188,13 @@
         <div class="widget">
             Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
             &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
-            starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" /></div>
+            starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget2">
             <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-            <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" /></div></div>
+            <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
             <br/>
             <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
             <label for="noEnd">No end date</label>

@@ -4,13 +4,12 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { page, modes } from './page.js';
+    import { page, modes, views } from './page.js';
     import { settings } from './settings.js';
 
     export let close
     export let curTransaction
     export let accounts = []
-    export let schedule
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
@@ -270,7 +269,20 @@
     	calculateTotals(entries)
 	}
 
+    const schedule = () => {
+		console.log("schedule")
+        let values = {}
+        if (curTransaction) {
+            values = {
+                description: curTransaction.entries[0].description,
+                amount: curTransaction.entries[0].amount,
+                debitAccount: curTransaction.entries[0].account,
+                creditAccount: curTransaction.entries[1].account
+            }
+        }
 
+        page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{values: values}})
+    }
 </script>
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Transaction</div>

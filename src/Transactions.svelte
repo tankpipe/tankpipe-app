@@ -22,11 +22,6 @@
 		if (curAccount) loadTransactions();
     }
 
-	const schedule = () => {
-		console.log("schedule")
-        page.set({view: views.SCHEDULES, mode: modes.NEW})
-    }
-
 	$: {
 		if (curAccount && curAccount !== previousAccount) {
 			loadTransactions()
@@ -109,7 +104,7 @@
 	{/if}
 </div>
 {#if isEditMode($page)}
-<EditTransaction {close} {accounts} {curTransaction} {schedule}/>
+<EditTransaction {close} {accounts} {curTransaction}/>
 {/if}
 {#if !isEditMode($page)}
 <div class="widget errors">
