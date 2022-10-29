@@ -5,7 +5,7 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use account_display::{DateParam, NewAccount, NewSchedule};
+use account_display::{DateParam, NewAccount};
 use accounts::book_repo::load_books;
 use accounts::books::Settings;
 use accounts::{
@@ -186,10 +186,14 @@ fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 }
 
 #[tauri::command]
-fn add_schedule(state: tauri::State<BooksState>, schedule: NewSchedule) -> Result<(), String> {
-    println!("Adding transaction {}", schedule.description);
+fn add_schedule(state: tauri::State<BooksState>, mut schedule: Schedule) -> Result<(), String> {
+    println!("Adding transaction {}", schedule.name);
+    schedule.id = Uuid::new_v4();
+    for mut e in schedule.entries.as_mut_slice() {
+        e.schedule_id = schedule.id;
+    }
     let mut mutex_guard = state.0.lock().unwrap();
-    error_handler(mutex_guard.books.add_schedule(schedule.to_schedule()))?;
+    error_handler(mutex_guard.books.add_schedule(schedule))?;
     error_handler(mutex_guard.save())
 }
 
