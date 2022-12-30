@@ -271,17 +271,7 @@
 
     const schedule = () => {
 		console.log("schedule")
-        let values = {}
-        if (curTransaction) {
-            values = {
-                description: curTransaction.entries[0].description,
-                amount: curTransaction.entries[0].amount,
-                debitAccount: curTransaction.entries[0].account,
-                creditAccount: curTransaction.entries[1].account
-            }
-        }
-
-        page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{values: values}})
+        page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
     }
 </script>
 <div class="form">

@@ -187,7 +187,7 @@ fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 
 #[tauri::command]
 fn add_schedule(state: tauri::State<BooksState>, mut schedule: Schedule) -> Result<(), String> {
-    println!("Adding transaction {}", schedule.name);
+    println!("Adding schedule: {}", schedule.name);
     schedule.id = Uuid::new_v4();
     for mut e in schedule.entries.as_mut_slice() {
         e.schedule_id = schedule.id;
@@ -199,7 +199,7 @@ fn add_schedule(state: tauri::State<BooksState>, mut schedule: Schedule) -> Resu
 
 #[tauri::command]
 fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule) -> Result<(), String> {
-    println!("Adding schedule {}", schedule.name);
+    println!("Updating schedule {}", schedule.name);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_schedule(schedule))?;
     error_handler(mutex_guard.save())

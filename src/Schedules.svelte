@@ -64,6 +64,7 @@
 	<div class="message">No schedules</div>
 	{/if}
 		{#each schedules as s}
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<div class="card" on:click={() => selectSchedule(s)}>
 				<div class="row">
 					<div class="widget">
@@ -72,22 +73,17 @@
 				</div>
 				<hr/>
 				<div class="row">
-					<div class="widget">
-						<div class="description">{s.description}</div>
-					</div>
-					<div class="widget">
-						<div class="money">{formatter.format(s.amount)}</div>
-					</div>
+					<div class="widget schedule-entries">
+					<table>
+						{#each s.entries as e}
+						<tr>
+							<td>{getAccountName(e.account_id)}</td>
+							<td>{#if e.transaction_type == "Debit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
+							<td>{#if e.transaction_type == "Credit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
+						</tr>
+						{/each}
+					</table>
 				</div>
-				<div class="row">
-					<div class="widget">
-						<div class="label">Debit</div>
-						<div class="account">{getAccountName(s.dr_account_id)}</div>
-					</div>
-					<div class="widget">
-						<div class="label">Credit</div>
-						<div class="account">{getAccountName(s.cr_account_id)}</div>
-					</div>
 				</div>
 				<div class="row">
 					<div class="widget">
@@ -107,6 +103,11 @@
 		margin: 10px 10px;
 		color: #F0F0F0;
 		vertical-align: top;
+	}
+
+	.schedule-entries {
+		font-size: .9em;
+		color: #C0C0C0;
 	}
 
 	.row {
