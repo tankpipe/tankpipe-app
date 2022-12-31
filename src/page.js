@@ -10,7 +10,8 @@ const views = {
 const modes = {
     NEW: "NEW",
     EDIT: "EDIT",
-    LIST: "LIST"
+    LIST: "LIST",
+    LOAD: "LOAD"
 }
 
 const page = writable({view: views.ACCOUNTS, mode:modes.LIST, payload:{}})

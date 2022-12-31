@@ -270,8 +270,12 @@
 	}
 
     const schedule = () => {
-		console.log("schedule")
-        page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
+		console.log("schedule", curTransaction.entries[0].schedule_id)
+        if (curTransaction.entries[0].schedule_id) {
+            page.set({view: views.SCHEDULES, mode: modes.LOAD, payload:{schedule_id: curTransaction.entries[0].schedule_id}})
+        } else {
+            page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
+        }
     }
 </script>
 <div class="form">

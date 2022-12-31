@@ -16,8 +16,8 @@
 		loadSchedules()
     }
 
-	const selectSchedule = (transaction) => {
-		curSchedule = transaction
+	const selectSchedule = (schedule) => {
+		curSchedule = schedule
 		page.set({view: views.SCHEDULES, mode: modes.EDIT})
 	}
 
@@ -25,7 +25,24 @@
 	const loadSchedules = async () => {
 		console.log("loadSchedules");
    		schedules = await invoke('schedules');
+		checkForLoadMode()
 	};
+
+	const checkForLoadMode = () => {
+		if ($page.mode === modes.LOAD) {
+			if ($page.payload && $page.payload.schedule_id) {
+				let match = schedules.filter(s => s.id === $page.payload.schedule_id)
+				if (match.length > 0) {
+					curSchedule = match[0]
+					console.log(curSchedule);
+					page.set({view: views.SCHEDULES, mode: modes.EDIT})
+				}
+			} else { // Should never happen
+				console.log("Couldn't find schedule " + $page.payload)
+				page.set({view: views.SCHEDULES, mode: modes.LIST})
+			}
+		}
+	}
 
 	const formatter = new Intl.NumberFormat('en-AU', {
 		minimumFractionDigits: 2,
