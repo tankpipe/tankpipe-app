@@ -226,10 +226,11 @@ fn end_date(state: tauri::State<BooksState>) -> Option<DateParam> {
 }
 
 #[tauri::command]
-fn generate(state: tauri::State<BooksState>, date: DateParam) {
+fn generate(state: tauri::State<BooksState>, date: DateParam) -> Result<(), String> {
     println!("Generating to {}", date.date);
     let mut mutex_guard = state.0.lock().unwrap();
     mutex_guard.books.generate(date.date);
+    error_handler(mutex_guard.save())
 }
 
 #[tauri::command]
