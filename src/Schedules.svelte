@@ -56,7 +56,7 @@
 	{/if}
 </div>
 {#if isEditMode($page)}
-<EditSchedule {close} {accounts} {curSchedule} />
+<EditSchedule {close} {accounts} {curSchedule} {loadSchedules}/>
 {/if}
 {#if !isEditMode($page)}
 <div class="scroller">

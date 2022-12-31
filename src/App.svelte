@@ -13,6 +13,7 @@
 	export let transactions = []
 
 	const loadAccounts = async () => {
+		curAccount = null
    		accounts = await invoke('accounts');
 	};
 

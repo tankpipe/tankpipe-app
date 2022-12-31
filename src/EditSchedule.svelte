@@ -8,6 +8,7 @@
     export let close
     export let curSchedule
     export let accounts = []
+    export let loadSchedules
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let hasEnd = false
@@ -99,6 +100,12 @@
         if (!errors.hasErrors()) {
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
             let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
+            entries.forEach (
+                e => {
+                    e["account_id"] = e["account"]["id"]
+                    e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                }
+            )
 
             let schedule = {
                     name: name,
@@ -123,6 +130,7 @@
 
     function resolved(result) {
       msg = "Schedule added."
+      loadSchedules()
     }
 
     function rejected(result) {
@@ -141,7 +149,15 @@
 	};
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, schedule_id: zeros, description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit"}]
+        entries = [...entries, {
+            id: zeros,
+            schedule_id: zeros,
+            description: "",
+            amount: 0,
+            drAmount: '',
+            crAmount: '',
+            account: {},
+            transaction_type: "Debit"}]
     }
 
     const handleRemoveClick = () => {
@@ -185,11 +201,13 @@
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
             entry["transaction_type"] = "Debit"
+            calculateTotals(entries)
             return type === "Debit"
         }
 
         if (entry["crAmount"] > 0) {
             entry["transaction_type"] = "Credit"
+            calculateTotals(entries)
             return type === "Credit"
         }
 
@@ -207,10 +225,6 @@
         crTotal = total("Credit")
     }
 
-    $: {
-    	calculateTotals(entries)
-	}
-
 </script>
 
 <div class="form">
@@ -225,7 +239,7 @@
     <div class="panel-title">Transaction</div>
     <div class="entries">
         <table>
-            <tr><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
+            <tr><td><div class="heading">Description</div></td><td><div class="heading">Account</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
             {#each entries as e, i}
             <tr>
                 <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
