@@ -4,12 +4,12 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
+    import { page, modes, views } from './page.js';
+    import { settings } from './settings.js';
 
     export let close
     export let curTransaction
     export let accounts = []
-    export let editMode = "ADD"
-    export let settings
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
@@ -25,8 +25,8 @@
     let entries = []
 
     onMount(() => {
-        console.log(editMode, curTransaction)
-        if (editMode == "EDIT") {
+        console.log($page.mode, curTransaction)
+        if ($page.mode === modes.EDIT) {
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
         } else {
@@ -125,7 +125,7 @@
                 }
             )
 
-            if (editMode == "ADD") {
+            if ($page.mode === modes.NEW) {
                 transaction["id"] = zeros
                 transaction.entries.forEach (
                     e => {
@@ -134,7 +134,7 @@
                     }
                 )
                 addTransaction(transaction)
-            } else if (editMode == "EDIT") {
+            } else if ($page.mode === modes.EDIT) {
                 transaction["id"] = curTransaction.id;
                 saveTransaction(transaction)
             }
@@ -149,7 +149,7 @@
 
     function resolved(result) {
       msg = "Transaction saved."
-      if (editMode == "EDIT") {
+      if ($page.mode === modes.EDIT) {
         close()
       }
     }
@@ -269,11 +269,19 @@
     	calculateTotals(entries)
 	}
 
-
+    const schedule = () => {
+		console.log("schedule", curTransaction.entries[0].schedule_id)
+        if (curTransaction.entries[0].schedule_id) {
+            page.set({view: views.SCHEDULES, mode: modes.LOAD, payload:{schedule_id: curTransaction.entries[0].schedule_id}})
+        } else {
+            page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
+        }
+    }
 </script>
 <div class="form">
-    <div class="form-heading">{editMode == "EDIT"?"Edit":"New"} Transaction</div>
+    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Transaction</div>
     <div class="toolbar">
+        <div class="toolbar-icon" on:click="{schedule(curTransaction)}" title="Schedule"><Icon icon="mdi:clipboard-text-clock"  width="24"/></div>
         <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
     </div>
         {#if entries.length > 0 && !compoundMode}

@@ -1,15 +1,14 @@
 <script>
 	import EditSchedule from './EditSchedule.svelte'
 	import Icon from '@iconify/svelte'
+    import { page, isEditMode, views, modes } from './page';
 
 	export let accounts = []
-	let mode = "SCHEDULES"
-	let editMode = "ADD"
 	let curSchedule
 
 	const close = () => {
         console.log("close")
-        mode = "SCHEDULES";
+        page.set({view: views.SCHEDULES, mode: modes.LIST})
 		loadSchedules()
     }
 
@@ -17,17 +16,33 @@
 		loadSchedules()
     }
 
-	const selectSchedule = (transaction) => {
-		curSchedule = transaction
-		editMode = "EDIT"
-		mode = "EDIT"
+	const selectSchedule = (schedule) => {
+		curSchedule = schedule
+		page.set({view: views.SCHEDULES, mode: modes.EDIT})
 	}
 
 	let schedules = [];
 	const loadSchedules = async () => {
 		console.log("loadSchedules");
    		schedules = await invoke('schedules');
+		checkForLoadMode()
 	};
+
+	const checkForLoadMode = () => {
+		if ($page.mode === modes.LOAD) {
+			if ($page.payload && $page.payload.schedule_id) {
+				let match = schedules.filter(s => s.id === $page.payload.schedule_id)
+				if (match.length > 0) {
+					curSchedule = match[0]
+					console.log(curSchedule);
+					page.set({view: views.SCHEDULES, mode: modes.EDIT})
+				}
+			} else { // Should never happen
+				console.log("Couldn't find schedule " + $page.payload)
+				page.set({view: views.SCHEDULES, mode: modes.LIST})
+			}
+		}
+	}
 
 	const formatter = new Intl.NumberFormat('en-AU', {
 		minimumFractionDigits: 2,
@@ -46,28 +61,27 @@
 	}
 
 	const handleAddClick = () => {
-		editMode = "ADD"
-		mode = "EDIT"
+		page.set({view: views.SCHEDULES, mode: modes.NEW})
 	}
 
 </script>
 
 <div class="account-heading">
-	{#if mode === "SCHEDULES"}
-
+	{#if !isEditMode($page)}
 	<div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title="Create a new schedule"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
 	<div class="form-heading">Schedules</div>
 	{/if}
 </div>
-{#if mode === "EDIT"}
-<EditSchedule {close} {accounts} {editMode} {curSchedule} />
+{#if isEditMode($page)}
+<EditSchedule {close} {accounts} {curSchedule} {loadSchedules}/>
 {/if}
-{#if mode === "SCHEDULES"}
+{#if !isEditMode($page)}
 <div class="scroller">
 	{#if schedules.length < 1}
 	<div class="message">No schedules</div>
 	{/if}
 		{#each schedules as s}
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<div class="card" on:click={() => selectSchedule(s)}>
 				<div class="row">
 					<div class="widget">
@@ -76,22 +90,17 @@
 				</div>
 				<hr/>
 				<div class="row">
-					<div class="widget">
-						<div class="description">{s.description}</div>
-					</div>
-					<div class="widget">
-						<div class="money">{formatter.format(s.amount)}</div>
-					</div>
+					<div class="widget schedule-entries">
+					<table>
+						{#each s.entries as e}
+						<tr>
+							<td>{getAccountName(e.account_id)}</td>
+							<td>{#if e.transaction_type == "Debit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
+							<td>{#if e.transaction_type == "Credit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
+						</tr>
+						{/each}
+					</table>
 				</div>
-				<div class="row">
-					<div class="widget">
-						<div class="label">Debit</div>
-						<div class="account">{getAccountName(s.dr_account_id)}</div>
-					</div>
-					<div class="widget">
-						<div class="label">Credit</div>
-						<div class="account">{getAccountName(s.cr_account_id)}</div>
-					</div>
 				</div>
 				<div class="row">
 					<div class="widget">
@@ -111,6 +120,11 @@
 		margin: 10px 10px;
 		color: #F0F0F0;
 		vertical-align: top;
+	}
+
+	.schedule-entries {
+		font-size: .9em;
+		color: #C0C0C0;
 	}
 
 	.row {

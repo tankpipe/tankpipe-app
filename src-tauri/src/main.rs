@@ -5,7 +5,7 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-use account_display::{DateParam, NewAccount, NewSchedule};
+use account_display::{DateParam, NewAccount};
 use accounts::book_repo::load_books;
 use accounts::books::Settings;
 use accounts::{
@@ -95,11 +95,18 @@ fn transaction(
 }
 
 #[tauri::command]
-fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Vec<Entry> {
+fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result<Vec<Entry>, String> {
     println!("Fetching transactions for {}", account_id);
     let mutex_guard = state.0.lock().unwrap();
     let x = mutex_guard.books.account_entries(account_id);
-    x.unwrap()
+    match x {
+        Ok(_) => Ok(x.unwrap()),
+        Err(e) => {
+            println!("{}", e.error);
+            Err(e.error)
+        }
+    }
+
 }
 
 #[tauri::command]
@@ -186,16 +193,20 @@ fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 }
 
 #[tauri::command]
-fn add_schedule(state: tauri::State<BooksState>, schedule: NewSchedule) -> Result<(), String> {
-    println!("Adding transaction {}", schedule.description);
+fn add_schedule(state: tauri::State<BooksState>, mut schedule: Schedule) -> Result<(), String> {
+    println!("Adding schedule: {}", schedule.name);
+    schedule.id = Uuid::new_v4();
+    for mut e in schedule.entries.as_mut_slice() {
+        e.schedule_id = schedule.id;
+    }
     let mut mutex_guard = state.0.lock().unwrap();
-    error_handler(mutex_guard.books.add_schedule(schedule.to_schedule()))?;
+    error_handler(mutex_guard.books.add_schedule(schedule))?;
     error_handler(mutex_guard.save())
 }
 
 #[tauri::command]
 fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule) -> Result<(), String> {
-    println!("Adding schedule {}", schedule.name);
+    println!("Updating schedule {}", schedule.name);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_schedule(schedule))?;
     error_handler(mutex_guard.save())
@@ -215,10 +226,11 @@ fn end_date(state: tauri::State<BooksState>) -> Option<DateParam> {
 }
 
 #[tauri::command]
-fn generate(state: tauri::State<BooksState>, date: DateParam) {
+fn generate(state: tauri::State<BooksState>, date: DateParam) -> Result<(), String> {
     println!("Generating to {}", date.date);
     let mut mutex_guard = state.0.lock().unwrap();
     mutex_guard.books.generate(date.date);
+    error_handler(mutex_guard.save())
 }
 
 #[tauri::command]

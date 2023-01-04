@@ -1,5 +1,6 @@
 <script>
-	export let settings
+	import {settings} from './settings.js'
+
     let dateStr
 
 	$: {
@@ -27,8 +28,8 @@
 	}
 
 	const updateSettings = async () => {
-		if (settings) {
-			await invoke('update_settings', {settings: settings}).then(
+		if ($settings) {
+			await invoke('update_settings', {settings: $settings}).then(
 				() => console.log("settings saved"),
 				() => console.log("settings not saved " + result)
 			)
@@ -49,7 +50,7 @@
 	<div class="form-heading">Settings</div>
     <div class="form-row2">
 		<div class="widget">
-			<div class="label">Enforce double entry</div><input type="checkbox" bind:checked={settings.require_double_entry} on:change={updateSettings}/>
+			<div class="label">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings}/>
 		</div>
 	</div>
     <div class="form-row2">
