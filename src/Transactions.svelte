@@ -3,13 +3,13 @@
     import Select from './Select.svelte'
 	import Icon from '@iconify/svelte'
 	import { open } from '@tauri-apps/api/dialog'
-	import { appDir } from '@tauri-apps/api/path'
+	import { documentDir } from '@tauri-apps/api/path'
 	import { Errors } from './errors'
-    import { page, modes, views, isEditMode } from './page';
-    import { settings } from './settings';
+    import { page, modes, views, isEditMode } from './page'
+    import { settings } from './settings'
+	import { accounts } from './accounts'
 
 	export let curAccount
-	export let accounts = []
 
 	let curTransaction
 	let errors = new Errors()
@@ -62,11 +62,15 @@
 	}
 
 	const openFile = async () => {
+		let appDataDirPath
+		await documentDir()
+				.then(r => appDataDirPath = r)
+				.catch(e => console.log("error : " + e))
 		const selected = await open({
 			directory: false,
 			multiple: false,
 			filters: [{name: '*', extensions: ['csv']}],
-			defaultPath: await appDir(),
+			defaultPath: appDataDirPath,
 		});
 
 		if(selected) {
@@ -94,7 +98,7 @@
 
 <div class="account-heading">
 	{#if !isEditMode($page)}
-	<Select bind:item={curAccount} items={accounts} none={settings.require_double_entry} flat={true}/>
+	<Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
 	<div class="toolbar">
 		{#if curAccount}
 		<div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
@@ -104,7 +108,7 @@
 	{/if}
 </div>
 {#if isEditMode($page)}
-<EditTransaction {close} {accounts} {curTransaction}/>
+<EditTransaction {close} {curTransaction}/>
 {/if}
 {#if !isEditMode($page)}
 <div class="widget errors">

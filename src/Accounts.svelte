@@ -1,10 +1,12 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
 	import Icon from '@iconify/svelte';
+	import { open } from '@tauri-apps/api/dialog'
     import { page, isEditMode, modes, views } from "./page";
+	import {config} from './config'
+	import {accounts} from './accounts'
 
     export let curAccount
-    export let accounts
     export let loadAccounts
 
 	let ACCOUNT_TYPES = {
@@ -17,8 +19,8 @@
 	let lastAccountType = "";
 
 	$: {
-		if (accounts)
-			if (accounts.length < 1) {
+		if ($accounts)
+			if ($accounts.length < 1) {
 				page.set({view: views.ACCOUNTS, mode: modes.NEW})
 			}
 	}
@@ -56,11 +58,43 @@
 		return false
 	}
 
+	const openFile = async () => {
+		const selected = await open({
+			directory: false,
+			multiple: false,
+			filters: [{name: '*', extensions: ['json']}],
+			defaultPath: $config.data_dir,
+		});
+
+		if(selected) {
+			console.log(selected)
+			loadFile(selected)
+		}
+	}
+
+	const loadFile = async (path) => {
+		curAccount = null
+   		await invoke('load_file', {path: path}).then(loadFileSuccess, loadFileFailure)
+	};
+
+	function loadFileSuccess(result) {
+        accounts.set(result)
+    }
+
+	function loadFileFailure(result) {
+		console.log(result)
+        errors = new Errors()
+        errors.addError("all", "We hit a snag: " + result)
+    }
+
 </script>
 
 <div class="account-heading">
 	{#if !isEditMode($page)}
-	<div class="toolbar"><div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
+	<div class="toolbar">
+		<div class="toolbar-icon import-icon" on:click={openFile} title="Open file"><Icon icon="mdi:folder-open" width="22"/></div>
+		<div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+	</div>
 	{/if}
 </div>
 
@@ -72,7 +106,7 @@
 <div class="form-heading">Accounts</div>
 <div class="scroller">
 	<div class="accounts">
-    {#each accounts as a}
+    {#each $accounts as a}
 	{#if checkAccountType(a)}
 		<div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
 	{/if}
@@ -131,6 +165,27 @@
 	.card:hover {
 		cursor: pointer;
 		color: #FFF;
+	}
+
+	.toolbar {
+		float: right;
+		color: #C0C0C0;
+		margin-left: 10px;
+		display: flex;
+		padding-right: 9px;
+	}
+
+	.toolbar-icon {
+		margin-left: 5px;
+	}
+
+	.toolbar-icon:hover{
+		color: #F0F0F0;
+		cursor: pointer;
+	}
+
+	.import-icon {
+		margin-top: 1px
 	}
 
 </style>

@@ -73,15 +73,28 @@ impl Repo {
         }
     }
 
+    pub fn load_books(&mut self, path: &OsString) -> Result<(), BooksError> {
+        let result = load_books(path);
+        match result {
+            Ok(b) => {
+                self.books = b;
+                self.config.last_file.path = path.clone();
+                Ok(())
+            },
+            Err(e) => Err(BooksError{ error: e.to_string() })
+        }
+    }
+
     pub fn save(&self) -> Result<(), BooksError> {
         let _ = save_books(self.config.last_file.path.clone(), &self.books);
         Ok(())
     }
+
 }
 
 
 fn setup_app_directories() -> Result<AppDirectories, BooksError> {
-    let dir = ProjectDirs::from("com", "memoneymo", "money");
+    let dir = ProjectDirs::from("com", "aqueducks", "");
     match dir {
         Some(d) => {
             let mut directories = AppDirectories::from_project_dirs(&d);
@@ -116,7 +129,7 @@ fn build_home_dir_path() -> Result<OsString, BooksError> {
     if h.is_none() {
         return Err(BooksError{ error: "Could not determine home directory".to_string() })
     }
-    Ok(h.unwrap().join("memoneymo").as_os_str().to_os_string())
+    Ok(h.unwrap().join("com.aqueducks").as_os_str().to_os_string())
 }
 
 pub fn load_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {

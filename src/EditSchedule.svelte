@@ -4,10 +4,10 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import { page, modes } from './page.js'
+    import {accounts} from './accounts'
 
     export let close
     export let curSchedule
-    export let accounts = []
     export let loadSchedules
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -65,7 +65,7 @@
 
     const matchAccount = (accountId) =>  {
         if (!accountId) return null
-        let match = accounts.filter(a => a.id == accountId)
+        let match = $accounts.filter(a => a.id == accountId)
         return match.length > 0 ? match[0] : null
     }
 
@@ -243,7 +243,7 @@
             {#each entries as e, i}
             <tr>
                 <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                <td><div class="select-adjust"><Select bind:item={e["account"]} items={accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
                 <td class="money">
                     {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
                     {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
