@@ -5,8 +5,9 @@
 	import Settings from './Settings.svelte'
 	import {page, modes, views} from './page.js'
 	import {settings} from './settings'
+	import {accounts} from './accounts'
+	import {config} from './config'
 
-	let accounts
 	export let curAccount = null
 	let initializing = true
 
@@ -14,7 +15,8 @@
 
 	const loadAccounts = async () => {
 		curAccount = null
-   		accounts = await invoke('accounts');
+   		let result = await invoke('accounts');
+		accounts.set(result)
 	};
 
 	const loadSettings = async () => {
@@ -22,11 +24,18 @@
 		settings.set(result)
 	};
 
+	const loadConfig = async () => {
+		let result = await invoke('config')
+		config.set(result)
+		console.log(result)
+	};
+
 	const initialize = async () => {
 		initializing = true
 		await loadSettings()
 		await loadAccounts()
-		if (accounts.length < 1) {
+		await loadConfig()
+		if ($accounts.length < 1) {
 			page.set({view: views.ACCOUNTS, mode: modes.LIST})
 		}
 		initializing = false
@@ -45,17 +54,17 @@
 			<div class="column left">
 				<div class="menu-left">
 					<ul>
-						{#if accounts.length < 1 }
+						{#if $accounts.length < 1 }
 						<li class="disabled">Transactions</li>
 						{/if}
 						<li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>Accounts</li>
-						{#if accounts.length > 0 }
+						{#if $accounts.length > 0 }
 						<li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>Transactions</li>
 						{/if}
-						{#if accounts.length < 1 }
+						{#if $accounts.length < 1 }
 						<li class="disabled">Schedules</li>
 						{/if}
-						{#if accounts.length > 0 }
+						{#if $accounts.length > 0 }
 						<li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
 						{/if}
 						<li on:click={() => page.set({view: views.SETTINGS, mode: modes.LIST})} class:menu-selected={$page.view === views.SETTINGS}>Settings</li>
@@ -66,13 +75,13 @@
 			<div class="column middle">
 
 					{#if $page.view === views.TRANSACTIONS}
-					<Transactions bind:this={transactions} {curAccount} {accounts}/>
+					<Transactions bind:this={transactions} {curAccount}/>
 					{/if}
 					{#if $page.view === views.ACCOUNTS}
-					<Accounts bind:curAccount={curAccount} {accounts} {loadAccounts}/>
+					<Accounts bind:curAccount={curAccount} {loadAccounts}/>
 					{/if}
 					{#if $page.view === views.SCHEDULES}
-					<Schedules {accounts}/>
+					<Schedules/>
 					{/if}
 					{#if $page.view === views.SETTINGS}
 					<Settings />

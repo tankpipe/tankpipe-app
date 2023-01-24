@@ -15,6 +15,7 @@ use accounts::{
 };
 use chrono::NaiveDate;
 use config::Config;
+use std::ffi::OsString;
 use std::path::Path;
 use std::{
     collections::HashMap,
@@ -74,7 +75,9 @@ fn main() {
             transaction,
             update_settings,
             settings,
+            config,
             load_csv,
+            load_file
         ])
         .run(context)
         .expect("error while running tauri application");
@@ -249,6 +252,13 @@ fn settings(state: tauri::State<BooksState>) -> Settings {
 }
 
 #[tauri::command]
+fn config(state: tauri::State<BooksState>) -> Config {
+    println!("Fetching config");
+    let mutex_guard = state.0.lock().unwrap();
+    mutex_guard.config.clone()
+}
+
+#[tauri::command]
 fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<(), String> {
     println!("load_csv: {:?}, for account:{:?}", path, account.id);
     let load_result = load_transactions(path, &account);
@@ -266,6 +276,20 @@ fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> 
         },
         Err(e) => Err(e.error),
     }
+}
+
+#[tauri::command]
+fn load_file(state: tauri::State<BooksState>, path: String) -> Result<Vec<Account>, String> {
+    println!("load_file: {:?}", path);
+    let mut mutex_guard = state.0.lock().unwrap();
+    let add_result = mutex_guard.load_books(&OsString::from(path));
+    println!("{:?}", add_result);
+    if add_result.is_err() {
+        let the_error = add_result.unwrap_err().error;
+        println!("{}", the_error);
+        return Err(the_error);
+    }
+    Ok(mutex_guard.books.accounts())
 }
 
 

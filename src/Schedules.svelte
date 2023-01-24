@@ -2,8 +2,8 @@
 	import EditSchedule from './EditSchedule.svelte'
 	import Icon from '@iconify/svelte'
     import { page, isEditMode, views, modes } from './page';
+	import {accounts} from './accounts'
 
-	export let accounts = []
 	let curSchedule
 
 	const close = () => {
@@ -51,7 +51,7 @@
 
 	const matchAccount = (accountId) =>  {
         if (!accountId) return null
-        let match = accounts.filter(a => a.id == accountId)
+        let match = $accounts.filter(a => a.id == accountId)
         return match.length > 0 ? match[0] : null
     }
 
@@ -73,7 +73,7 @@
 	{/if}
 </div>
 {#if isEditMode($page)}
-<EditSchedule {close} {accounts} {curSchedule} {loadSchedules}/>
+<EditSchedule {close} {curSchedule} {loadSchedules}/>
 {/if}
 {#if !isEditMode($page)}
 <div class="scroller">

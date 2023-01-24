@@ -6,10 +6,10 @@
     import Icon from '@iconify/svelte'
     import { page, modes, views } from './page.js';
     import { settings } from './settings.js';
+    import {accounts} from './accounts'
 
     export let close
     export let curTransaction
-    export let accounts = []
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
@@ -20,7 +20,6 @@
     let crTotal = 0
     let simpleAllowed = false
     let compoundMode = false
-    console.log(accounts)
 
     let entries = []
 
@@ -143,7 +142,7 @@
     }
 
     const matchAccount = (account_id) =>  {
-        let match = accounts.filter(a => a.id == account_id)
+        let match = $accounts.filter(a => a.id == account_id)
         return match.length > 0 ? match[0] : null
     }
 
@@ -298,12 +297,12 @@
         <div class="form-row2">
             {#if entries.length > 1}
             {#if entries[0].transaction_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={accounts} label="Debit" none={true} flat={true} />
-            <Select bind:item={entries[1].account} items={accounts} label="Credit" none={true} flat={true} />
+            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} />
+            <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
             {#if entries[0].transaction_type === "Credit"}
-            <Select bind:item={entries[1].account} items={accounts} label="Debit" none={true} flat={true} />
-            <Select bind:item={entries[0].account} items={accounts} label="Credit" none={true} flat={true} />
+            <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} />
+            <Select bind:item={entries[0].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
             {/if}
         </div>
@@ -316,7 +315,7 @@
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" /></div></td>
                     <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
                     <td class="money">
                         {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
                         {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
