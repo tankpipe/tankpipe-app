@@ -17,6 +17,10 @@ impl FileDetails {
     pub fn from_path(name: &str, path: PathBuf) -> FileDetails {
         FileDetails{ name: name.to_string(), path: path.into_os_string() }
     }
+
+    pub fn from_os_string(name: &str, path: OsString) -> FileDetails {
+        FileDetails{ name: name.to_string(), path: path }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
@@ -42,6 +46,24 @@ impl Config {
 
     pub fn file_path(&self, name: &str) -> PathBuf {
         PathBuf::from(self.data_dir.clone()).join(name)
+    }
+
+    pub fn set_last(&mut self, path: OsString, new_name: Option<&str>) {
+        let mut lastFile: FileDetails;
+        let os_string_path = OsString::from(path);
+        self.last_file.path = os_string_path.clone();
+        let index = self.recent_files.iter().position(|f| *f.path == os_string_path);
+        match index {
+            Some(i) => {
+                lastFile = self.recent_files.get(i).unwrap().clone();
+                self.recent_files.remove(index.unwrap());
+            },
+            None =>lastFile = FileDetails::from_os_string("", os_string_path)
+        }
+        if new_name.is_some() {
+            lastFile.name = new_name.unwrap().to_string()
+        }
+        self.recent_files.insert(0, lastFile)
     }
 }
 

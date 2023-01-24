@@ -78,8 +78,12 @@ impl Repo {
         match result {
             Ok(b) => {
                 self.books = b;
-                self.config.last_file.path = path.clone();
-                Ok(())
+                self.config.set_last(path.clone(), None);
+                let save_result = save_config( &self.config.settings_path(), &self.config);
+                match save_result {
+                    Ok(()) => Ok(()),
+                    Err(e) => Err(BooksError{ error: e.to_string() })
+                }
             },
             Err(e) => Err(BooksError{ error: e.to_string() })
         }
