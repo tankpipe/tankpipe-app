@@ -49,21 +49,21 @@ impl Config {
     }
 
     pub fn set_last(&mut self, path: OsString, new_name: Option<&str>) {
-        let mut lastFile: FileDetails;
+        let mut last_file: FileDetails;
         let os_string_path = OsString::from(path);
         self.last_file.path = os_string_path.clone();
         let index = self.recent_files.iter().position(|f| *f.path == os_string_path);
         match index {
             Some(i) => {
-                lastFile = self.recent_files.get(i).unwrap().clone();
+                last_file = self.recent_files.get(i).unwrap().clone();
                 self.recent_files.remove(index.unwrap());
             },
-            None =>lastFile = FileDetails::from_os_string("", os_string_path)
+            None =>last_file = FileDetails::from_os_string("", os_string_path)
         }
         if new_name.is_some() {
-            lastFile.name = new_name.unwrap().to_string()
+            last_file.name = new_name.unwrap().to_string()
         }
-        self.recent_files.insert(0, lastFile)
+        self.recent_files.insert(0, last_file)
     }
 }
 
