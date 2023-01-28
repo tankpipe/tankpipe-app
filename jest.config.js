@@ -3,7 +3,9 @@ module.exports = {
       '^.+\\.svelte$': 'svelte-jester',
       '^.+\\.js$': 'babel-jest',
     },
-    moduleFileExtensions: ['js', 'svelte'],    
+    moduleFileExtensions: ['js', 'svelte'],
     testEnvironment: "jsdom",
-    enableSnapshotUpdateMessages: true
-  }
+    transformIgnorePatterns: [
+      "node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"
+    ]
+}
