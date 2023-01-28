@@ -12,8 +12,6 @@
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let hasEnd = false
-    let drAccount
-    let crAccount
     let msg = ""
     let errors = new Errors();
     let date = new Date(), name, description, amount, frequency = 1
