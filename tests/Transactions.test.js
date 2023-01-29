@@ -2,8 +2,8 @@ import { render, waitFor } from '@testing-library/svelte'
 import Transactions from '../src/Transactions.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page'
-import account_data from './account_data.json'
-import transaction_data from './transaction_data.json'
+import account_data from './data/account_data.json'
+import transaction_data from './data/transaction_data.json'
 
 accounts.set(account_data)
 
