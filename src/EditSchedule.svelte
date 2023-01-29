@@ -24,6 +24,8 @@
     let addButtonLabel = "Add"
     let period = {value:"Months", name:"Months"}
     const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
+    let drAccount
+    let crAccount
     let drTotal = 0
     let crTotal = 0
     let entries = []
