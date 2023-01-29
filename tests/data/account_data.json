@@ -1,0 +1,5 @@
+[
+    {"account_type": "Asset", "balance": "0", "id": "9b533d4d-452e-43bc-8d86-c88102eb9319", "name": "Account 1", "starting_balance": "0"},
+    {"account_type": "Asset", "balance": "0", "id": "b4d441b1-d075-4183-a596-6dbb92d96f2e", "name": "Account 2", "starting_balance": "0"},
+    {"account_type": "Liability", "balance": "0", "id": "a8fd5ac8-2ec8-4477-b2f6-ef703da22e40", "name": "Account 3", "starting_balance": "0"}
+]

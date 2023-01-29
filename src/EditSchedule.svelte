@@ -12,8 +12,6 @@
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let hasEnd = false
-    let drAccount
-    let crAccount
     let msg = ""
     let errors = new Errors();
     let date = new Date(), name, description, amount, frequency = 1
@@ -26,6 +24,8 @@
     let addButtonLabel = "Add"
     let period = {value:"Months", name:"Months"}
     const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
+    let drAccount
+    let crAccount
     let drTotal = 0
     let crTotal = 0
     let entries = []
