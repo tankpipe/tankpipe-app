@@ -1,0 +1,176 @@
+<script>
+    import {Errors} from './errors.js'
+    import {onMount} from "svelte"
+    import { page, modes, views } from "./page";
+    import {accounts} from './accounts'
+    
+    let msg = ""
+    let errors = new Errors()
+    let name
+    let addButtonLabel = "Add"
+
+    onMount(() => {
+            addButtonLabel = "Add"
+    });
+
+    const onCancel = () => {
+        page.set({view: views.ACCOUNTS, mode: modes.LIST})
+    }
+
+    const newFile = async (name) => {
+   		await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
+	};
+
+    function loadFileSuccess(result) {
+		console.log(result)
+        accounts.set(result)
+    }
+
+	function loadFileFailure(result) {
+		console.log(result)
+        errors = new Errors()
+        errors.addError("all", "We hit a snag: " + result)
+    }
+
+
+    const onAdd = () => {
+        msg = "";
+        errors = new Errors();
+        if (!name || name.length < 1) {
+             errors.addError("name", "Name is required")
+        }
+
+        if (!errors.hasErrors()) {
+            newFile(name)
+        }
+
+    }
+
+
+</script>
+
+<div class="form">
+    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Books</div>
+    <div class="form-row">
+        <div class="widget">
+            <label for="name">Name</label>
+            <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
+        </div>
+    </div>
+    <div class="form-button-row">
+        <div class="msg-panel">
+            {#each errors.getErrorMessages() as e}
+            <p class="error-msg">{e}</p>
+            {/each}
+            {#if msg}
+            <p class="success-msg">{msg}</p>
+            {/if}
+        </div>
+        <div class="widget buttons">
+            <button on:click={onCancel}>Close</button>
+            <button on:click={onAdd}>{addButtonLabel}</button>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    :global(.date-time-field input) {
+        border: 1px solid #CCC !important;
+        border-radius: 2px !important;
+        height: 33px;
+    }
+
+    :root {
+		--date-input-width: 110px;
+	}
+
+    .msg-panel {
+        padding-left: 2px;
+        font-size: 0.9em;
+        float:left;
+    }
+
+    .message {
+		color: #EFEFEF;
+		margin-bottom: 20px;
+		text-align: left;
+		background-color: #303030;
+		padding:10px;
+		border-radius: 10px;
+	}
+
+    .msg-panel p {
+        margin: 8px 0;
+        max-width: 500px;
+    }
+
+    .error-msg {
+        color: #FBC969;
+    }
+
+    .success-msg {
+        color: green;
+    }
+
+    .error {
+        border: 1px solid #FBC969 !important;
+    }
+
+    :global(.error-input input) {
+        border: 1px solid #FBC969 !important;
+    }
+
+    .buttons {
+        float: right;
+        margin: 10px 12px 0 0;
+    }
+
+    .buttons button {
+        min-width: 80px;
+    }
+
+    .form-row {
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear:both;
+    }
+
+    .form-button-row {
+        display: block;
+        text-align: left;
+    }
+
+    .form-button-row {
+        margin-left: 7px;
+        margin-right: 2px;
+    }
+
+    input {
+        margin-right: 0px;
+    }
+
+    .form {
+        float: left;
+        border-radius: 10px;
+    }
+
+    .widget {
+        display: inline-block;
+        padding: 5px 0px 5px 10px;
+    }
+
+    .money-input {
+		width: 110px;
+	}
+
+    .money-input {
+		text-align: right;
+	}
+
+	.description-input {
+		width: 400px;
+	}
+
+</style>

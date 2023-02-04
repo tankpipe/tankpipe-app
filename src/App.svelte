@@ -7,6 +7,7 @@
 	import {settings} from './settings'
 	import {accounts} from './accounts'
 	import {config} from './config'
+    import EditBooks from './EditBooks.svelte';
 
 	export let curAccount = null
 	let initializing = true
@@ -86,7 +87,9 @@
 					{#if $page.view === views.SETTINGS}
 					<Settings />
 					{/if}
-
+					{#if $page.view === views.BOOKS}
+					<EditBooks />
+					{/if}
 			</div>
 		{/if}
 	</div>

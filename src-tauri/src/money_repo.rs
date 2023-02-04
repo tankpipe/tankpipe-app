@@ -94,6 +94,18 @@ impl Repo {
         Ok(())
     }
 
+    pub fn new_books(&mut self, name: &str) -> Result<(), BooksError> {
+        self.books = Books::build_empty(name);
+        let file_name = format!("{}.json", name);
+        self.config.last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
+        let _ = save_books(self.config.last_file.path.clone(), &self.books);
+        match save_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
+
+
 }
 
 

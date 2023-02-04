@@ -77,7 +77,8 @@ fn main() {
             settings,
             config,
             load_csv,
-            load_file
+            load_file,
+            new_file
         ])
         .run(context)
         .expect("error while running tauri application");
@@ -292,6 +293,21 @@ fn load_file(state: tauri::State<BooksState>, path: String) -> Result<Vec<Accoun
     Ok(mutex_guard.books.accounts())
 }
 
+
+#[tauri::command]
+fn new_file(state: tauri::State<BooksState>, name: String) -> Result<Vec<Account>, String> {
+    println!("load_file");
+    let mut mutex_guard = state.0.lock().unwrap();
+    let new_result = mutex_guard.new_books(name.as_str());
+
+    //println!("{:}", new_result);
+    if new_result.is_err() {
+        let the_error = new_result.err().unwrap().error;
+        println!("{}", the_error);
+        return Err(the_error);
+    }
+    Ok(mutex_guard.books.accounts())
+}
 
 fn error_handler(x: Result<(), accounts::books::BooksError>) -> Result<(), String> {
     match x {
