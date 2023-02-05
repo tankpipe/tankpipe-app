@@ -26,7 +26,6 @@ use std::{
     },
 };
 use uuid::Uuid;
-use regex::Regex;
 
 use tauri::State;
 
@@ -298,14 +297,9 @@ fn load_file(state: tauri::State<BooksState>, path: String) -> Result<Vec<Accoun
 #[tauri::command]
 fn new_file(state: tauri::State<BooksState>, name: String) -> Result<Vec<Account>, String> {
     println!("new_file {}", name);
-    let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
-    let lower_name = name.to_ascii_lowercase();
-    let file_name = re.replace_all(&lower_name, "_");
-
     let mut mutex_guard = state.0.lock().unwrap();
-    let new_result = mutex_guard.new_books(&file_name);
+    let new_result = mutex_guard.new_books(&name);
 
-    println!("{:?}", new_result);
     if new_result.is_err() {
         let the_error = new_result.err().unwrap().error;
         println!("{}", the_error);
