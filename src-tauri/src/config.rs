@@ -48,8 +48,8 @@ impl Config {
         PathBuf::from(self.data_dir.clone()).join(name)
     }
 
-    pub fn set_last(&mut self, path: OsString, new_name: Option<&str>) {
-        let mut last_file: FileDetails;
+    pub fn set_last_from_path(&mut self, path: OsString) {
+        let last_file: FileDetails;
         let os_string_path = OsString::from(path);
         self.last_file.path = os_string_path.clone();
         let index = self.recent_files.iter().position(|f| *f.path == os_string_path);
@@ -60,11 +60,17 @@ impl Config {
             },
             None =>last_file = FileDetails::from_os_string("", os_string_path)
         }
-        if new_name.is_some() {
-            last_file.name = new_name.unwrap().to_string()
-        }
         self.recent_files.insert(0, last_file)
     }
+
+    pub fn set_last(&mut self, last_file: FileDetails) {
+        if let Some(index) = self.recent_files.iter().position(|f| *f.path == last_file.path) {
+            self.recent_files.remove(index);
+        }
+        self.last_file = last_file.clone();
+        self.recent_files.insert(0, last_file);
+    }
+
 }
 
 pub fn deserialize_osstring<'de, D>(deserializer: D) -> Result<OsString, D::Error>

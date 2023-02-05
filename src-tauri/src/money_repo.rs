@@ -5,8 +5,9 @@ use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
 use accounts::books::{Books, BooksError};
-use accounts::book_repo::{load_books, save_books};
+use accounts::book_repo::{load_books, save_books, new_books};
 use directories::ProjectDirs;
+use regex::Regex;
 use tauri::api::path::home_dir;
 
 use crate::config::{Config, FileDetails};
@@ -78,7 +79,7 @@ impl Repo {
         match result {
             Ok(b) => {
                 self.books = b;
-                self.config.set_last(path.clone(), None);
+                self.config.set_last_from_path(path.clone());
                 let save_result = save_config( &self.config.settings_path(), &self.config);
                 match save_result {
                     Ok(()) => Ok(()),
@@ -93,6 +94,21 @@ impl Repo {
         let _ = save_books(self.config.last_file.path.clone(), &self.books);
         Ok(())
     }
+
+    pub fn new_books(&mut self, name: &str) -> Result<(), BooksError> {
+        self.books = Books::build_empty(name);
+        let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
+        let lower_name = name.to_ascii_lowercase();
+        let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
+        let last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
+        self.config.set_last(last_file);
+        new_books(self.config.last_file.path.clone(), &self.books)?;
+        match save_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
+
 
 }
 

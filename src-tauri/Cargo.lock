@@ -76,6 +76,7 @@ dependencies = [
  "chronoutil",
  "csv",
  "directories",
+ "regex",
  "rust_decimal",
  "rust_decimal_macros",
  "rusty-money",

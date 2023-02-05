@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store'
 
 const views = {
+    BOOKS: "BOOKS",
     ACCOUNTS: "ACCOUNTS",
     TRANSACTIONS: "TRANSACTIONS",
     SCHEDULES: "SCHEDULES",
