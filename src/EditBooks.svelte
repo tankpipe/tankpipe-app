@@ -3,7 +3,7 @@
     import {onMount} from "svelte"
     import { page, modes, views } from "./page";
     import {accounts} from './accounts'
-    
+
     let msg = ""
     let errors = new Errors()
     let name
@@ -38,6 +38,11 @@
         errors = new Errors();
         if (!name || name.length < 1) {
              errors.addError("name", "Name is required")
+        }
+
+        const regex = /[^a-z0-9_\- ]/gi
+        if (regex.test(name)) {
+            errors.addError("name", "Name must be alphanumeric")
         }
 
         if (!errors.hasErrors()) {

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
 use accounts::books::{Books, BooksError};
-use accounts::book_repo::{load_books, save_books};
+use accounts::book_repo::{load_books, save_books, new_books};
 use directories::ProjectDirs;
 use tauri::api::path::home_dir;
 
@@ -98,7 +98,7 @@ impl Repo {
         self.books = Books::build_empty(name);
         let file_name = format!("{}.json", name);
         self.config.last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
-        let _ = save_books(self.config.last_file.path.clone(), &self.books);
+        new_books(self.config.last_file.path.clone(), &self.books)?;
         match save_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
             Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
