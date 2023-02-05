@@ -98,9 +98,11 @@
 <div class="account-heading">
 	{#if !isEditMode($page)}
 	<div class="toolbar">
+		<div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+		<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
 		<div class="toolbar-icon import-icon" on:click={openFile} title="Open file"><Icon icon="mdi:folder-open" width="22"/></div>
 		<div class="toolbar-icon import-icon" on:click={newFile} title="New file"><Icon icon="mdi:folder-plus" width="22"/></div>
-		<div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+
 	</div>
 	{/if}
 </div>
