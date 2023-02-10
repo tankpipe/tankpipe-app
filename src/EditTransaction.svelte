@@ -327,7 +327,10 @@
                 </tr>
                 {/each}
                 <tr>
-                    <td><div class="toolbar"><i class="gg-add-r" on:click={handleAddClick}></i><i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= 2}></i></div></td>
+                    <td><div class="toolbar bottom-toolbar">
+                        <div class="toolbar-icon" on:click="{handleAddClick}" title="Add row"><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
+                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title="Remove row"><Icon icon="mdi:table-row-remove"  width="24"/></div>
+                    </div></td>
                     <td></td>
                     <td><div class="total">Totals</div></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
@@ -399,13 +402,13 @@
     }
 
     .greyed {
-        color: #CCC;
-        border-color: #CCC;
+        color: #666;
+        border-color: #666;
     }
 
     .greyed:hover {
-        color: #CCC !important;
-        border-color: #CCC !important;
+        color: #666 !important;
+        border-color: #666 !important;
         cursor: default !important;
     }
 
@@ -509,7 +512,7 @@
     }
 
     .toolbar {
-		color: #7b7b7b;
+		color: #9b9b9b;
         display: flex;
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
@@ -521,6 +524,14 @@
         /* The rule below is implemented in most browsers by now */
         user-select: none;
 	}
+
+    .bottom-toolbar {
+        float: left;
+    }
+
+    .bottom-toolbar div {
+        margin: 6px 0 0 0 !important;
+    }
 
 	.toolbar i:hover{
 		color: #666;
