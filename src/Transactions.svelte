@@ -94,6 +94,9 @@
    		await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
 	};
 
+	const predicted = (t) => t.status == 'Predicted' ? 'predicted' : '';
+
+
 </script>
 
 <div class="account-heading">
@@ -125,11 +128,11 @@
 		<tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
 			<tr on:click={() => selectTransaction(t)}><!--{t.id}-->
-				<td>{t.date}</td>
-				<td title="{t.description}"><div class="description">{t.description}</div></td>
-				<td class="money">{getDebitAmount(t, curAccount)}</td>
-				<td class="money">{getCreditAmount(t, curAccount)}</td>
-				<td class="money">{getBalance(t)}</td>
+				<td class={predicted(t)}>{t.date}</td>
+				<td class={predicted(t)} title="{t.description}"><div class="description">{t.description}</div></td>
+				<td class="{predicted(t)} money">{getDebitAmount(t, curAccount)}</td>
+				<td class="{predicted(t)} money">{getCreditAmount(t, curAccount)}</td>
+				<td class="{predicted(t)} money">{getBalance(t)}</td>
 			</tr>
 		{/each}
 	</table>
@@ -160,6 +163,10 @@
 		padding: 8px;
 		white-space: nowrap;
 		font-size: 0.9em;
+	}
+
+	.predicted {
+		color: #878787;
 	}
 
 	th {
