@@ -24,6 +24,7 @@
 
 	$: {
 		if (curAccount && curAccount !== previousAccount) {
+			transactions = []
 			loadTransactions()
 			previousAccount = curAccount
 		}
@@ -34,10 +35,10 @@
 		page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
 	}
 
-	let transactions = [];
+	let transactions = []
 	export const loadTransactions = async () => {
 		console.log("loadTransactions: " + curAccount.id);
-   		transactions = await invoke('transactions', {accountId: curAccount.id});
+   		transactions = await invoke('transactions', {accountId: curAccount.id})
 		console.log(transactions)
 	};
 
@@ -55,6 +56,10 @@
 
 	const getBalance = (transaction) => {
 		return formatter.format(transaction.balance)
+	}
+
+	const getEntry = (transaction) => {
+		return transaction.entries.find(e => e.account_id == curAccount.id)
 	}
 
 	const handleAddClick = () => {
@@ -127,13 +132,16 @@
 	<table>
 		<tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
-			<tr on:click={() => selectTransaction(t)}><!--{t.id}-->
-				<td class={predicted(t)}>{t.date}</td>
-				<td class={predicted(t)} title="{t.description}"><div class="description">{t.description}</div></td>
-				<td class="{predicted(t)} money">{getDebitAmount(t, curAccount)}</td>
-				<td class="{predicted(t)} money">{getCreditAmount(t, curAccount)}</td>
-				<td class="{predicted(t)} money">{getBalance(t)}</td>
+			{@const e =  getEntry(t)}
+			{#if e}
+			<tr on:click={() => selectTransaction(e)}><!--{t.id}-->
+				<td class={predicted(e)}>{e.date}</td>
+				<td class={predicted(e)} title="{e.description}"><div class="description">{e.description}</div></td>
+				<td class="{predicted(e)} money">{getDebitAmount(e, curAccount)}</td>
+				<td class="{predicted(e)} money">{getCreditAmount(e, curAccount)}</td>
+				<td class="{predicted(e)} money">{getBalance(e)}</td>
 			</tr>
+			{/if}
 		{/each}
 	</table>
 	{/if}

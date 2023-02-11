@@ -59,6 +59,7 @@ fn main() {
             tauri::Menu::default()
         })
         .invoke_handler(tauri::generate_handler![
+            entries,
             transactions,
             add_transaction,
             update_transaction,
@@ -99,10 +100,25 @@ fn transaction(
 }
 
 #[tauri::command]
-fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result<Vec<Entry>, String> {
+fn entries(state: tauri::State<BooksState>, account_id: Uuid) -> Result<Vec<Entry>, String> {
     println!("Fetching transactions for {}", account_id);
     let mutex_guard = state.0.lock().unwrap();
     let x = mutex_guard.books.account_entries(account_id);
+    match x {
+        Ok(_) => Ok(x.unwrap()),
+        Err(e) => {
+            println!("{}", e.error);
+            Err(e.error)
+        }
+    }
+
+}
+
+#[tauri::command]
+fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result<Vec<Transaction>, String> {
+    println!("Fetching transactions for {}", account_id);
+    let mutex_guard = state.0.lock().unwrap();
+    let x = mutex_guard.books.account_transactions(account_id);
     match x {
         Ok(_) => Ok(x.unwrap()),
         Err(e) => {
