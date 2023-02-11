@@ -153,7 +153,7 @@
       }
     }
 
-    const syncSecondEntry = (entries) => {
+    const syncSecondEntry = () => {
         entries[1].id = zeros
         entries[1].transaction_id = entries[0].transaction_id
         entries[1].transaction_type =  entries[0].transaction_type == "Credit" ? "Debit" : "Credit"
@@ -163,7 +163,7 @@
         entries[1].status = "Recorded"
     }
 
-    const canBeSimple = (entries) => {
+    const canBeSimple = () => {
         return (
             entries.length == 1 ||
             (entries.length == 2 &&
@@ -187,7 +187,7 @@
 
         if (entries.length == 1) {
             entries.push({})
-            syncSecondEntry(entries)
+            syncSecondEntry()
             entries[1].account = null
             entries[0].transaction_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
         }
@@ -260,12 +260,12 @@
     }
 
 
-    const toggleMode = () => {
-        if (!compoundMode) syncSecondEntry(entries)
+    const afterToggle = () => {
+        if (compoundMode) syncSecondEntry()
     }
 
     $: {
-    	calculateTotals(entries)
+    	calculateTotals()
 	}
 
     const schedule = () => {
@@ -340,7 +340,7 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={toggleMode} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
+            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget buttons">
