@@ -221,7 +221,7 @@
 	.tiny {
 		font-size: 0.5em;
 		color: #878787;
-		margin: 3px 0 -5px 0;
+		margin: 3px 0 -5px 2px;
 	}
 
 	.toolbar {
