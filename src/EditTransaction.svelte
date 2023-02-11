@@ -29,7 +29,7 @@
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
         } else {
-            curTransaction = null
+            curTransaction = {id: zeros}
             let date = new Date();
             entries = [
                 {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}, status:"Recorded"},
