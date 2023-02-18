@@ -8,7 +8,7 @@
     import { settings } from './settings.js';
     import {accounts} from './accounts'
 
-    export let close
+    export let loadTransactions
     export let curTransaction
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -52,7 +52,8 @@
     }
 
     const onCancel = () => {
-        close()
+        loadTransactions()
+        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
     const validateEntry = (entry, index, errors) => {
@@ -150,7 +151,7 @@
     function resolved(result) {
       msg = "Transaction saved."
       if ($page.mode === modes.EDIT) {
-        close()
+        loadTransactions()
       }
     }
 
@@ -208,16 +209,19 @@
     const addTransaction = async (transaction) => {
         console.log(transaction)
    		await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
+        loadTransactions()
 	};
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
    		await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
+        loadTransactions()
 	};
 
     function resolvedDelete(result) {
       msg = "Transaction deleted."
-      close()
+      loadTransactions()
+      page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
     const deleteTransaction = async (transaction) => {
@@ -225,7 +229,8 @@
         if (transaction && transaction.id) {
    		    await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
         } else {
-            close()
+            loadTransactions()
+            page.set({view: views.TRANSACTIONS, mode: modes.LIST})
         }
 	};
 

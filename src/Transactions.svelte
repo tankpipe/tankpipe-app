@@ -16,12 +16,6 @@
 	let msg = ""
 	let previousAccount
 
-	const close = () => {
-        console.log("close")
-		page.set({view: views.TRANSACTIONS, mode: modes.LIST})
-		if (curAccount) loadTransactions();
-    }
-
 	$: {
 		if (curAccount && curAccount !== previousAccount) {
 			transactions = []
@@ -116,7 +110,7 @@
 	{/if}
 </div>
 {#if isEditMode($page)}
-<EditTransaction {close} {curTransaction}/>
+<EditTransaction {loadTransactions} {curTransaction}/>
 {/if}
 {#if !isEditMode($page)}
 <div class="widget errors">
