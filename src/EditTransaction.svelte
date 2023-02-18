@@ -29,11 +29,11 @@
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
         } else {
-            curTransaction = {id: zeros}
+            curTransaction = {id: zeros, status:"Recorded"}
             let date = new Date();
             entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}, status:"Recorded"},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Credit", account: {}, status:"Recorded"},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Credit", account: {}},
             ]
             addButtonLabel = "Add"
             simpleAllowed = true
@@ -42,7 +42,7 @@
     });
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit", status:"Recorded"}]
+        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit"}]
     }
 
     const handleRemoveClick = () => {
@@ -107,7 +107,8 @@
             const transaction = {
                     date: toDateStr(new Date()),
                     description: "",
-                    entries: [...entries]
+                    entries: [...entries],
+                    status:"Recorded"
             }
 
             if (!compoundMode && !settings.require_double_entry) {
