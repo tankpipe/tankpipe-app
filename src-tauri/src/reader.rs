@@ -45,11 +45,9 @@ impl Item {
             account_id: account.id,
             transaction_type: self.balance_impact(account),
             amount: self.amount.abs(),
-            status: TransactionStatus::Recorded,
-            balance: None,
-            schedule_id: None
+            balance: None
         };
-        Transaction{ id: entry.transaction_id, entries: vec![entry] }
+        Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None }
     }
 
     pub fn balance_impact(&self, account: &Account) -> Side {

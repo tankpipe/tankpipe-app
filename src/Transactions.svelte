@@ -135,17 +135,17 @@
 			{@const e =  getEntry(t)}
 			{#if e}
 			<tr on:click={() => selectTransaction(e)}><!--{t.id}-->
-				<td class={predicted(e)}>{e.date}</td>
-				<td class={predicted(e)} title="{e.description}"><div class="description">{e.description}</div>
+				<td class={predicted(t)}>{e.date}</td>
+				<td class={predicted(t)} title="{e.description}"><div class="description">{e.description}</div>
 					{#each t.entries as en}
 						{#if en.account_id != curAccount.id}
 						<div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
 						{/if}
 					{/each}
 				</td>
-				<td class="{predicted(e)} money">{getDebitAmount(e, curAccount)}</td>
-				<td class="{predicted(e)} money">{getCreditAmount(e, curAccount)}</td>
-				<td class="{predicted(e)} money">{getBalance(e)}</td>
+				<td class="{predicted(t)} money">{getDebitAmount(e, curAccount)}</td>
+				<td class="{predicted(t)} money">{getCreditAmount(e, curAccount)}</td>
+				<td class="{predicted(t)} money">{getBalance(e)}</td>
 			</tr>
 			{/if}
 		{/each}
