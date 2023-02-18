@@ -51,7 +51,7 @@
         }
     }
 
-    const onCancel = () => {
+    const close = () => {
         loadTransactions()
         page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
@@ -220,8 +220,7 @@
 
     function resolvedDelete(result) {
       msg = "Transaction deleted."
-      loadTransactions()
-      page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+      close()
     }
 
     const deleteTransaction = async (transaction) => {
@@ -229,8 +228,7 @@
         if (transaction && transaction.id) {
    		    await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
         } else {
-            loadTransactions()
-            page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+            close()
         }
 	};
 
@@ -350,7 +348,7 @@
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>Close</button>
+            <button on:click={close}>Close</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">
