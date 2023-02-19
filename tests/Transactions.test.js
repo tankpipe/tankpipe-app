@@ -9,8 +9,8 @@ accounts.set(account_data)
 
 it('is displayed correctly', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.LIST})
-    let entries = [transaction_data[0].entries[0], transaction_data[1].entries[0]]
-    const mockFetchTransactions = jest.fn(() => Promise.resolve(entries));
+    let transactions = [transaction_data[0], transaction_data[1]]
+    const mockFetchTransactions = jest.fn(() => Promise.resolve(transactions));
     global.invoke = mockFetchTransactions;
 
     const {findByTitle, container} = render(Transactions, {curAccount: account_data[0]})
