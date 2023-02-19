@@ -20,6 +20,7 @@
     let crTotal = 0
     let simpleAllowed = false
     let compoundMode = false
+    let recorded = false
 
     let entries = []
 
@@ -108,8 +109,7 @@
             const transaction = {
                     date: toDateStr(new Date()),
                     description: "",
-                    entries: [...entries],
-                    status:"Recorded"
+                    entries: [...entries]
             }
 
             if (!compoundMode && !settings.require_double_entry) {
@@ -125,6 +125,10 @@
                     }
                 }
             )
+
+            if (!transaction["status"] || (transaction["status"] != "Reconsiled")) {
+                transaction["status"] = recorded?"Recorded":"Predicted"
+            }
 
             if ($page.mode === modes.NEW) {
                 transaction["id"] = zeros
@@ -198,6 +202,8 @@
         if (!simpleAllowed) {
             compoundMode = true
         }
+
+        recorded = curTransaction.status != "Predicted"
 
         console.log(entries)
     }
@@ -346,6 +352,10 @@
         <div class="widget2 buttons-left">
             <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
             <label for="compound">Compound entry</label>
+        </div>
+        <div class="widget2 buttons-left">
+            <input id="compound" type=checkbox bind:checked={recorded}>
+            <label for="compound">Recorded</label>
         </div>
         <div class="widget buttons">
             <button on:click={close}>Close</button>
