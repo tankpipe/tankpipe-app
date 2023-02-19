@@ -41,11 +41,11 @@
 		maximumFractionDigits: 2,
 	});
 	const getDebitAmount = (transaction, curAccount) => {
-		return transaction.transaction_type === "Debit" ? formatter.format(transaction.amount) : ''
+		return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
 	}
 
 	const getCreditAmount = (transaction, curAccount) => {
-		return transaction.transaction_type === "Credit" ? formatter.format(transaction.amount) : ''
+		return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
 	}
 
 	const getBalance = (transaction) => {

@@ -33,8 +33,8 @@
             curTransaction = {id: zeros, status:"Recorded"}
             let date = new Date();
             entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Credit", account: {}},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
             ]
             addButtonLabel = "Add"
             simpleAllowed = true
@@ -43,7 +43,7 @@
     });
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit"}]
+        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
     }
 
     const handleRemoveClick = () => {
@@ -71,7 +71,7 @@
             if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
                 errors.addError("amount", "A valid amount is required")
             }
-        } else if (entry.transaction_type === "Credit") {
+        } else if (entry.entry_type === "Credit") {
             if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
                 errors.addError(prefix + "crAmount", "A valid amount is required")
             }
@@ -121,7 +121,7 @@
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
                     if (compoundMode) {
-                        e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                        e["amount"] = (e["entry_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
                     }
                 }
             )
@@ -162,7 +162,7 @@
     const syncSecondEntry = () => {
         entries[1].id = zeros
         entries[1].transaction_id = entries[0].transaction_id
-        entries[1].transaction_type =  entries[0].transaction_type == "Credit" ? "Debit" : "Credit"
+        entries[1].entry_type =  entries[0].entry_type == "Credit" ? "Debit" : "Credit"
         entries[1].realDate = new Date(entries[0].realDate)
         entries[1].description = entries[0].description
         entries[1].amount = entries[0].amount
@@ -186,7 +186,7 @@
         entries = curTransaction.entries
 
         entries.forEach(e => {
-            e.transaction_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
+            e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
         })
@@ -195,7 +195,7 @@
             entries.push({})
             syncSecondEntry()
             entries[1].account = null
-            entries[0].transaction_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
+            entries[0].entry_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
         }
 
         simpleAllowed = canBeSimple(entries)
@@ -246,12 +246,12 @@
 
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
-            entry["transaction_type"] = "Debit"
+            entry["entry_type"] = "Debit"
             return type === "Debit"
         }
 
         if (entry["crAmount"] > 0) {
-            entry["transaction_type"] = "Credit"
+            entry["entry_type"] = "Credit"
             return type === "Credit"
         }
 
@@ -260,7 +260,7 @@
 
     const total = (type) => {
         let total = 0
-        entries.filter(e => e.transaction_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
+        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
         return total
     }
 
@@ -306,11 +306,11 @@
         </div>
         <div class="form-row2">
             {#if entries.length > 1}
-            {#if entries[0].transaction_type !== "Credit"}
+            {#if entries[0].entry_type !== "Credit"}
             <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} />
             <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
-            {#if entries[0].transaction_type === "Credit"}
+            {#if entries[0].entry_type === "Credit"}
             <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} />
             <Select bind:item={entries[0].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}

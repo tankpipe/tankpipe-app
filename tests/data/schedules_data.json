@@ -8,8 +8,8 @@
         "end_date":"null",
         "last_date":"null",
         "entries":[
-            {"schedule_id":"7f9025c1-bc34-4be3-9b8b-9902d57f85bf","description":"Scheduled test transaction 1","account_id":"b4d441b1-d075-4183-a596-6dbb92d96f2e","transaction_type":"Debit","amount":"200"},
-            {"schedule_id":"7f9025c1-bc34-4be3-9b8b-9902d57f85bf","description":"Scheduled test transaction 1","account_id":"9b533d4d-452e-43bc-8d86-c88102eb9319","transaction_type":"Credit","amount":"200"}
+            {"schedule_id":"7f9025c1-bc34-4be3-9b8b-9902d57f85bf","description":"Scheduled test transaction 1","account_id":"b4d441b1-d075-4183-a596-6dbb92d96f2e","entry_type":"Debit","amount":"200"},
+            {"schedule_id":"7f9025c1-bc34-4be3-9b8b-9902d57f85bf","description":"Scheduled test transaction 1","account_id":"9b533d4d-452e-43bc-8d86-c88102eb9319","entry_type":"Credit","amount":"200"}
         ]
     },
     {
@@ -21,8 +21,8 @@
         "end_date":"null",
         "last_date":"null",
         "entries":[
-            {"schedule_id":"ef324540-7180-4f8c-abff-f0c7fd4ad3d2","description":"Scheduled test transaction 2","account_id":"9b533d4d-452e-43bc-8d86-c88102eb9319","transaction_type":"Debit","amount":"50"},
-            {"schedule_id":"ef324540-7180-4f8c-abff-f0c7fd4ad3d2","description":"Scheduled test transaction 2","account_id":"b4d441b1-d075-4183-a596-6dbb92d96f2e","transaction_type":"Credit","amount":"50"}
+            {"schedule_id":"ef324540-7180-4f8c-abff-f0c7fd4ad3d2","description":"Scheduled test transaction 2","account_id":"9b533d4d-452e-43bc-8d86-c88102eb9319","entry_type":"Debit","amount":"50"},
+            {"schedule_id":"ef324540-7180-4f8c-abff-f0c7fd4ad3d2","description":"Scheduled test transaction 2","account_id":"b4d441b1-d075-4183-a596-6dbb92d96f2e","entry_type":"Credit","amount":"50"}
         ]
     }
 ]
