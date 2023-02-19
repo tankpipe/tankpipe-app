@@ -137,14 +137,6 @@
 		margin-top: 15px;
 	}
 
-	.tiny {
-		font-size: 0.9em;
-		color: #757575;
-		margin: -15px 0 5px 1px;
-		clear:both;
-		float: left;
-	}
-
 	.accounts {
 		margin-right: 20px;
 	}
