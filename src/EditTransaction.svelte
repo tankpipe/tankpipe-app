@@ -127,7 +127,7 @@
             )
 
             if (!transaction["status"] || (transaction["status"] != "Reconsiled")) {
-                transaction["status"] = recorded?"Recorded":"Predicted"
+                transaction["status"] = recorded?"Recorded":"Projected"
             }
 
             if ($page.mode === modes.NEW) {
@@ -203,7 +203,7 @@
             compoundMode = true
         }
 
-        recorded = curTransaction.status != "Predicted"
+        recorded = curTransaction.status != "Projected"
 
         console.log(entries)
     }

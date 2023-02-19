@@ -93,7 +93,7 @@
    		await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
 	};
 
-	const predicted = (t) => t.status == 'Predicted' ? 'predicted' : '';
+	const projected = (t) => t.status == 'Projected' ? 'projected' : '';
 
 
 </script>
@@ -129,17 +129,17 @@
 			{@const e =  getEntry(t)}
 			{#if e}
 			<tr on:click={() => selectTransaction(e)}><!--{t.id}-->
-				<td class={predicted(t)}>{e.date}</td>
-				<td class={predicted(t)} title="{e.description}"><div class="description">{e.description}</div>
+				<td class={projected(t)}>{e.date}</td>
+				<td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
 					{#each t.entries as en}
 						{#if en.account_id != curAccount.id}
 						<div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
 						{/if}
 					{/each}
 				</td>
-				<td class="{predicted(t)} money">{getDebitAmount(e, curAccount)}</td>
-				<td class="{predicted(t)} money">{getCreditAmount(e, curAccount)}</td>
-				<td class="{predicted(t)} money">{getBalance(e)}</td>
+				<td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
+				<td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
+				<td class="{projected(t)} money">{getBalance(e)}</td>
 			</tr>
 			{/if}
 		{/each}
@@ -173,7 +173,7 @@
 		font-size: 0.9em;
 	}
 
-	.predicted {
+	.projected {
 		color: #878787;
 	}
 
