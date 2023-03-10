@@ -8,7 +8,7 @@
     import { settings } from './settings.js';
     import {accounts} from './accounts'
 
-    export let close
+    export let loadTransactions
     export let curTransaction
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -20,6 +20,7 @@
     let crTotal = 0
     let simpleAllowed = false
     let compoundMode = false
+    let recorded = false
 
     let entries = []
 
@@ -29,11 +30,11 @@
             console.log(curTransaction)
             fetchTransaction(curTransaction.transaction_id)
         } else {
-            curTransaction = null
+            curTransaction = {id: zeros, status:"Recorded"}
             let date = new Date();
             entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Debit", account: {}, status:"Recorded"},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', transaction_type: "Credit", account: {}, status:"Recorded"},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
+                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
             ]
             addButtonLabel = "Add"
             simpleAllowed = true
@@ -42,7 +43,7 @@
     });
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, transaction_type: "Debit", status:"Recorded"}]
+        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
     }
 
     const handleRemoveClick = () => {
@@ -51,8 +52,9 @@
         }
     }
 
-    const onCancel = () => {
-        close()
+    const close = () => {
+        loadTransactions()
+        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
     const validateEntry = (entry, index, errors) => {
@@ -69,7 +71,7 @@
             if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
                 errors.addError("amount", "A valid amount is required")
             }
-        } else if (entry.transaction_type === "Credit") {
+        } else if (entry.entry_type === "Credit") {
             if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
                 errors.addError(prefix + "crAmount", "A valid amount is required")
             }
@@ -119,10 +121,14 @@
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
                     if (compoundMode) {
-                        e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                        e["amount"] = (e["entry_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
                     }
                 }
             )
+
+            if (!transaction["status"] || (transaction["status"] != "Reconsiled")) {
+                transaction["status"] = recorded?"Recorded":"Projected"
+            }
 
             if ($page.mode === modes.NEW) {
                 transaction["id"] = zeros
@@ -149,21 +155,21 @@
     function resolved(result) {
       msg = "Transaction saved."
       if ($page.mode === modes.EDIT) {
-        close()
+        loadTransactions()
       }
     }
 
-    const syncSecondEntry = (entries) => {
+    const syncSecondEntry = () => {
         entries[1].id = zeros
         entries[1].transaction_id = entries[0].transaction_id
-        entries[1].transaction_type =  entries[0].transaction_type == "Credit" ? "Debit" : "Credit"
+        entries[1].entry_type =  entries[0].entry_type == "Credit" ? "Debit" : "Credit"
         entries[1].realDate = new Date(entries[0].realDate)
         entries[1].description = entries[0].description
         entries[1].amount = entries[0].amount
         entries[1].status = "Recorded"
     }
 
-    const canBeSimple = (entries) => {
+    const canBeSimple = () => {
         return (
             entries.length == 1 ||
             (entries.length == 2 &&
@@ -180,22 +186,24 @@
         entries = curTransaction.entries
 
         entries.forEach(e => {
-            e.transaction_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
+            e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
         })
 
         if (entries.length == 1) {
             entries.push({})
-            syncSecondEntry(entries)
+            syncSecondEntry()
             entries[1].account = null
-            entries[0].transaction_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
+            entries[0].entry_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
         }
 
         simpleAllowed = canBeSimple(entries)
         if (!simpleAllowed) {
             compoundMode = true
         }
+
+        recorded = curTransaction.status != "Projected"
 
         console.log(entries)
     }
@@ -207,11 +215,13 @@
     const addTransaction = async (transaction) => {
         console.log(transaction)
    		await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
+        loadTransactions()
 	};
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
    		await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
+        loadTransactions()
 	};
 
     function resolvedDelete(result) {
@@ -236,12 +246,12 @@
 
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
-            entry["transaction_type"] = "Debit"
+            entry["entry_type"] = "Debit"
             return type === "Debit"
         }
 
         if (entry["crAmount"] > 0) {
-            entry["transaction_type"] = "Credit"
+            entry["entry_type"] = "Credit"
             return type === "Credit"
         }
 
@@ -250,7 +260,7 @@
 
     const total = (type) => {
         let total = 0
-        entries.filter(e => e.transaction_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
+        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
         return total
     }
 
@@ -260,12 +270,12 @@
     }
 
 
-    const toggleMode = () => {
-        if (!compoundMode) syncSecondEntry(entries)
+    const afterToggle = () => {
+        if (compoundMode) syncSecondEntry()
     }
 
     $: {
-    	calculateTotals(entries)
+    	calculateTotals()
 	}
 
     const schedule = () => {
@@ -296,11 +306,11 @@
         </div>
         <div class="form-row2">
             {#if entries.length > 1}
-            {#if entries[0].transaction_type !== "Credit"}
+            {#if entries[0].entry_type !== "Credit"}
             <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} />
             <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
-            {#if entries[0].transaction_type === "Credit"}
+            {#if entries[0].entry_type === "Credit"}
             <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} />
             <Select bind:item={entries[0].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
@@ -327,7 +337,10 @@
                 </tr>
                 {/each}
                 <tr>
-                    <td><div class="toolbar"><i class="gg-add-r" on:click={handleAddClick}></i><i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= 2}></i></div></td>
+                    <td><div class="toolbar bottom-toolbar">
+                        <div class="toolbar-icon" on:click="{handleAddClick}" title="Add row"><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
+                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title="Remove row"><Icon icon="mdi:table-row-remove"  width="24"/></div>
+                    </div></td>
                     <td></td>
                     <td><div class="total">Totals</div></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
@@ -337,11 +350,15 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={toggleMode} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
+            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
             <label for="compound">Compound entry</label>
         </div>
+        <div class="widget2 buttons-left">
+            <input id="compound" type=checkbox bind:checked={recorded}>
+            <label for="compound">Recorded</label>
+        </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>Close</button>
+            <button on:click={close}>Close</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">
@@ -399,13 +416,13 @@
     }
 
     .greyed {
-        color: #CCC;
-        border-color: #CCC;
+        color: #666;
+        border-color: #666;
     }
 
     .greyed:hover {
-        color: #CCC !important;
-        border-color: #CCC !important;
+        color: #666 !important;
+        border-color: #666 !important;
         cursor: default !important;
     }
 
@@ -509,7 +526,7 @@
     }
 
     .toolbar {
-		color: #7b7b7b;
+		color: #9b9b9b;
         display: flex;
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
@@ -522,72 +539,12 @@
         user-select: none;
 	}
 
-	.toolbar i:hover{
-		color: #666;
-		border-color: #666;
-        cursor: pointer;
-	}
-
-    .toolbar i {
-        margin-right: 5px;
+    .bottom-toolbar {
+        float: left;
     }
 
-    .gg-add-r {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		transform: scale(var(--ggs,1));
-		border-radius: 4px
-	}
-
-	.gg-add-r::after,
-	.gg-add-r::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		width: 10px;
-		height: 2px;
-		background: currentColor;
-		border-radius: 5px;
-		top: 8px;
-		left: 4px
-	}
-
-	.gg-add-r::after {
-		width: 2px;
-		height: 10px;
-		top: 4px;
-		left: 8px
-	}
-
-    .gg-remove-r {
-        box-sizing: border-box;
-        position: relative;
-        display: block;
-        transform: scale(var(--ggs,1));
-        width: 22px;
-        height: 22px;
-        border: 2px solid ;
-        border-radius: 4px
+    .bottom-toolbar div {
+        margin: 6px 0 0 0 !important;
     }
-
-    .gg-remove-r::before {
-        content: "";
-        display: block;
-        box-sizing: border-box;
-        position: absolute;
-        width: 10px;
-        height: 2px;
-        background: currentColor;
-        border-radius: 5px;
-        top: 8px;
-        left: 4px
-    }
-
-
 
 </style>

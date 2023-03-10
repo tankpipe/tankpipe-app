@@ -43,13 +43,11 @@ impl Item {
             date: self.date,
             description: self.description.clone(),
             account_id: account.id,
-            transaction_type: self.balance_impact(account),
+            entry_type: self.balance_impact(account),
             amount: self.amount.abs(),
-            status: TransactionStatus::Recorded,
-            balance: None,
-            schedule_id: None
+            balance: None
         };
-        Transaction{ id: entry.transaction_id, entries: vec![entry] }
+        Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None }
     }
 
     pub fn balance_impact(&self, account: &Account) -> Side {
@@ -154,10 +152,10 @@ mod tests {
 
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
-        assert_eq!(Side::Debit, transactions[0].entries[0].transaction_type);
+        assert_eq!(Side::Debit, transactions[0].entries[0].entry_type);
         assert_eq!(account.id, transactions[0].entries[0].account_id);
         assert_eq!(dec!(500), transactions[1].entries[0].amount);
-        assert_eq!(Side::Credit, transactions[1].entries[0].transaction_type);
+        assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
     }
 
 

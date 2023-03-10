@@ -10,10 +10,8 @@
                 "date": "2023-01-21",
                 "description": "A test transaction",
                 "id": "d1e64ee6-2e28-4045-9f68-2be890b21426",
-                "schedule_id": null,
-                "status": "Recorded",
                 "transaction_id": "066374b6-9849-4d8c-ad7c-ba955aa216ab",
-                "transaction_type": "Debit"
+                "entry_type": "Debit"
             },
             {
                 "account": {"account_type": "Asset", "balance": "0", "id": "b4d441b1-d075-4183-a596-6dbb92d96f2e", "name": "Account 2", "starting_balance": "0"},
@@ -23,12 +21,12 @@
                 "date": "2023-01-21",
                 "description": "A test transaction",
                 "id": "0cec7850-c524-4602-b1f7-514d4270dcd0",
-                "schedule_id": null,
-                "status": "Recorded",
                 "transaction_id": "066374b6-9849-4d8c-ad7c-ba955aa216ab",
-                "transaction_type": "Credit"
+                "entry_type": "Credit"
             }
-        ]
+        ],
+        "schedule_id": null,
+        "status": "Recorded"
     },
     {
         "id": "6fbc1081-5bc8-42e4-b085-6354d12eb30f",
@@ -41,10 +39,8 @@
                 "date": "2023-01-21",
                 "description": "A test compound transaction",
                 "id": "6c5dc254-6992-49a2-a094-5c6e708df8d4",
-                "schedule_id": null,
-                "status": "Recorded",
                 "transaction_id": "6fbc1081-5bc8-42e4-b085-6354d12eb30f",
-                "transaction_type": "Debit"
+                "entry_type": "Debit"
             },
             {
                 "account": {"account_type": "Asset", "balance": "0", "id": "b4d441b1-d075-4183-a596-6dbb92d96f2e", "name": "Account 2", "starting_balance": "0"},
@@ -54,10 +50,8 @@
                 "date": "2023-01-21",
                 "description": "A test compound transaction",
                 "id": "0a81a492-913c-4835-93c3-c3be08b7f7a0",
-                "schedule_id": null,
-                "status": "Recorded",
                 "transaction_id": "6fbc1081-5bc8-42e4-b085-6354d12eb30f",
-                "transaction_type": "Credit"
+                "entry_type": "Credit"
             },
             {
                 "account": {"account_type": "Credit", "balance": "0", "id": "a8fd5ac8-2ec8-4477-b2f6-ef703da22e40", "name": "Account 3", "starting_balance": "0"},
@@ -67,11 +61,11 @@
                 "date": "2023-01-21",
                 "description": "A test compound transaction",
                 "id": "bec38c2a-895c-4bec-88e4-8acadcde7045",
-                "schedule_id": null,
-                "status": "Recorded",
                 "transaction_id": "6fbc1081-5bc8-42e4-b085-6354d12eb30f",
-                "transaction_type": "Credit"
+                "entry_type": "Credit"
             }
-        ]
+        ],
+        "schedule_id": null,
+        "status": "Recorded"
     }
 ]

@@ -96,15 +96,6 @@
         float:left;
     }
 
-    .message {
-		color: #EFEFEF;
-		margin-bottom: 20px;
-		text-align: left;
-		background-color: #303030;
-		padding:10px;
-		border-radius: 10px;
-	}
-
     .msg-panel p {
         margin: 8px 0;
         max-width: 500px;
@@ -165,14 +156,6 @@
         display: inline-block;
         padding: 5px 0px 5px 10px;
     }
-
-    .money-input {
-		width: 110px;
-	}
-
-    .money-input {
-		text-align: right;
-	}
 
 	.description-input {
 		width: 400px;

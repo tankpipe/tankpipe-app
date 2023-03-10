@@ -95,8 +95,8 @@
 						{#each s.entries as e}
 						<tr>
 							<td>{getAccountName(e.account_id)}</td>
-							<td>{#if e.transaction_type == "Debit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
-							<td>{#if e.transaction_type == "Credit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
+							<td>{#if e.entry_type == "Debit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
+							<td>{#if e.entry_type == "Credit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
 						</tr>
 						{/each}
 					</table>

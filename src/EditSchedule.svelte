@@ -37,7 +37,7 @@
             amount = curSchedule.amount
             entries = curSchedule.entries
             entries.forEach(e => {
-                e.transaction_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
+                e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
                 e.realDate = new Date(e.date)
                 e.account = matchAccount(e.account_id)
             })
@@ -103,7 +103,7 @@
             entries.forEach (
                 e => {
                     e["account_id"] = e["account"]["id"]
-                    e["amount"] = (e["transaction_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                    e["amount"] = (e["entry_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
                 }
             )
 
@@ -157,7 +157,7 @@
             drAmount: '',
             crAmount: '',
             account: {},
-            transaction_type: "Debit"}]
+            entry_type: "Debit"}]
     }
 
     const handleRemoveClick = () => {
@@ -174,7 +174,7 @@
              errors.addError(prefix + "description", "Description is required")
         }
 
-        if (entry.transaction_type === "Credit") {
+        if (entry.entry_type === "Credit") {
             if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
                 errors.addError(prefix + "crAmount", "A valid amount is required")
             }
@@ -200,13 +200,13 @@
 
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
-            entry["transaction_type"] = "Debit"
+            entry["entry_type"] = "Debit"
             calculateTotals(entries)
             return type === "Debit"
         }
 
         if (entry["crAmount"] > 0) {
-            entry["transaction_type"] = "Credit"
+            entry["entry_type"] = "Credit"
             calculateTotals(entries)
             return type === "Credit"
         }
@@ -216,7 +216,7 @@
 
     const total = (type) => {
         let total = 0
-        entries.filter(e => e.transaction_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
+        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
         return total
     }
 

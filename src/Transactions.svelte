@@ -16,14 +16,9 @@
 	let msg = ""
 	let previousAccount
 
-	const close = () => {
-        console.log("close")
-		page.set({view: views.TRANSACTIONS, mode: modes.LIST})
-		if (curAccount) loadTransactions();
-    }
-
 	$: {
 		if (curAccount && curAccount !== previousAccount) {
+			transactions = []
 			loadTransactions()
 			previousAccount = curAccount
 		}
@@ -34,10 +29,10 @@
 		page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
 	}
 
-	let transactions = [];
+	let transactions = []
 	export const loadTransactions = async () => {
 		console.log("loadTransactions: " + curAccount.id);
-   		transactions = await invoke('transactions', {accountId: curAccount.id});
+   		transactions = await invoke('transactions', {accountId: curAccount.id})
 		console.log(transactions)
 	};
 
@@ -46,15 +41,19 @@
 		maximumFractionDigits: 2,
 	});
 	const getDebitAmount = (transaction, curAccount) => {
-		return transaction.transaction_type === "Debit" ? formatter.format(transaction.amount) : ''
+		return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
 	}
 
 	const getCreditAmount = (transaction, curAccount) => {
-		return transaction.transaction_type === "Credit" ? formatter.format(transaction.amount) : ''
+		return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
 	}
 
 	const getBalance = (transaction) => {
 		return formatter.format(transaction.balance)
+	}
+
+	const getEntry = (transaction) => {
+		return transaction.entries.find(e => e.account_id == curAccount.id)
 	}
 
 	const handleAddClick = () => {
@@ -94,6 +93,9 @@
    		await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
 	};
 
+	const projected = (t) => t.status == 'Projected' ? 'projected' : '';
+
+
 </script>
 
 <div class="account-heading">
@@ -108,7 +110,7 @@
 	{/if}
 </div>
 {#if isEditMode($page)}
-<EditTransaction {close} {curTransaction}/>
+<EditTransaction {loadTransactions} {curTransaction}/>
 {/if}
 {#if !isEditMode($page)}
 <div class="widget errors">
@@ -124,13 +126,22 @@
 	<table>
 		<tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 		{#each transactions as t}
-			<tr on:click={() => selectTransaction(t)}><!--{t.id}-->
-				<td>{t.date}</td>
-				<td title="{t.description}"><div class="description">{t.description}</div></td>
-				<td class="money">{getDebitAmount(t, curAccount)}</td>
-				<td class="money">{getCreditAmount(t, curAccount)}</td>
-				<td class="money">{getBalance(t)}</td>
+			{@const e =  getEntry(t)}
+			{#if e}
+			<tr on:click={() => selectTransaction(e)}><!--{t.id}-->
+				<td class={projected(t)}>{e.date}</td>
+				<td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
+					{#each t.entries as en}
+						{#if en.account_id != curAccount.id}
+						<div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
+						{/if}
+					{/each}
+				</td>
+				<td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
+				<td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
+				<td class="{projected(t)} money">{getBalance(e)}</td>
 			</tr>
+			{/if}
 		{/each}
 	</table>
 	{/if}
@@ -162,6 +173,10 @@
 		font-size: 0.9em;
 	}
 
+	.projected {
+		color: #878787;
+	}
+
 	th {
 		color:#666666;
 		background-color: #444;
@@ -178,6 +193,11 @@
 		color: #FFF;
 	}
 
+	tr:hover td .tiny{
+		cursor: pointer;
+		color: #C0C0C0;
+	}
+
 	.money {
 		text-align: right !important;
 		min-width: 92px;
@@ -190,6 +210,12 @@
 		max-width: 33vw;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.tiny {
+		font-size: 0.5em;
+		color: #878787;
+		margin: 3px 0 -5px 2px;
 	}
 
 	.toolbar {

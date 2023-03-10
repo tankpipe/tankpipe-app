@@ -5,6 +5,7 @@
     import { page, isEditMode, modes, views } from "./page";
 	import {config} from './config'
 	import {accounts} from './accounts'
+    import { settings } from "./settings";
 
     export let curAccount
     export let loadAccounts
@@ -112,7 +113,10 @@
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
 {/if}
 {#if !isEditMode($page)}
-<div class="form-heading">Accounts</div>
+
+{#if $config.last_file}
+<div class="form-heading">{$config.last_file.name}</div>
+{/if}
 <div class="scroller">
 	<div class="accounts">
     {#each $accounts as a}
