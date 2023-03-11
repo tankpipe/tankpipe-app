@@ -1,6 +1,5 @@
 #![allow(dead_code)]
-use std::error::Error;
-use std::ffi::{OsString, OsStr};
+use std::ffi::{OsString};
 use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
