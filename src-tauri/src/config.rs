@@ -77,7 +77,6 @@ pub fn deserialize_osstring<'de, D>(deserializer: D) -> Result<OsString, D::Erro
     where D: Deserializer<'de>
 {
     let path = String::deserialize(deserializer)?;
-    use serde::de::Error;
     Ok(OsString::from(path))
 }
 
