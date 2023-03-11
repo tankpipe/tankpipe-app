@@ -12,7 +12,8 @@ pub mod account_display;
 pub mod config;
 pub mod money_repo;
 pub mod reader;
-pub mod handlers;
+mod handlers;
+use crate::handlers::{account, transaction, schedule, repo};
 
 pub struct BooksState(Mutex<Repo>);
 
@@ -37,27 +38,27 @@ fn main() {
             tauri::Menu::default()
         })
         .invoke_handler(tauri::generate_handler![
-            handlers::entries,
-            handlers::transactions,
-            handlers::add_transaction,
-            handlers::update_transaction,
-            handlers::delete_transaction,
-            handlers::accounts,
-            handlers::add_account,
-            handlers::update_account,
-            handlers::delete_account,
-            handlers::schedules,
-            handlers::add_schedule,
-            handlers::update_schedule,
-            handlers::generate,
-            handlers::end_date,
-            handlers::transaction,
-            handlers::update_settings,
-            handlers::settings,
-            handlers::config,
-            handlers::load_csv,
-            handlers::load_file,
-            handlers::new_file
+            transaction::entries,
+            transaction::transactions,
+            transaction::add_transaction,
+            transaction::update_transaction,
+            transaction::delete_transaction,
+            transaction::transaction,
+            account::accounts,
+            account::add_account,
+            account::update_account,
+            account::delete_account,
+            schedule::schedules,
+            schedule::add_schedule,
+            schedule::update_schedule,
+            schedule::generate,
+            schedule::end_date,
+            repo::update_settings,
+            repo::settings,
+            repo::config,
+            repo::load_csv,
+            repo::load_file,
+            repo::new_file
         ])
         .run(context)
         .expect("error while running tauri application");
