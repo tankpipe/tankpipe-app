@@ -193,14 +193,7 @@ pub fn initial_setup() -> Result<Config, BooksError> {
 
 mod tests {
     use serial_test::serial;
-    use std::fs::File;
-    use std::io::prelude::*;
-    use uuid::Uuid;
-    use chrono::{NaiveDate};
-    use rust_decimal_macros::dec;
-    use accounts::account::{Account, Transaction, AccountType, TransactionStatus, Schedule, ScheduleEnum};
-    use crate::money_repo::{load_config, initial_setup, Repo};
-    use super::{Books, setup_app_directories};
+    use crate::money_repo::{initial_setup, Repo};
 
     #[test]
     #[serial]

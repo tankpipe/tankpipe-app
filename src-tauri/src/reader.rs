@@ -2,6 +2,7 @@ use accounts::account::{Transaction, Entry, Account, TransactionStatus, Side};
 use accounts::books::{BooksError};
 use rust_decimal::prelude::*;
 use chrono::{NaiveDate};
+use serde::de::Error;
 use uuid::Uuid;
 use std::path::{Path};
 use rust_decimal_macros::dec;
@@ -95,8 +96,11 @@ fn parse_money_str(amount: &String) -> Decimal {
      Decimal::from_str(&amount_str).unwrap()
 }
 
-fn parse_date_str(date_str: &String) -> NaiveDate {
-    NaiveDate::parse_from_str(&date_str, "%d/%m/%Y").unwrap()
+fn parse_date_str(date_str: &String, format: &str) -> Result<NaiveDate, BooksError> {
+    match NaiveDate::parse_from_str(&date_str, format) {
+        Ok(d) =>return Ok(d),
+        Err(e) => return Err(BooksError{error: format!("Unable to parse date: {}", e).to_string()}),
+    };
 }
 
 fn parse_money_cell<'de, D>(deserializer: D) -> Result<Decimal, D::Error>
@@ -110,7 +114,10 @@ fn parse_transaction_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error
     where D: Deserializer<'de>
 {
     let date = String::deserialize(deserializer)?; // <-- this let's us skip the visitor!
-    Ok(parse_date_str(&date))
+    match parse_date_str(&date, "%d/%m/%Y") {
+        Ok(d) => return Ok(d),
+        Err(e) => Err(Error::custom(e.error.as_str()))
+    }
 }
 
 
@@ -118,10 +125,20 @@ fn parse_transaction_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error
 #[cfg(test)]
 
 mod tests {
-    use accounts::account::{Account, AccountType, Transaction, Side};
+    use accounts::account::{Account, AccountType, Side};
+    use chrono::NaiveDate;
     use rust_decimal_macros::dec;
     use crate::reader::load_transactions;
-    use super::read_transations;
+    use super::{read_transations, parse_date_str};
+
+
+    #[test]
+    fn test_parse_date_str() {
+        assert_eq!(NaiveDate::from_ymd(2023, 10, 20), parse_date_str(&"20/10/2023".to_string(), "%d/%m/%Y").unwrap());
+        assert_eq!(NaiveDate::from_ymd(2023, 10, 20), parse_date_str(&"2023-10-20".to_string(), "%Y-%m-%d").unwrap());
+        assert_eq!("Unable to parse date: input contains invalid characters", parse_date_str(&"20231020".to_string(), "%Y-%m-%d").unwrap_err().error.as_str());
+        assert_eq!("Unable to parse date: input is out of range", parse_date_str(&"2023-13-20".to_string(), "%Y-%m-%d").unwrap_err().error.as_str());
+    }
 
     #[test]
     fn test_reader_ok() {
