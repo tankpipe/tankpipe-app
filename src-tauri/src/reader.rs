@@ -12,8 +12,10 @@ use serde::Deserializer;
 
 
 pub fn load_transactions<P: AsRef<Path>>(path: P, account: &Account) -> Result<Vec<Transaction>, BooksError> {
-    let items = read_transations(path)?;
-    let transactions = items.into_iter().map(|i| i.to_transaction(account)).collect();
+    let mut transactions: Vec<Transaction> = Vec::new();
+    for item in read_transations(path)? {
+        transactions.push(item.to_transaction(account)?);
+    }
     Ok(transactions)
 }
 
@@ -21,8 +23,7 @@ pub fn load_transactions<P: AsRef<Path>>(path: P, account: &Account) -> Result<V
 
 #[derive(Debug, Deserialize)]
 struct Item  {
-    #[serde(deserialize_with = "parse_transaction_date")]
-    date: NaiveDate,
+    date_str: String,
     description: String,
     #[serde(deserialize_with = "parse_money_cell")]
     amount: Decimal,
@@ -31,18 +32,19 @@ struct Item  {
 }
 
 impl Item {
-    fn to_transaction(&self, account: &Account) -> Transaction {
+    fn to_transaction(&self, account: &Account) -> Result<Transaction, BooksError> {
+        let date = parse_date_str(&self.date_str, "%d/%m/%Y")?;
         let entry = Entry{
             id: Uuid::new_v4(),
             transaction_id: Uuid::new_v4(),
-            date: self.date,
+            date: date,
             description: self.description.clone(),
             account_id: account.id,
             entry_type: self.balance_impact(account),
             amount: self.amount.abs(),
             balance: None
         };
-        Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None }
+        Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
     }
 
     pub fn balance_impact(&self, account: &Account) -> Side {
