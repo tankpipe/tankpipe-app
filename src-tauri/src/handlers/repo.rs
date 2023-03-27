@@ -4,7 +4,7 @@ use std::ffi::OsString;
 use crate::BooksState;
 use crate::config::Config;
 use crate::handlers::error_handler;
-use crate::reader::load_transactions;
+use crate::reader::read_transations;
 
 
 #[tauri::command]
@@ -32,7 +32,7 @@ pub fn config(state: tauri::State<BooksState>) -> Config {
 #[tauri::command]
 pub fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<(), String> {
     println!("load_csv: {:?}, for account:{:?}", path, account.id);
-    let load_result = load_transactions(path, &account);
+    let load_result = read_transations(path, &account, "%d/%m/%Y");
 
     match load_result {
         Ok(transactions) => {

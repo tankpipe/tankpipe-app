@@ -11,65 +11,20 @@ use serde::Deserialize;
 use serde::Deserializer;
 
 
-pub fn load_transactions<P: AsRef<Path>>(path: P, account: &Account) -> Result<Vec<Transaction>, BooksError> {
-    let mut transactions: Vec<Transaction> = Vec::new();
-    for item in read_transations(path)? {
-        transactions.push(item.to_transaction(account)?);
-    }
-    Ok(transactions)
-}
-
-
-
-#[derive(Debug, Deserialize)]
-struct Item  {
-    date_str: String,
-    description: String,
-    #[serde(deserialize_with = "parse_money_cell")]
-    amount: Decimal,
-    #[serde(deserialize_with = "parse_money_cell")]
-    balance: Decimal
-}
-
-impl Item {
-    fn to_transaction(&self, account: &Account) -> Result<Transaction, BooksError> {
-        let date = parse_date_str(&self.date_str, "%d/%m/%Y")?;
-        let entry = Entry{
-            id: Uuid::new_v4(),
-            transaction_id: Uuid::new_v4(),
-            date: date,
-            description: self.description.clone(),
-            account_id: account.id,
-            entry_type: self.balance_impact(account),
-            amount: self.amount.abs(),
-            balance: None
-        };
-        Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
-    }
-
-    pub fn balance_impact(&self, account: &Account) -> Side {
-        if self.amount.ge(&dec!(0)) {
-            account.normal_balance()
-        } else {
-            account.normal_balance().opposite()
-        }
-    }
-}
-
-fn read_transations<P: AsRef<Path>>(path: P) -> Result<Vec<Item>, BooksError> {
+pub fn read_transations<P: AsRef<Path>>(path: P, account: &Account, fmt: &str) -> Result<Vec<Transaction>, BooksError> {
     let rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_path(path);
 
     match rdr {
         Ok(mut reader) => {
-            let mut items: Vec<Item> = Vec::new();
+            let mut transactions: Vec<Transaction> = Vec::new();
 
             for result in reader.deserialize() {
                 match result {
                     Ok(item) => {
                         println!("{:?}", item);
-                        items.push(item);
+                        transactions.push(to_transaction(item, account, fmt)?);
 
                     },
                     Err(e) => {
@@ -77,7 +32,7 @@ fn read_transations<P: AsRef<Path>>(path: P) -> Result<Vec<Item>, BooksError> {
                     },
                 }
             }
-            Ok(items)
+            Ok(transactions)
         },
         Err(e) => {
             return Err(BooksError{ error: format!("Unable to read csv file. {}", e).to_string() })
@@ -85,6 +40,29 @@ fn read_transations<P: AsRef<Path>>(path: P) -> Result<Vec<Item>, BooksError> {
      }
 }
 
+fn to_transaction(row: Vec<String>, account: &Account, fmt: &str) -> Result<Transaction, BooksError> {
+    let date = parse_date_str(&row.get(0).unwrap(), fmt)?;
+    let amount = parse_money_str(row.get(2).unwrap());
+    let entry = Entry{
+        id: Uuid::new_v4(),
+        transaction_id: Uuid::new_v4(),
+        date: date,
+        description: row.get(1).unwrap().to_string(),
+        account_id: account.id,
+        entry_type: balance_impact(amount, account),
+        amount: amount.abs(),
+        balance: None
+    };
+    Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
+}
+
+pub fn balance_impact(amount: Decimal, account: &Account) -> Side {
+    if amount.ge(&dec!(0)) {
+        account.normal_balance()
+    } else {
+        account.normal_balance().opposite()
+    }
+}
 
 fn parse_money_str(amount: &String) -> Decimal {
     let mut amount_str = amount.replace("$", "");
@@ -130,8 +108,7 @@ mod tests {
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
     use rust_decimal_macros::dec;
-    use crate::reader::load_transactions;
-    use super::{read_transations, parse_date_str};
+    use super::{parse_date_str, read_transations};
 
 
     #[test]
@@ -143,26 +120,19 @@ mod tests {
     }
 
     #[test]
-    fn test_reader_ok() {
-        let result = read_transations("test.csv");
-        assert!(result.is_ok());
-        assert_eq!(4, result.unwrap().len())
-    }
-
-    #[test]
     fn test_reader_file_not_found() {
-        let result = read_transations("no_such_file.csv");
+        let account = Account::create_new("Savings Account 1", AccountType::Asset);
+        let result = read_transations("no_such_file.csv", &account, "%d/%m/%Y");
         assert!(result.is_err());
         assert_eq!("Unable to read csv file. No such file or directory (os error 2)", result.unwrap_err().error);
     }
 
     #[test]
-    fn test_loader() {
+    fn test_reader() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let transactions = load_transactions("test.csv", &account).unwrap();
+        let transactions = read_transations("test.csv", &account, "%d/%m/%Y").unwrap();
         println!("{:?}", transactions);
         assert_eq!(4, transactions.len());
-
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
         assert_eq!(Side::Debit, transactions[0].entries[0].entry_type);
@@ -170,6 +140,5 @@ mod tests {
         assert_eq!(dec!(500), transactions[1].entries[0].amount);
         assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
     }
-
 
 }
