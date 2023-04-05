@@ -140,13 +140,13 @@
     const addSchedule = async (schedule) => {
         console.log(schedule)
         schedule.id = zeros
-   		await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
-	};
+           await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
+    };
 
     const saveSchedule = async (schedule) => {
         console.log(schedule)
-   		await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
-	};
+           await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
+    };
 
     const handleAddClick = () => {
         entries = [...entries, {
@@ -300,8 +300,8 @@
 <style>
 
     :root {
-		--date-input-width: 110px;
-	}
+        --date-input-width: 110px;
+    }
 
     .error-msg {
         color: #FBC969;
@@ -377,13 +377,13 @@
     }
 
     .money-input {
-		width: 100px;
-	}
+        width: 100px;
+    }
     .frequency-input {
-		width: 40px;
+        width: 40px;
         text-align: right;
         background-color: #F0F0F0;
-	}
+    }
 
     .raise {
         margin-top: -7px;
@@ -394,12 +394,12 @@
     }
 
     .money-input {
-		text-align: right;
-	}
+        text-align: right;
+    }
 
-	.description-input {
-		width: 400px;
-	}
+    .description-input {
+        width: 400px;
+    }
 
     .date-input {
         float: right;
@@ -423,7 +423,7 @@
     }
 
     .toolbar {
-		color: #7b7b7b;
+        color: #7b7b7b;
         display: flex;
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
@@ -434,49 +434,49 @@
 
         /* The rule below is implemented in most browsers by now */
         user-select: none;
-	}
+    }
 
-	.toolbar i:hover{
-		color: #666;
-		border-color: #666;
+    .toolbar i:hover{
+        color: #666;
+        border-color: #666;
         cursor: pointer;
-	}
+    }
 
     .toolbar i {
         margin-right: 5px;
     }
 
     .gg-add-r {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		transform: scale(var(--ggs,1));
-		border-radius: 4px
-	}
+        box-sizing: border-box;
+        position: relative;
+        display: block;
+        width: 22px;
+        height: 22px;
+        border: 2px solid currentColor;
+        transform: scale(var(--ggs,1));
+        border-radius: 4px
+    }
 
-	.gg-add-r::after,
-	.gg-add-r::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		width: 10px;
-		height: 2px;
-		background: currentColor;
-		border-radius: 5px;
-		top: 8px;
-		left: 4px
-	}
+    .gg-add-r::after,
+    .gg-add-r::before {
+        content: "";
+        display: block;
+        box-sizing: border-box;
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        background: currentColor;
+        border-radius: 5px;
+        top: 8px;
+        left: 4px
+    }
 
-	.gg-add-r::after {
-		width: 2px;
-		height: 10px;
-		top: 4px;
-		left: 8px
-	}
+    .gg-add-r::after {
+        width: 2px;
+        height: 10px;
+        top: 4px;
+        left: 8px
+    }
 
     .gg-remove-r {
         box-sizing: border-box;

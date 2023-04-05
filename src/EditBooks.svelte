@@ -18,16 +18,16 @@
     }
 
     const newFile = async (name) => {
-   		await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
-	};
+           await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
+    };
 
     function loadFileSuccess(result) {
-		console.log(result)
+        console.log(result)
         accounts.set(result)
     }
 
-	function loadFileFailure(result) {
-		console.log(result)
+    function loadFileFailure(result) {
+        console.log(result)
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
@@ -87,8 +87,8 @@
     }
 
     :root {
-		--date-input-width: 110px;
-	}
+        --date-input-width: 110px;
+    }
 
     .msg-panel {
         padding-left: 2px;
@@ -157,8 +157,8 @@
         padding: 5px 0px 5px 10px;
     }
 
-	.description-input {
-		width: 400px;
-	}
+    .description-input {
+        width: 400px;
+    }
 
 </style>
