@@ -11,7 +11,7 @@
 
     let mode = "NONE"
     let msg = ""
-    let errors = new Errors();
+    let errors = new Errors()
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let modeButtonLabel = ""
@@ -29,7 +29,7 @@
             fetchTransaction(curTransaction.transaction_id)
 
         } else {
-            let date = new Date();
+            let date = new Date()
             entries = [
                 {realDate: new Date(date), description: "", amount: 0, account: {}},
                 {realDate: new Date(date), description: "", amount: 0, account: {}},
@@ -37,7 +37,7 @@
             addButtonLabel = "Add"
         }
 
-    });
+    })
 
     const handleAddClick = () => {
         entries = [...entries, {date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit", status:"Recorded"}]
@@ -90,8 +90,8 @@
     }
 
     const onAdd = () => {
-        msg = "";
-        errors = new Errors();
+        msg = ""
+        errors = new Errors()
         if (mode === "SIMPLE") syncSecondEntry(entries)
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
@@ -121,7 +121,7 @@
                 )
                 addTransaction(transaction)
             } else if (editMode == "EDIT") {
-                transaction["id"] = curTransaction.id;
+                transaction["id"] = curTransaction.id
                 saveTransaction(transaction)
             }
         }
@@ -175,18 +175,18 @@
     }
     const addTransaction = async (transaction) => {
         console.log(transaction)
-   		await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
-	};
+           await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
+    }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
-   		await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
-	};
+           await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
+    }
 
     const fetchTransaction = async (transactionId) => {
         console.log(transactionId)
-   		await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
-	};
+           await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
+    }
 
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
@@ -222,8 +222,8 @@
     }
 
     $: {
-    	calculateTotals(entries)
-	}
+        calculateTotals(entries)
+    }
 
 
 </script>
@@ -314,8 +314,8 @@
     }
 
     :root {
-		--date-input-width: 110px;
-	}
+        --date-input-width: 110px;
+    }
 
     .form-row {
         display: inline-flex;
@@ -426,16 +426,16 @@
     }
 
     .money-input {
-		width: 100px;
-	}
+        width: 100px;
+    }
 
     .money-input {
-		text-align: right;
-	}
+        text-align: right;
+    }
 
-	.description-input {
-		width: 400px;
-	}
+    .description-input {
+        width: 400px;
+    }
 
     .date-input {
         margin-top: 0px;
@@ -464,7 +464,7 @@
     }
 
     .toolbar {
-		color: #7b7b7b;
+        color: #7b7b7b;
         display: flex;
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
@@ -475,49 +475,49 @@
 
         /* The rule below is implemented in most browsers by now */
         user-select: none;
-	}
+    }
 
-	.toolbar i:hover{
-		color: #666;
-		border-color: #666;
+    .toolbar i:hover{
+        color: #666;
+        border-color: #666;
         cursor: pointer;
-	}
+    }
 
     .toolbar i {
         margin-right: 5px;
     }
 
     .gg-add-r {
-		box-sizing: border-box;
-		position: relative;
-		display: block;
-		width: 22px;
-		height: 22px;
-		border: 2px solid currentColor;
-		transform: scale(var(--ggs,1));
-		border-radius: 4px
-	}
+        box-sizing: border-box;
+        position: relative;
+        display: block;
+        width: 22px;
+        height: 22px;
+        border: 2px solid currentColor;
+        transform: scale(var(--ggs,1));
+        border-radius: 4px
+    }
 
-	.gg-add-r::after,
-	.gg-add-r::before {
-		content: "";
-		display: block;
-		box-sizing: border-box;
-		position: absolute;
-		width: 10px;
-		height: 2px;
-		background: currentColor;
-		border-radius: 5px;
-		top: 8px;
-		left: 4px
-	}
+    .gg-add-r::after,
+    .gg-add-r::before {
+        content: "";
+        display: block;
+        box-sizing: border-box;
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        background: currentColor;
+        border-radius: 5px;
+        top: 8px;
+        left: 4px
+    }
 
-	.gg-add-r::after {
-		width: 2px;
-		height: 10px;
-		top: 4px;
-		left: 8px
-	}
+    .gg-add-r::after {
+        width: 2px;
+        height: 10px;
+        top: 4px;
+        left: 8px
+    }
 
     .gg-remove-r {
         box-sizing: border-box;

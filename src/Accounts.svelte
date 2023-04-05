@@ -1,95 +1,95 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
-	import Icon from '@iconify/svelte';
-	import { open } from '@tauri-apps/api/dialog'
+    import Icon from '@iconify/svelte';
+    import { open } from '@tauri-apps/api/dialog'
     import { page, isEditMode, modes, views } from "./page";
-	import {config} from './config'
-	import {accounts} from './accounts'
+    import {config} from './config'
+    import {accounts} from './accounts'
     import { settings } from "./settings";
 
     export let curAccount
     export let loadAccounts
 
-	let ACCOUNT_TYPES = {
-		Asset: "Assets",
-		Liability: "Liabilities",
-		Revenue: "Revenues",
-		Expense: "Expenses",
-		Equity: "Equity"
-	}
-	let lastAccountType = "";
+    let ACCOUNT_TYPES = {
+        Asset: "Assets",
+        Liability: "Liabilities",
+        Revenue: "Revenues",
+        Expense: "Expenses",
+        Equity: "Equity"
+    }
+    let lastAccountType = "";
 
-	$: {
-		if ($accounts)
-			if ($accounts.length < 1) {
-				page.set({view: views.ACCOUNTS, mode: modes.NEW})
-			}
-	}
+    $: {
+        if ($accounts)
+            if ($accounts.length < 1) {
+                page.set({view: views.ACCOUNTS, mode: modes.NEW})
+            }
+    }
 
-	const close = () => {
+    const close = () => {
         console.log("close")
-		page.set({view: views.ACCOUNTS, mode: modes.LIST})
+        page.set({view: views.ACCOUNTS, mode: modes.LIST})
     }
 
     const handleAddClick = () => {
-		console.log("addClick")
-		curAccount = null
-		page.set({view: views.ACCOUNTS, mode:modes.NEW})
-	}
-
-    const selectAccount = (account) => {
-		console.log(account)
-        curAccount = account
-		console.log(curAccount.id)
-		page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        console.log("addClick")
+        curAccount = null
+        page.set({view: views.ACCOUNTS, mode:modes.NEW})
     }
 
-	const editAccount = (account) => {
-		console.log(account)
+    const selectAccount = (account) => {
+        console.log(account)
         curAccount = account
-		page.set({view: views.ACCOUNTS, mode: modes.EDIT})
+        console.log(curAccount.id)
+        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+    }
+
+    const editAccount = (account) => {
+        console.log(account)
+        curAccount = account
+        page.set({view: views.ACCOUNTS, mode: modes.EDIT})
         console.log("selected: " + curAccount.name);
     }
 
-	const checkAccountType = (account) => {
-		if (account.account_type !== lastAccountType) {
-			lastAccountType = account.account_type
-			return true
-		}
-		return false
-	}
+    const checkAccountType = (account) => {
+        if (account.account_type !== lastAccountType) {
+            lastAccountType = account.account_type
+            return true
+        }
+        return false
+    }
 
-	const newFile = async () => {
-		curAccount = null
-		page.set({view: views.BOOKS, mode: modes.NEW})
-	};
+    const newFile = async () => {
+        curAccount = null
+        page.set({view: views.BOOKS, mode: modes.NEW})
+    };
 
-	const openFile = async () => {
-		const selected = await open({
-			directory: false,
-			multiple: false,
-			filters: [{name: '*', extensions: ['json']}],
-			defaultPath: $config.data_dir,
-		});
+    const openFile = async () => {
+        const selected = await open({
+            directory: false,
+            multiple: false,
+            filters: [{name: '*', extensions: ['json']}],
+            defaultPath: $config.data_dir,
+        });
 
-		if(selected) {
-			console.log(selected)
-			loadFile(selected)
-		}
-	}
+        if(selected) {
+            console.log(selected)
+            loadFile(selected)
+        }
+    }
 
-	const loadFile = async (path) => {
-		curAccount = null
-   		await invoke('load_file', {path: path}).then(loadFileSuccess, loadFileFailure)
-	};
+    const loadFile = async (path) => {
+        curAccount = null
+           await invoke('load_file', {path: path}).then(loadFileSuccess, loadFileFailure)
+    };
 
-	function loadFileSuccess(result) {
-		console.log(result)
+    function loadFileSuccess(result) {
+        console.log(result)
         accounts.set(result)
     }
 
-	function loadFileFailure(result) {
-		console.log(result)
+    function loadFileFailure(result) {
+        console.log(result)
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
@@ -97,15 +97,15 @@
 </script>
 
 <div class="account-heading">
-	{#if !isEditMode($page)}
-	<div class="toolbar">
-		<div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-		<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
-		<div class="toolbar-icon import-icon" on:click={openFile} title="Open file"><Icon icon="mdi:folder-open" width="22"/></div>
-		<div class="toolbar-icon import-icon" on:click={newFile} title="New file"><Icon icon="mdi:folder-plus" width="22"/></div>
+    {#if !isEditMode($page)}
+    <div class="toolbar">
+        <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+        <div class="toolbar-icon import-icon" on:click={openFile} title="Open file"><Icon icon="mdi:folder-open" width="22"/></div>
+        <div class="toolbar-icon import-icon" on:click={newFile} title="New file"><Icon icon="mdi:folder-plus" width="22"/></div>
 
-	</div>
-	{/if}
+    </div>
+    {/if}
 </div>
 
 
@@ -118,87 +118,87 @@
 <div class="form-heading">{$config.last_file.name}</div>
 {/if}
 <div class="scroller">
-	<div class="accounts">
+    <div class="accounts">
     {#each $accounts as a}
-	{#if checkAccountType(a)}
-		<div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
-	{/if}
+    {#if checkAccountType(a)}
+        <div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
+    {/if}
         <div class="card" on:click={() => selectAccount(a) }>{a.name}<div class="edit-icon" on:click={() => editAccount(a) }><Icon icon="mdi:pencil" /></div></div>
     {/each}
-	</div>
+    </div>
 </div>
 {/if}
 <style>
 
-	.scroller{
-		height: 100%;
-		width: 100%;
-		overflow: scroll;
-		margin-top: 15px;
-	}
+    .scroller{
+        height: 100%;
+        width: 100%;
+        overflow: scroll;
+        margin-top: 15px;
+    }
 
-	.accounts {
-		margin-right: 20px;
-	}
+    .accounts {
+        margin-right: 20px;
+    }
 
-	.account-type {
-		font-size: 0.8em;
+    .account-type {
+        font-size: 0.8em;
         font-weight: 500;
         color: #757575;
-		margin: 5px 0px -5px 10px;
-		float: left;
-		clear: both;
-	}
+        margin: 5px 0px -5px 10px;
+        float: left;
+        clear: both;
+    }
 
-	.edit-icon {
-		float: right;
-		color: #524e4e;
-	}
+    .edit-icon {
+        float: right;
+        color: #524e4e;
+    }
 
-	.card:hover .edit-icon {
-		color: #666;
-	}
+    .card:hover .edit-icon {
+        color: #666;
+    }
 
-	.edit-icon:hover {
-		color: #C0C0C0 !important;
-	}
+    .edit-icon:hover {
+        color: #C0C0C0 !important;
+    }
 
     .card {
-		float: left;
-		clear: both;
-		margin: 10px;
-		background-color: #524e4e;
-		padding: 10px;
-		border-radius: 10px;
-		color: #E0E0E0;
-		min-width: 300px;
-		text-align: left;
-	}
+        float: left;
+        clear: both;
+        margin: 10px;
+        background-color: #524e4e;
+        padding: 10px;
+        border-radius: 10px;
+        color: #E0E0E0;
+        min-width: 300px;
+        text-align: left;
+    }
 
-	.card:hover {
-		cursor: pointer;
-		color: #FFF;
-	}
+    .card:hover {
+        cursor: pointer;
+        color: #FFF;
+    }
 
-	.toolbar {
-		float: right;
-		color: #C0C0C0;
-		margin-left: 10px;
-		display: flex;
-		padding-right: 9px;
-	}
+    .toolbar {
+        float: right;
+        color: #C0C0C0;
+        margin-left: 10px;
+        display: flex;
+        padding-right: 9px;
+    }
 
-	.toolbar-icon {
-		margin-left: 5px;
-	}
+    .toolbar-icon {
+        margin-left: 5px;
+    }
 
-	.toolbar-icon:hover{
-		color: #F0F0F0;
-		cursor: pointer;
-	}
+    .toolbar-icon:hover{
+        color: #F0F0F0;
+        cursor: pointer;
+    }
 
-	.import-icon {
-		margin-top: 1px
-	}
+    .import-icon {
+        margin-top: 1px
+    }
 
 </style>

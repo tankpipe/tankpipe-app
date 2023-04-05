@@ -3,7 +3,7 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { page, modes } from './page.js';
+    import { page, modes } from './page.js'
 
     export let close
     export let curAccount
@@ -28,18 +28,18 @@
             startingBalance = "0"
             curAccount = null
         }
-    });
+    })
 
     $: {
-		if (curAccount && curAccount.id) loadTransactions();
+        if (curAccount && curAccount.id) loadTransactions()
     }
 
-    let transactions = [];
-	export const loadTransactions = async () => {
-		console.log("loadTransactions: " + curAccount.id);
-   		transactions = await invoke('transactions', {accountId: curAccount.id});
-		console.log(transactions)
-	};
+    let transactions = []
+    export const loadTransactions = async () => {
+        console.log("loadTransactions: " + curAccount.id)
+           transactions = await invoke('transactions', {accountId: curAccount.id})
+        console.log(transactions)
+    }
 
     const matchAccountType = (value) =>  {
         if (!value) return null
@@ -52,8 +52,8 @@
     }
 
     const onAdd = () => {
-        msg = "";
-        errors = new Errors();
+        msg = ""
+        errors = new Errors()
         if (!name || name.length < 1) {
              errors.addError("name", "Name is required")
         }
@@ -100,16 +100,16 @@
     }
 
     const addAccount = async (account) => {
-   		await invoke('add_account', {account: account}).then(resolved, rejected)
+           await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
         initialize = false
-	};
+    }
 
     const saveAccount = async (account) => {
         console.log(account)
-   		await invoke('update_account', {account: account}).then(resolved, rejected)
+           await invoke('update_account', {account: account}).then(resolved, rejected)
          loadAccounts()
-	};
+    }
 
     function deleteResolved(result) {
       msg = "Account deleted."
@@ -120,11 +120,11 @@
     const deleteAccount = async (account) => {
         console.log(account)
         if (account) {
-   		    await invoke('delete_account', {account: account}).then(deleteResolved, rejected)
+               await invoke('delete_account', {account: account}).then(deleteResolved, rejected)
         } else {
             close()
         }
-	};
+    }
 
 
 </script>
@@ -177,8 +177,8 @@
     }
 
     :root {
-		--date-input-width: 110px;
-	}
+        --date-input-width: 110px;
+    }
 
     .msg-panel {
         padding-left: 2px;
@@ -187,13 +187,13 @@
     }
 
     .message {
-		color: #EFEFEF;
-		margin-bottom: 20px;
-		text-align: left;
-		background-color: #303030;
-		padding:10px;
-		border-radius: 10px;
-	}
+        color: #EFEFEF;
+        margin-bottom: 20px;
+        text-align: left;
+        background-color: #303030;
+        padding:10px;
+        border-radius: 10px;
+    }
 
     .msg-panel p {
         margin: 8px 0;
@@ -257,15 +257,15 @@
     }
 
     .money-input {
-		width: 110px;
-	}
+        width: 110px;
+    }
 
     .money-input {
-		text-align: right;
-	}
+        text-align: right;
+    }
 
-	.description-input {
-		width: 400px;
-	}
+    .description-input {
+        width: 400px;
+    }
 
 </style>

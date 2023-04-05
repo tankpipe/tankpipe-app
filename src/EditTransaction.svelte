@@ -4,8 +4,8 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { page, modes, views } from './page.js';
-    import { settings } from './settings.js';
+    import { page, modes, views } from './page.js'
+    import { settings } from './settings.js'
     import {accounts} from './accounts'
 
     export let loadTransactions
@@ -13,7 +13,7 @@
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
-    let errors = new Errors();
+    let errors = new Errors()
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let drTotal = 0
@@ -31,7 +31,7 @@
             fetchTransaction(curTransaction.transaction_id)
         } else {
             curTransaction = {id: zeros, status:"Recorded"}
-            let date = new Date();
+            let date = new Date()
             entries = [
                 {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
                 {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
@@ -40,7 +40,7 @@
             simpleAllowed = true
         }
 
-    });
+    })
 
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
@@ -100,8 +100,8 @@
     }
 
     const onSave = () => {
-        msg = "";
-        errors = new Errors();
+        msg = ""
+        errors = new Errors()
         if (!compoundMode) syncSecondEntry(entries)
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
@@ -140,7 +140,7 @@
                 )
                 addTransaction(transaction)
             } else if ($page.mode === modes.EDIT) {
-                transaction["id"] = curTransaction.id;
+                transaction["id"] = curTransaction.id
                 saveTransaction(transaction)
             }
         }
@@ -214,15 +214,15 @@
     }
     const addTransaction = async (transaction) => {
         console.log(transaction)
-   		await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
+           await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
         loadTransactions()
-	};
+    }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
-   		await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
+           await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
         loadTransactions()
-	};
+    }
 
     function resolvedDelete(result) {
       msg = "Transaction deleted."
@@ -232,17 +232,17 @@
     const deleteTransaction = async (transaction) => {
         console.log(transaction)
         if (transaction && transaction.id) {
-   		    await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
+               await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
         } else {
             close()
         }
-	};
+    }
 
 
     const fetchTransaction = async (transactionId) => {
         console.log(transactionId)
-   		await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
-	};
+           await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
+    }
 
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
@@ -275,11 +275,11 @@
     }
 
     $: {
-    	calculateTotals()
-	}
+        calculateTotals()
+    }
 
     const schedule = () => {
-		console.log("schedule", curTransaction.entries[0].schedule_id)
+        console.log("schedule", curTransaction.entries[0].schedule_id)
         if (curTransaction.entries[0].schedule_id) {
             page.set({view: views.SCHEDULES, mode: modes.LOAD, payload:{schedule_id: curTransaction.entries[0].schedule_id}})
         } else {
@@ -382,8 +382,8 @@
     }
 
     :root {
-		--date-input-width: 110px;
-	}
+        --date-input-width: 110px;
+    }
 
     .form-row2, .form-button-row {
         display: block;
@@ -488,16 +488,16 @@
     }
 
     .money-input {
-		width: 100px;
-	}
+        width: 100px;
+    }
 
     .money-input {
-		text-align: right;
-	}
+        text-align: right;
+    }
 
-	.description-input {
-		width: 400px;
-	}
+    .description-input {
+        width: 400px;
+    }
 
     .date-input {
         margin-top: 0px;
@@ -526,7 +526,7 @@
     }
 
     .toolbar {
-		color: #9b9b9b;
+        color: #9b9b9b;
         display: flex;
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
@@ -537,7 +537,7 @@
 
         /* The rule below is implemented in most browsers by now */
         user-select: none;
-	}
+    }
 
     .bottom-toolbar {
         float: left;
