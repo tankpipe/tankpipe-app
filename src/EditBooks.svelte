@@ -1,7 +1,7 @@
 <script>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
-    import { page, modes, views } from "./page";
+    import { page, modes, views } from "./page"
     import {accounts} from './accounts'
 
     let msg = ""
@@ -11,7 +11,7 @@
 
     onMount(() => {
             addButtonLabel = "Add"
-    });
+    })
 
     const onCancel = () => {
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
@@ -19,7 +19,7 @@
 
     const newFile = async (name) => {
            await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
-    };
+    }
 
     function loadFileSuccess(result) {
         console.log(result)
@@ -34,8 +34,8 @@
 
 
     const onAdd = () => {
-        msg = "";
-        errors = new Errors();
+        msg = ""
+        errors = new Errors()
         if (!name || name.length < 1) {
              errors.addError("name", "Name is required")
         }

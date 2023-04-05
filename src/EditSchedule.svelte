@@ -13,12 +13,12 @@
     const zeros = '00000000-0000-0000-0000-000000000000'
     let hasEnd = false
     let msg = ""
-    let errors = new Errors();
+    let errors = new Errors()
     let date = new Date(), name, description, amount, frequency = 1
     let endDate
     let max = new Date(), min = new Date()
-    max.setFullYear(date.getFullYear() + 20);
-    min.setFullYear(date.getFullYear() - 10);
+    max.setFullYear(date.getFullYear() + 20)
+    min.setFullYear(date.getFullYear() - 10)
     console.log(max)
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
@@ -61,7 +61,7 @@
                 entries.forEach((e, i) => e.schedule_id = zeros)
             }
         }
-    });
+    })
 
     const matchAccount = (accountId) =>  {
         if (!accountId) return null
@@ -81,8 +81,8 @@
     }
 
     const onAdd = () => {
-        msg = "";
-        errors = new Errors();
+        msg = ""
+        errors = new Errors()
         if (!name || name.length < 1) {
              errors.addError("name", "Name is required")
         }
@@ -141,12 +141,12 @@
         console.log(schedule)
         schedule.id = zeros
            await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
-    };
+    }
 
     const saveSchedule = async (schedule) => {
         console.log(schedule)
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
-    };
+    }
 
     const handleAddClick = () => {
         entries = [...entries, {

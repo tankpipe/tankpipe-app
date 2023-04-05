@@ -16,11 +16,11 @@ class Errors{
     }
 
     getErrorMessages() {
-        return this.errors;
+        return this.errors
     }
 
     hasErrors() {
-        return this.errors.length > 0;
+        return this.errors.length > 0
     }
 }
 

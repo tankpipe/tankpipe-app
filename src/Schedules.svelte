@@ -1,7 +1,7 @@
 <script>
     import EditSchedule from './EditSchedule.svelte'
     import Icon from '@iconify/svelte'
-    import { page, isEditMode, views, modes } from './page';
+    import { page, isEditMode, views, modes } from './page'
     import {accounts} from './accounts'
 
     let curSchedule
@@ -21,12 +21,12 @@
         page.set({view: views.SCHEDULES, mode: modes.EDIT})
     }
 
-    let schedules = [];
+    let schedules = []
     const loadSchedules = async () => {
-        console.log("loadSchedules");
-           schedules = await invoke('schedules');
+        console.log("loadSchedules")
+           schedules = await invoke('schedules')
         checkForLoadMode()
-    };
+    }
 
     const checkForLoadMode = () => {
         if ($page.mode === modes.LOAD) {
@@ -34,7 +34,7 @@
                 let match = schedules.filter(s => s.id === $page.payload.schedule_id)
                 if (match.length > 0) {
                     curSchedule = match[0]
-                    console.log(curSchedule);
+                    console.log(curSchedule)
                     page.set({view: views.SCHEDULES, mode: modes.EDIT})
                 }
             } else { // Should never happen
@@ -47,7 +47,7 @@
     const formatter = new Intl.NumberFormat('en-AU', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    });
+    })
 
     const matchAccount = (accountId) =>  {
         if (!accountId) return null

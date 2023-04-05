@@ -31,15 +31,16 @@
 
     let transactions = []
     export const loadTransactions = async () => {
-        console.log("loadTransactions: " + curAccount.id);
+        console.log("loadTransactions: " + curAccount.id)
            transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
-    };
+    }
 
     const formatter = new Intl.NumberFormat('en-AU', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    });
+    })
+
     const getDebitAmount = (transaction, curAccount) => {
         return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
     }
@@ -70,7 +71,7 @@
             multiple: false,
             filters: [{name: '*', extensions: ['csv']}],
             defaultPath: appDataDirPath,
-        });
+        })
 
         if(selected) {
             console.log(selected)
@@ -91,9 +92,9 @@
     const loadCsv = async (path, account) => {
         console.log(path)
            await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
-    };
+    }
 
-    const projected = (t) => t.status == 'Projected' ? 'projected' : '';
+    const projected = (t) => t.status == 'Projected' ? 'projected' : ''
 
 
 </script>

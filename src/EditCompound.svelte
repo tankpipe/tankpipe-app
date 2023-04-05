@@ -11,7 +11,7 @@
 
     let mode = "NONE"
     let msg = ""
-    let errors = new Errors();
+    let errors = new Errors()
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let modeButtonLabel = ""
@@ -29,7 +29,7 @@
             fetchTransaction(curTransaction.transaction_id)
 
         } else {
-            let date = new Date();
+            let date = new Date()
             entries = [
                 {realDate: new Date(date), description: "", amount: 0, account: {}},
                 {realDate: new Date(date), description: "", amount: 0, account: {}},
@@ -37,7 +37,7 @@
             addButtonLabel = "Add"
         }
 
-    });
+    })
 
     const handleAddClick = () => {
         entries = [...entries, {date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit", status:"Recorded"}]
@@ -90,8 +90,8 @@
     }
 
     const onAdd = () => {
-        msg = "";
-        errors = new Errors();
+        msg = ""
+        errors = new Errors()
         if (mode === "SIMPLE") syncSecondEntry(entries)
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
@@ -121,7 +121,7 @@
                 )
                 addTransaction(transaction)
             } else if (editMode == "EDIT") {
-                transaction["id"] = curTransaction.id;
+                transaction["id"] = curTransaction.id
                 saveTransaction(transaction)
             }
         }
@@ -176,17 +176,17 @@
     const addTransaction = async (transaction) => {
         console.log(transaction)
            await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
-    };
+    }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
            await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
-    };
+    }
 
     const fetchTransaction = async (transactionId) => {
         console.log(transactionId)
            await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
-    };
+    }
 
     const showAmount = (entry, type) => {
         if (entry["drAmount"] > 0) {
