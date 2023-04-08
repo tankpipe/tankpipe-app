@@ -12,8 +12,9 @@ use serde::Deserializer;
 
 
 pub fn read_transations<P: AsRef<Path>>(path: P, account: &Account, fmt: &str) -> Result<Vec<Transaction>, BooksError> {
+    let columns = detect_columns(&path)?;
     let rdr = csv::ReaderBuilder::new()
-        .has_headers(false)
+        .has_headers(true)
         .from_path(path);
 
     match rdr {
@@ -24,7 +25,7 @@ pub fn read_transations<P: AsRef<Path>>(path: P, account: &Account, fmt: &str) -
                 match result {
                     Ok(item) => {
                         println!("{:?}", item);
-                        transactions.push(to_transaction(item, account, fmt)?);
+                        transactions.push(to_transaction(&columns, item, account, fmt)?);
 
                     },
                     Err(e) => {
@@ -40,20 +41,37 @@ pub fn read_transations<P: AsRef<Path>>(path: P, account: &Account, fmt: &str) -
      }
 }
 
-fn to_transaction(row: Vec<String>, account: &Account, fmt: &str) -> Result<Transaction, BooksError> {
-    let date = parse_date_str(&row.get(0).unwrap(), fmt)?;
-    let amount = parse_money_str(row.get(2).unwrap());
+fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fmt: &str) -> Result<Transaction, BooksError> {
+    let date = parse_date_str(&row.get(columns.index_of(ColumnType::Date)).unwrap(), fmt)?;
+    let (amount, entry_type) = determine_amount(&row, columns, account);
     let entry = Entry{
         id: Uuid::new_v4(),
         transaction_id: Uuid::new_v4(),
         date: date,
-        description: row.get(1).unwrap().to_string(),
+        description: row.get(columns.index_of(ColumnType::Description)).unwrap().to_string(),
         account_id: account.id,
-        entry_type: balance_impact(amount, account),
+        entry_type,
         amount: amount.abs(),
         balance: None
     };
     Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
+}
+
+fn determine_amount(row: &Vec<String>, columns: &ColumnTypes, account: &Account) -> (Decimal, Side) {
+
+    if columns.has_column(ColumnType::Amount) {
+        let amount = parse_money_str(row.get(columns.index_of(ColumnType::Amount)).unwrap());
+        (amount, balance_impact(amount, account))
+    } else {
+        let debit = parse_money_str(row.get(columns.index_of(ColumnType::Debit)).unwrap());
+        let credit = parse_money_str(row.get(columns.index_of(ColumnType::Credit)).unwrap());
+        if debit > credit {
+            (debit, Side::Debit)
+        } else {
+            (credit, Side::Credit)
+        }
+    }
+
 }
 
 pub fn balance_impact(amount: Decimal, account: &Account) -> Side {
@@ -64,6 +82,66 @@ pub fn balance_impact(amount: Decimal, account: &Account) -> Side {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ColumnType {
+    Unknown,
+    Date,
+    Description,
+    Debit,
+    Credit,
+    Amount,
+    Balance,
+}
+
+pub struct ColumnTypes {
+    pub columns: Vec<ColumnType>
+}
+
+impl ColumnTypes {
+    pub fn index_of(&self, column: ColumnType) -> usize {
+        self.columns.iter().position(|c| c == &column).unwrap()
+    }
+
+    pub fn has_column(&self, column: ColumnType) -> bool {
+        self.columns.iter().any(|c| c == &column)
+    }
+}
+
+
+pub fn detect_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
+    let rdr = csv::ReaderBuilder::new()
+        .has_headers(true)
+        .from_path(path);
+
+    let mut columns: Vec<ColumnType> = Vec::new();
+    match rdr {
+        Ok(mut reader) => {
+            let headers = reader.headers().unwrap();
+            for header in headers {
+                match header.to_lowercase().as_str() {
+                    "date" => columns.push(ColumnType::Date),
+                    "description" => columns.push(ColumnType::Description),
+                    "debit" => columns.push(ColumnType::Debit),
+                    "credit" => columns.push(ColumnType::Credit),
+                    "amount" => columns.push(ColumnType::Amount),
+                    "balance" => columns.push(ColumnType::Balance),
+                    _ => columns.push(ColumnType::Unknown),
+                }
+            }
+            Ok(ColumnTypes { columns: columns } )
+        },
+        Err(e) => {
+            return Err(BooksError{ error: format!("Unable to read csv file. {}", e).to_string() })
+        }
+    }
+}
+
+
+
+
+
+
+
 fn parse_money_str(amount: &String) -> Decimal {
     let mut amount_str = amount.replace("$", "");
     amount_str = amount_str.replace(",", "");
@@ -73,7 +151,11 @@ fn parse_money_str(amount: &String) -> Decimal {
         amount_str = amount_str.replace(")", "");
     }
 
-     Decimal::from_str(&amount_str).unwrap()
+    if amount_str.is_empty() {
+        return Decimal::zero();
+    }
+
+    Decimal::from_str(&amount_str).unwrap()
 }
 
 fn parse_date_str(date_str: &String, format: &str) -> Result<NaiveDate, BooksError> {
@@ -108,6 +190,8 @@ mod tests {
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
     use rust_decimal_macros::dec;
+    use crate::reader::{detect_columns, ColumnType};
+
     use super::{parse_date_str, read_transations};
 
 
@@ -139,6 +223,31 @@ mod tests {
         assert_eq!(account.id, transactions[0].entries[0].account_id);
         assert_eq!(dec!(500), transactions[1].entries[0].amount);
         assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
+    }
+
+    #[test]
+    fn test_reader_dr_cr() {
+        let account = Account::create_new("Savings Account 1", AccountType::Asset);
+        let transactions = read_transations("test_dr_cr.csv", &account, "%d/%m/%Y").unwrap();
+        println!("{:?}", transactions);
+        assert_eq!(4, transactions.len());
+        assert_eq!("Rent received", transactions[0].entries[0].description);
+        assert_eq!(dec!(1200), transactions[0].entries[0].amount);
+        assert_eq!(Side::Debit, transactions[0].entries[0].entry_type);
+        assert_eq!(account.id, transactions[0].entries[0].account_id);
+        assert_eq!(dec!(500), transactions[1].entries[0].amount);
+        assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
+    }
+
+    #[test]
+    fn test_detect_columns() {
+        let columns = detect_columns(&"test.csv").unwrap();
+        println!("{:?}", columns.columns);
+        assert_eq!(4, columns.columns.len());
+        assert_eq!(ColumnType::Date, columns.columns[0]);
+        assert_eq!(ColumnType::Description, columns.columns[1]);
+        assert_eq!(ColumnType::Amount, columns.columns[2]);
+        assert_eq!(ColumnType::Balance, columns.columns[3]);
     }
 
 }
