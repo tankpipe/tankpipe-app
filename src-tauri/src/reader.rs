@@ -12,9 +12,65 @@ use rust_decimal_macros::dec;
 use serde::Deserialize;
 use serde::Deserializer;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ColumnType {
+    Unknown,
+    Date,
+    Description,
+    Debit,
+    Credit,
+    Amount,
+    Balance,
+}
+
+impl std::fmt::Display for ColumnType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ColumnType::Date => write!(f, "Date"),
+            ColumnType::Description => write!(f, "Description"),
+            ColumnType::Debit => write!(f, "Debit"),
+            ColumnType::Credit => write!(f, "Credit"),
+            ColumnType::Amount => write!(f, "Amount"),
+            ColumnType::Balance => write!(f, "Balance"),
+            _ => write!(f, "Unknown"),
+        }
+    }
+}
+
+pub struct ColumnTypes {
+    columns: Vec<ColumnType>
+}
+
+impl ColumnTypes {
+    pub fn index_of(&self, column: ColumnType) -> usize {
+        self.columns.iter().position(|c| c == &column).unwrap()
+    }
+
+    pub fn has_column(&self, column: ColumnType) -> bool {
+        self.columns.iter().any(|c| c == &column)
+    }
+
+    pub fn len(&self) -> usize {
+        self.columns.len()
+    }
+
+    pub fn num_known_columns(&self) -> usize {
+        self.columns.iter().filter(|c| **c != ColumnType::Unknown).count()
+    }
+}
+
+impl Index<usize> for ColumnTypes {
+    type Output = ColumnType;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.columns[index]
+    }
+}
+
 
 pub fn read_transations<P: AsRef<Path>>(path: P, account: &Account, fmt: &str) -> Result<Vec<Transaction>, BooksError> {
     let columns = read_columns(&path)?;
+    validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
         .has_headers(true)
         .from_path(path);
@@ -92,58 +148,6 @@ pub fn balance_impact(amount: Decimal, account: &Account) -> Side {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ColumnType {
-    Unknown,
-    Date,
-    Description,
-    Debit,
-    Credit,
-    Amount,
-    Balance,
-}
-
-impl std::fmt::Display for ColumnType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            ColumnType::Date => write!(f, "Date"),
-            ColumnType::Description => write!(f, "Description"),
-            ColumnType::Debit => write!(f, "Debit"),
-            ColumnType::Credit => write!(f, "Credit"),
-            ColumnType::Amount => write!(f, "Amount"),
-            ColumnType::Balance => write!(f, "Balance"),
-            _ => write!(f, "Unknown"),
-        }
-    }
-}
-
-
-pub struct ColumnTypes {
-    columns: Vec<ColumnType>
-}
-
-impl ColumnTypes {
-    pub fn index_of(&self, column: ColumnType) -> usize {
-        self.columns.iter().position(|c| c == &column).unwrap()
-    }
-
-    pub fn has_column(&self, column: ColumnType) -> bool {
-        self.columns.iter().any(|c| c == &column)
-    }
-
-    pub fn len(&self) -> usize {
-        self.columns.len()
-    }
-}
-
-impl Index<usize> for ColumnTypes {
-    type Output = ColumnType;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.columns[index]
-    }
-}
-
 pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
     let rdr = csv::ReaderBuilder::new()
         .has_headers(true)
@@ -174,6 +178,20 @@ fn detect_columns(headers: &StringRecord) -> Result<ColumnTypes, BooksError> {
         }
     }
     Ok(ColumnTypes { columns: columns })
+}
+
+fn validate_columns(columns: &ColumnTypes) -> Result<(), BooksError> {
+    if columns.num_known_columns() == 0 {
+        return Err(BooksError{ error: "Header row not detected. First row should include headings like Date, Description, [Debit, Credit | Amount].".to_string()})
+    } else if columns.num_known_columns() < 3 {
+        return Err(BooksError{ error: "Header row should include Date, Description, [Debit, Credit | Amount].".to_string()})
+    }
+
+    if columns.len() > 3 && (columns.has_column(ColumnType::Amount) || (columns.has_column(ColumnType::Debit) && columns.has_column(ColumnType::Credit))) {
+        return Ok(())
+    }
+
+    return Err(BooksError{ error: "Header row should include Date, Description, [Debit, Credit | Amount].".to_string()})
 }
 
 fn parse_money_str(amount: String) -> Decimal {
