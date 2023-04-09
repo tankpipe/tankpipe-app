@@ -37,7 +37,7 @@
     let transactions = []
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
-           transactions = await invoke('transactions', {accountId: curAccount.id})
+        transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
     }
 
@@ -55,7 +55,7 @@
         msg = ""
         errors = new Errors()
         if (!name || name.length < 1) {
-             errors.addError("name", "Name is required")
+            errors.addError("name", "Name is required")
         }
 
         if (!startingBalance || startingBalance.length < 1 || isNaN(startingBalance)) {

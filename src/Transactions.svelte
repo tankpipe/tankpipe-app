@@ -91,7 +91,8 @@
     }
     const loadCsv = async (path, account) => {
         console.log(path)
-           await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
+        errors = new Errors()
+        await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
     }
 
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
