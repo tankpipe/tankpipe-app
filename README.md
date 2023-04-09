@@ -1,5 +1,5 @@
 ```bash
-cd money
+cd aqueducts
 npm install
 npm run tauri dev
 
