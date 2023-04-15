@@ -24,6 +24,14 @@ impl FileDetails {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+pub enum DateFormat {
+    Locale,
+    Regular,
+    US,
+    ISO,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub struct Config {
     #[serde(serialize_with = "serialize_osstring")]
     #[serde(deserialize_with = "deserialize_osstring")]
@@ -33,6 +41,8 @@ pub struct Config {
     pub config_dir: OsString,
     pub last_file: FileDetails,
     pub recent_files: Vec<FileDetails>,
+    pub display_date_format: DateFormat,
+    pub import_date_format: String
 }
 
 impl Config {

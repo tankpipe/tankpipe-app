@@ -7,6 +7,7 @@
     import { Errors } from './errors'
     import { page, modes, views, isEditMode } from './page'
     import { settings } from './settings'
+    import { config } from './config.js'
     import { accounts } from './accounts'
 
     export let curAccount
@@ -41,6 +42,7 @@
         maximumFractionDigits: 2,
     })
 
+
     const getDebitAmount = (transaction, curAccount) => {
         return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
     }
@@ -51,6 +53,24 @@
 
     const getBalance = (transaction) => {
         return formatter.format(transaction.balance)
+    }
+
+    const getDate = (transaction) => {
+        const date = new Date(transaction.date)
+
+        switch ($config.display_date_format) {
+            case "Standard": return date.toLocaleDateString("en-GB")
+            case "US": return date.toLocaleDateString("en-US")
+            case "ISO": return transaction.date
+            default: return date.toLocaleDateString()
+        }
+    }
+
+    const date_style = () => {
+        switch ($config.display_date_format) {
+            case "ISO": return ""
+            default: return "align_right"
+        }
     }
 
     const getEntry = (transaction) => {
@@ -96,6 +116,7 @@
     }
 
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
+    const date_class = date_style()
 
 
 </script>
@@ -131,7 +152,7 @@
             {@const e =  getEntry(t)}
             {#if e}
             <tr on:click={() => selectTransaction(e)}><!--{t.id}-->
-                <td class={projected(t)}>{e.date}</td>
+                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
                         {#if en.account_id != curAccount.id}
@@ -173,6 +194,10 @@
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
+    }
+
+    .align_right {
+        text-align: right;
     }
 
     .projected {

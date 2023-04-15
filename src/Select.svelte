@@ -6,17 +6,23 @@
     export let flat = false
     export let inError = false
     export let disabled = false
+    export let valueField = null
+    export let onChange = {}
     const cssClass =  label ? "widget" : "widgetNoLabel"
 </script>
 
 <div class={cssClass}>
     {#if label}<label for="itemSelect">{label}</label>{/if}
-    <select bind:value={item} name="itemSelect" class:flat={flat} class:error={inError} disabled={disabled}>
+    <select bind:value={item} name="itemSelect" class:flat={flat} class:error={inError} disabled={disabled} on:change={onChange}>
         {#if none}
-        <option value={null}>None</option>
+            <option value={null}>None</option>
         {/if}
         {#each items as a}
-        <option value={a}>{a.name}</option>
+            {#if valueField}
+                <option value={a[valueField]}>{a.name}</option>
+            {:else}
+                <option value={a}>{a.name}</option>
+            {/if}
         {/each}
     </select>
 </div>

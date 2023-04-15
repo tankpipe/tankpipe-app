@@ -9,7 +9,7 @@ use directories::ProjectDirs;
 use regex::Regex;
 use tauri::api::path::home_dir;
 
-use crate::config::{Config, FileDetails};
+use crate::config::{Config, FileDetails, DateFormat};
 
 /// Manage storage
 
@@ -36,7 +36,9 @@ impl AppDirectories {
             data_dir: self.data_dir.clone(),
             config_dir: self.config_dir.clone(),
             last_file: FileDetails::empty(),
-            recent_files: Vec::new()
+            recent_files: Vec::new(),
+            display_date_format: DateFormat::Locale,
+            import_date_format: "%d/%m/%Y".to_string(),
         }
     }
 }
@@ -79,7 +81,7 @@ impl Repo {
             Ok(b) => {
                 self.books = b;
                 self.config.set_last_from_path(path.clone());
-                let save_result = save_config( &self.config.settings_path(), &self.config);
+                let save_result = write_config( &self.config.settings_path(), &self.config);
                 match save_result {
                     Ok(()) => Ok(()),
                     Err(e) => Err(BooksError{ error: e.to_string() })
@@ -102,12 +104,18 @@ impl Repo {
         let last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
         self.config.set_last(last_file);
         new_books(self.config.last_file.path.clone(), &self.books)?;
-        match save_config(self.config.settings_path(), &self.config) {
+        match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
             Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
         }
     }
 
+    pub fn save_config(&self) -> Result<(), BooksError> {
+        match write_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
 
 }
 
@@ -137,7 +145,7 @@ fn setup_app_directories() -> Result<AppDirectories, BooksError> {
 
 fn initialise_settings(files: AppDirectories) -> Result<Config, BooksError> {
     let config = files.to_config();
-    match save_config(files.settings_path(), &config) {
+    match write_config(files.settings_path(), &config) {
         Ok(_) => Ok(config),
         Err(e) => return Err(BooksError{ error: format!("Error while trying to write config file: {:?}", e) })
     }
@@ -171,7 +179,7 @@ pub fn load_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
     Err(BooksError::from_str("Unable to load settings"))
 }
 
-fn save_config<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<()> {
+fn write_config<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<()> {
     ::serde_json::to_writer(&File::create(path)?, &config)?;
     Ok(())
 }
@@ -182,7 +190,7 @@ pub fn initial_setup() -> Result<Config, BooksError> {
     let books = Books::build_empty("My Books");
     config.last_file = FileDetails::from_path("My Books", config.file_path("books1.json"));
     let _ = save_books(config.last_file.path.clone(), &books);
-    match save_config(config.settings_path(), &config) {
+    match write_config(config.settings_path(), &config) {
         Ok(_) => Ok(config),
         Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
     }

@@ -2,6 +2,7 @@ use accounts::books::Settings;
 use accounts::account::Account;
 use std::ffi::OsString;
 use crate::BooksState;
+use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::error_handler;
 use crate::reader::read_transations;
@@ -30,13 +31,22 @@ pub fn config(state: tauri::State<BooksState>) -> Config {
 }
 
 #[tauri::command]
+pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSettings) -> Result<(), String>  {
+    println!("Updating config");
+    let mut mutex_guard = state.0.lock().unwrap();
+    mutex_guard.config.display_date_format = config_settings.display_date_format;
+    mutex_guard.config.import_date_format = config_settings.import_date_format;
+    error_handler(mutex_guard.save_config())
+}
+
+#[tauri::command]
 pub fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<(), String> {
     println!("load_csv: {:?}, for account:{:?}", path, account.id);
-    let load_result = read_transations(path, &account, "%d/%m/%Y");
+    let mut mutex_guard = state.0.lock().unwrap();
+    let load_result = read_transations(path, &account, &mutex_guard.config.import_date_format);
 
     match load_result {
         Ok(transactions) => {
-            let mut mutex_guard = state.0.lock().unwrap();
             for t in transactions {
                 let add_result = mutex_guard.books.add_transaction(t);
                 if add_result.is_err() {

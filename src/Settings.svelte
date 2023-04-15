@@ -1,7 +1,10 @@
 <script>
     import {settings} from './settings.js'
+    import {config} from './config.js'
+    import Select from './Select.svelte';
 
     let dateStr
+    const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
 
     $: {
         if (dateStr) {
@@ -36,12 +39,23 @@
         }
     }
 
+    const updateConfig = async () => {
+        if ($config) {
+            const configSettings = {
+                display_date_format: $config.display_date_format,
+                import_date_format: $config.import_date_format
+            }
+
+            await invoke('update_config', {configSettings: configSettings}).then(
+                () => console.log("configuration saved"),
+                () => console.log("configuration not saved " + result)
+            )
+        }
+    }
 
     const getEndDate = async () => {
-        console.log("getEndDate")
-           let tempDate = await invoke('end_date')
+        let tempDate = await invoke('end_date')
         if (tempDate) dateStr = tempDate.date
-
     }
     getEndDate()
 
@@ -51,6 +65,16 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings}/>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label">Display date format</div><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}/>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label">Import date format</div><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig}/>
         </div>
     </div>
     <div class="form-row2">
