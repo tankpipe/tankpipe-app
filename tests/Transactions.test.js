@@ -22,7 +22,7 @@ it('is displayed correctly for US date', async () => {
 
 it('is displayed correctly for ISO date', async () => {
     const mockFetchTransactions = loadTransactions()
-    config.set({display_date_format: "Locale"})
+    config.set({display_date_format: "ISO"})
     await checkResults(mockFetchTransactions)
 });
 
