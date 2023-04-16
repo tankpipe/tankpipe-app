@@ -10,21 +10,21 @@ use crate::config::DateFormat;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NewAccount {
-	pub name: String,
-	pub account_type: AccountType,
-	pub starting_balance: Decimal
+    pub name: String,
+    pub account_type: AccountType,
+    pub starting_balance: Decimal
 }
 
 impl NewAccount {
-	pub fn to_account(self) -> Account {
-		Account {
-			id: Uuid::new_v4(),
-			name: self.name,
-			starting_balance: self.starting_balance,
-			account_type: self.account_type,
+    pub fn to_account(self) -> Account {
+        Account {
+            id: Uuid::new_v4(),
+            name: self.name,
+            starting_balance: self.starting_balance,
+            account_type: self.account_type,
             balance: dec!(0)
-		}
-	}
+        }
+    }
 
 }
 
@@ -33,7 +33,7 @@ impl NewAccount {
 pub struct DateParam {
     #[serde(serialize_with = "serialize_naivedate")]
     #[serde(deserialize_with = "deserialize_naivedate")]
-	pub date: NaiveDate
+    pub date: NaiveDate
 }
 
 
