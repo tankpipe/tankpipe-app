@@ -16,7 +16,7 @@
 
     const loadAccounts = async () => {
         curAccount = null
-           let result = await invoke('accounts');
+        let result = await invoke('accounts');
         accounts.set(result)
     };
 
