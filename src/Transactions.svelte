@@ -59,7 +59,7 @@
         const date = new Date(transaction.date)
 
         switch ($config.display_date_format) {
-            case "Standard": return date.toLocaleDateString("en-GB")
+            case "Regular": return date.toLocaleDateString("en-GB")
             case "US": return date.toLocaleDateString("en-US")
             case "ISO": return transaction.date
             default: return date.toLocaleDateString()
