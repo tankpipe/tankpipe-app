@@ -4,9 +4,10 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { page, modes, views } from './page.js'
-    import { settings } from './settings.js'
+    import {page, modes, views} from './page.js'
+    import {settings} from './settings.js'
     import {accounts} from './accounts'
+    import {config, dateFormat} from './config.js';
 
     export let loadTransactions
     export let curTransaction
@@ -14,14 +15,13 @@
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
     let errors = new Errors()
-    let format="yyyy-MM-dd"
+    let format = dateFormat($config)
     let addButtonLabel = "Add"
     let drTotal = 0
     let crTotal = 0
     let simpleAllowed = false
     let compoundMode = false
     let recorded = false
-
     let entries = []
 
     onMount(() => {
@@ -214,13 +214,13 @@
     }
     const addTransaction = async (transaction) => {
         console.log(transaction)
-           await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
+        await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
         loadTransactions()
     }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
-           await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
+        await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
         loadTransactions()
     }
 
@@ -241,7 +241,7 @@
 
     const fetchTransaction = async (transactionId) => {
         console.log(transactionId)
-           await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
+        await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
     }
 
     const showAmount = (entry, type) => {
