@@ -56,6 +56,7 @@ fn main() {
             repo::update_settings,
             repo::settings,
             repo::config,
+            repo::update_config,
             repo::load_csv,
             repo::load_file,
             repo::new_file

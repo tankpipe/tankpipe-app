@@ -6,6 +6,8 @@ use uuid::Uuid;
 use accounts::serializer::*;
 use rust_decimal_macros::dec;
 
+use crate::config::DateFormat;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NewAccount {
 	pub name: String,
@@ -34,3 +36,9 @@ pub struct DateParam {
 	pub date: NaiveDate
 }
 
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ConfigSettings {
+    pub display_date_format: DateFormat,
+    pub import_date_format: String
+}
