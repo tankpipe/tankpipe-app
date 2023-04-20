@@ -10,7 +10,7 @@ const loadTransactions = () => {}
 
 it('is displayed correctly for NEW', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.NEW})
-    const select = render(EditTransaction, {close: loadTransactions, curTransaction: transaction_data[0]})
+    const select = render(EditTransaction, {loadTransactions: loadTransactions, curTransaction: transaction_data[0]})
     expect(select.container.outerHTML).toMatchSnapshot();
 });
 
@@ -20,7 +20,7 @@ it('is displayed correctly for simple EDIT', async () => {
     const mockFetchTransaction = jest.fn(() => Promise.resolve(transaction_data[0]));
     global.invoke = mockFetchTransaction;
 
-    const {findByText, container} = render(EditTransaction, {close: loadTransactions, curTransaction: transaction_data[0]})
+    const {findByText, container} = render(EditTransaction, {loadTransactions: loadTransactions, curTransaction: transaction_data[0]})
     await waitFor(() => expect(mockFetchTransaction).toHaveBeenCalledTimes(1))
     const _waitForRenderUpdate = await findByText('Description')
     expect(container.outerHTML).toMatchSnapshot();
@@ -31,7 +31,7 @@ it('is displayed correctly for compound EDIT', async () => {
     const mockFetchTransaction = jest.fn(() => Promise.resolve(transaction_data[1]));
     global.invoke = mockFetchTransaction;
 
-    const {findByText, container} = render(EditTransaction, {close: loadTransactions, curTransaction: transaction_data[1]})
+    const {findByText, container} = render(EditTransaction, {loadTransactions: loadTransactions, curTransaction: transaction_data[1]})
     await waitFor(() => expect(mockFetchTransaction).toHaveBeenCalledTimes(1))
     const _waitForRenderUpdate = await findByText('Description')
     expect(container.outerHTML).toMatchSnapshot();
