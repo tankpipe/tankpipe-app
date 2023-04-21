@@ -5,7 +5,6 @@
     import { page, isEditMode, modes, views } from "./page";
     import {config} from './config'
     import {accounts} from './accounts'
-    import { settings } from "./settings";
 
     export let curAccount
     export let loadAccounts
@@ -129,7 +128,7 @@
         <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
     {/if}
-
+<div class="form-heading">Accounts</div>
 <div class="scroller">
     <div class="accounts">
     {#each $accounts as a}
