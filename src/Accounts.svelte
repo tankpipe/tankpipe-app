@@ -85,6 +85,7 @@
 
     function loadFileSuccess(result) {
         console.log(result)
+        loadConfig()
         accounts.set(result)
     }
 
@@ -94,16 +95,19 @@
         errors.addError("all", "We hit a snag: " + result)
     }
 
+    const loadConfig = async () => {
+        let result = await invoke('config')
+        config.set(result)
+        console.log(result)
+    };
+
 </script>
 
 <div class="account-heading">
     {#if !isEditMode($page)}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
         <div class="toolbar-icon import-icon" on:click={openFile} title="Open file"><Icon icon="mdi:folder-open" width="22"/></div>
         <div class="toolbar-icon import-icon" on:click={newFile} title="New file"><Icon icon="mdi:folder-plus" width="22"/></div>
-
     </div>
     {/if}
 </div>
@@ -117,6 +121,13 @@
 {#if $config.last_file}
 <div class="form-heading">{$config.last_file.name}</div>
 {/if}
+    {#if !isEditMode($page)}
+    <div class="clear"><hr/></div>
+    <div class="toolbar">
+        <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+    </div>
+    {/if}
+
 <div class="scroller">
     <div class="accounts">
     {#each $accounts as a}
@@ -129,6 +140,15 @@
 </div>
 {/if}
 <style>
+    .clear {
+        clear:both;
+    }
+
+    hr {
+        border-color: #363636;
+        border-style: solid;
+        margin-left: -20px;
+    }
 
     .scroller{
         height: 100%;

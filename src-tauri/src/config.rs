@@ -58,19 +58,20 @@ impl Config {
         PathBuf::from(self.data_dir.clone()).join(name)
     }
 
-    pub fn set_last_from_path(&mut self, path: OsString) {
+    pub fn set_last_from_path(&mut self, path: OsString, name: &str) {
         let last_file: FileDetails;
         let os_string_path = OsString::from(path);
         self.last_file.path = os_string_path.clone();
+        self.last_file.name = name.to_string();
         let index = self.recent_files.iter().position(|f| *f.path == os_string_path);
         match index {
             Some(i) => {
                 last_file = self.recent_files.get(i).unwrap().clone();
                 self.recent_files.remove(index.unwrap());
             },
-            None =>last_file = FileDetails::from_os_string("", os_string_path)
+            None =>last_file = FileDetails::from_os_string(name, os_string_path)
         }
-        self.recent_files.insert(0, last_file)
+        self.recent_files.insert(0, last_file);
     }
 
     pub fn set_last(&mut self, last_file: FileDetails) {
