@@ -77,10 +77,11 @@ impl Repo {
 
     pub fn load_books(&mut self, path: &OsString) -> Result<(), BooksError> {
         let result = load_books(path);
+
         match result {
             Ok(b) => {
                 self.books = b;
-                self.config.set_last_from_path(path.clone());
+                self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str());
                 let save_result = write_config( &self.config.settings_path(), &self.config);
                 match save_result {
                     Ok(()) => Ok(()),
@@ -89,6 +90,7 @@ impl Repo {
             },
             Err(e) => Err(BooksError{ error: e.to_string() })
         }
+
     }
 
     pub fn save(&self) -> Result<(), BooksError> {
