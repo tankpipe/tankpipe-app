@@ -17,13 +17,15 @@
         Expense: "Expenses",
         Equity: "Equity"
     }
-    let lastAccountType = "";
+    let lastAccountType
 
     $: {
-        if ($accounts)
+        lastAccountType = ""
+        if ($accounts) {
             if ($accounts.length < 1) {
                 page.set({view: views.ACCOUNTS, mode: modes.NEW})
             }
+        }
     }
 
     const close = () => {
