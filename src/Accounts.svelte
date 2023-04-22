@@ -1,8 +1,8 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
-    import Icon from '@iconify/svelte';
-    import { open } from '@tauri-apps/api/dialog'
-    import { page, isEditMode, modes, views } from "./page";
+    import Icon from '@iconify/svelte'
+    import {open} from '@tauri-apps/api/dialog'
+    import {page, isEditMode, modes, views} from "./page"
     import {config} from './config'
     import {accounts} from './accounts'
 
@@ -28,25 +28,20 @@
     }
 
     const close = () => {
-        console.log("close")
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
     }
 
     const handleAddClick = () => {
-        console.log("addClick")
         curAccount = null
         page.set({view: views.ACCOUNTS, mode:modes.NEW})
     }
 
     const selectAccount = (account) => {
-        console.log(account)
         curAccount = account
-        console.log(curAccount.id)
         page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
     const editAccount = (account) => {
-        console.log(account)
         curAccount = account
         page.set({view: views.ACCOUNTS, mode: modes.EDIT})
         console.log("selected: " + curAccount.name);
@@ -99,7 +94,6 @@
     const loadConfig = async () => {
         let result = await invoke('config')
         config.set(result)
-        console.log(result)
     };
 
 </script>
