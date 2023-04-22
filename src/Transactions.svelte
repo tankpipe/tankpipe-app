@@ -33,7 +33,7 @@
     let transactions = []
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
-           transactions = await invoke('transactions', {accountId: curAccount.id})
+        transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
     }
 

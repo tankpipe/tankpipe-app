@@ -76,7 +76,7 @@
             <div class="column middle">
 
                     {#if $page.view === views.TRANSACTIONS}
-                    <Transactions bind:this={transactions} {curAccount}/>
+                    <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
                     {/if}
                     {#if $page.view === views.ACCOUNTS}
                     <Accounts bind:curAccount={curAccount} {loadAccounts}/>
