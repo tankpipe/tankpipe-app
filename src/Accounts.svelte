@@ -1,4 +1,5 @@
 <script>
+    import { onMount, onDestroy } from "svelte";
     import {listen} from '@tauri-apps/api/event'
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
@@ -9,15 +10,6 @@
 
     export let curAccount
     export let loadAccounts
-
-    const unlistenOpen = listen('file-open', (event) => {
-        page.set({view: views.ACCOUNTS, mode: modes.LIST})
-        openFile()
-    })
-
-    const unlistenNew = listen('file-new', (event) => {
-        page.set({view: views.BOOKS, mode: modes.NEW})
-    })
 
     let ACCOUNT_TYPES = {
         Asset: "Assets",

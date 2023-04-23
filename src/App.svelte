@@ -4,6 +4,7 @@
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'
+    import './events'
     import {settings} from './settings'
     import {accounts} from './accounts'
     import {config} from './config'
