@@ -1,4 +1,6 @@
 <script>
+    import { onMount, onDestroy } from "svelte";
+    import {listen} from '@tauri-apps/api/event'
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
     import {open} from '@tauri-apps/api/dialog'
