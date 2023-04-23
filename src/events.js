@@ -1,5 +1,5 @@
 
-import { listen } from '@tauri-apps/api/event'
+import {listen, emit} from '@tauri-apps/api/event'
 import {open} from '@tauri-apps/api/dialog'
 import {page, modes, views} from './page.js'
 import {accounts} from './accounts'
@@ -7,13 +7,13 @@ import {config} from './config'
 
 
 const listener = async () => {
-    const unlistenOpen = await listen('file-open', (event) => {
+    await listen('file-open', (event) => {
         console.log(event)
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
         openFile()
     })
 
-    const unlistenNew = listen('file-new', (event) => {
+    listen('file-new', (event) => {
         console.log(event)
         page.set({view: views.BOOKS, mode: modes.NEW})
     })
@@ -21,7 +21,6 @@ const listener = async () => {
 }
 
 listener()
-
 
 const openFile = async () => {
     const selected = await open({
@@ -44,6 +43,7 @@ const loadFile = async (path) => {
 function loadFileSuccess(result) {
     console.log(result)
     loadConfig()
+    emit('file-loaded', "")
     accounts.set(result)
 }
 

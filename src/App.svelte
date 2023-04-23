@@ -9,11 +9,22 @@
     import {accounts} from './accounts'
     import {config} from './config'
     import EditBooks from './EditBooks.svelte';
+    import {onDestroy, onMount} from 'svelte';
+    import {listen} from '@tauri-apps/api/event'
 
     export let curAccount = null
     let initializing = true
 
     export let transactions = []
+
+    let unlistenLoaded
+    onMount(async () => {
+        unlistenLoaded = await listen('file-loaded', (event) => curAccount = null)
+    })
+
+    onDestroy(async () => {
+        unlistenLoaded()
+    })
 
     const loadAccounts = async () => {
         curAccount = null
