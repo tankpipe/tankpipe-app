@@ -1,4 +1,5 @@
 <script>
+    import {listen} from '@tauri-apps/api/event'
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
     import {open} from '@tauri-apps/api/dialog'
@@ -8,6 +9,11 @@
 
     export let curAccount
     export let loadAccounts
+
+    const unlisten = listen('file-open', (event) => {
+        page.set({view: views.ACCOUNTS, mode: modes.LIST})
+        openFile()
+    })
 
     let ACCOUNT_TYPES = {
         Asset: "Assets",
