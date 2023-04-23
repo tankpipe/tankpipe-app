@@ -1,4 +1,3 @@
-
 import {listen, emit} from '@tauri-apps/api/event'
 import {open} from '@tauri-apps/api/dialog'
 import {page, modes, views} from './page.js'
@@ -40,14 +39,14 @@ const loadFile = async (path) => {
     await invoke('load_file', {path: path}).then(loadFileSuccess, loadFileFailure)
 };
 
-function loadFileSuccess(result) {
+const loadFileSuccess = (result) => {
     console.log(result)
     loadConfig()
     emit('file-loaded', "")
     accounts.set(result)
 }
 
-function loadFileFailure(result) {
+const loadFileFailure = (result) => {
     console.log(result)
     errors = new Errors()
     errors.addError("all", "We hit a snag: " + result)
