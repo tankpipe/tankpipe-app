@@ -40,12 +40,8 @@ fn main() {
         .menu(menu)
         .on_menu_event(|event| {
             match event.menu_item_id() {
-              "open" => {
-                match event.window().emit("file-open", Payload {}) {
-                    Ok(_) => {},
-                    Err(e) => println!("Error on file open event: {}", e),
-                }
-              }
+              "open" => emit_event(&event, "file-open"),
+              "new" => emit_event(&event, "file-new"),
               _ => {}
             }
           })
@@ -77,8 +73,16 @@ fn main() {
         .expect("error while running tauri application");
 }
 
+fn emit_event(event: &tauri::WindowMenuEvent, event_name: &str) {
+    match event.window().emit(event_name, Payload {}) {
+        Ok(_) => {},
+        Err(e) => println!("Error on {} event: {}", event_name, e),
+    }
+}
+
 fn build_menu(context: &tauri::Context<tauri::utils::assets::EmbeddedAssets>) -> Menu {
-    let open = CustomMenuItem::new("open".to_string(), "Open");
+    let open_file = CustomMenuItem::new("open".to_string(), "Open");
+    let new_file = CustomMenuItem::new("new".to_string(), "New");
     let os_menu = tauri::Menu::os_default(&context.package_info().name);
 
     let mut submenus: Vec<Submenu> = vec![];
@@ -86,7 +90,7 @@ fn build_menu(context: &tauri::Context<tauri::utils::assets::EmbeddedAssets>) ->
         match item {
             MenuEntry::Submenu(s) =>  {
                 if s.title.eq("File") {
-                    submenus.push(Submenu::new("File", Menu::new().add_item(open.clone())));
+                    submenus.push(Submenu::new("File", Menu::new().add_item(new_file.clone()).add_item(open_file.clone())));
                 } else  {
                     submenus.push(s);
                 }

@@ -10,9 +10,13 @@
     export let curAccount
     export let loadAccounts
 
-    const unlisten = listen('file-open', (event) => {
+    const unlistenOpen = listen('file-open', (event) => {
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
         openFile()
+    })
+
+    const unlistenNew = listen('file-new', (event) => {
+        page.set({view: views.BOOKS, mode: modes.NEW})
     })
 
     let ACCOUNT_TYPES = {
