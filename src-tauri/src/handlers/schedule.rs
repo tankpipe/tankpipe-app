@@ -36,7 +36,6 @@ pub fn end_date(state: tauri::State<BooksState>) -> Option<DateParam> {
 
     match mutext_guard.books.end_date() {
         Some(d) => {
-            println!("{}", d);
             Some(DateParam { date: d })
         }
         None => None,

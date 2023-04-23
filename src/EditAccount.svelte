@@ -3,7 +3,8 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { page, modes } from './page.js'
+    import {page, modes} from './page.js'
+    import {accounts} from './accounts.js'
 
     export let close
     export let curAccount
@@ -128,8 +129,8 @@
 
 
 </script>
-{#if initialize}
-<div class="message">To get started add your first account. Typically this will be your main bank account used for everyday transactions.</div>
+{#if $accounts.length < 1}
+<div class="message">Add your first account. For example, your main bank account used for everyday transactions.</div>
 {/if}
 
 <div class="form">
@@ -186,7 +187,7 @@
         float:left;
     }
 
-    .message {
+    :global(.message) {
         color: #EFEFEF;
         margin-bottom: 20px;
         text-align: left;

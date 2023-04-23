@@ -64,7 +64,6 @@ pub fn load_file(state: tauri::State<BooksState>, path: String) -> Result<Vec<Ac
     println!("load_file: {:?}", path);
     let mut mutex_guard = state.0.lock().unwrap();
     let add_result = mutex_guard.load_books(&OsString::from(path));
-    println!("{:?}", add_result);
     if add_result.is_err() {
         let the_error = add_result.unwrap_err().error;
         println!("{}", the_error);

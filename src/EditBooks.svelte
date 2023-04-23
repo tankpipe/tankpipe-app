@@ -1,8 +1,10 @@
 <script>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
-    import { page, modes, views } from "./page"
+    import {page, modes, views} from "./page"
     import {accounts} from './accounts'
+    import {context} from './context.js';
+    import {emit} from '@tauri-apps/api/event'
 
     let msg = ""
     let errors = new Errors()
@@ -18,11 +20,12 @@
     }
 
     const newFile = async (name) => {
-           await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
+        await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
     }
 
     function loadFileSuccess(result) {
         console.log(result)
+        emit('file-loaded', "")
         accounts.set(result)
     }
 
@@ -31,7 +34,6 @@
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
-
 
     const onAdd = () => {
         msg = ""
@@ -54,6 +56,9 @@
 
 </script>
 
+{#if ! context.hasBooks}
+    <div class="message">To get started give your first set of accounts a name. For example, Personal Finances.</div>
+{/if}
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Books</div>
     <div class="form-row">
@@ -72,7 +77,9 @@
             {/if}
         </div>
         <div class="widget buttons">
+            {#if context.hasBooks}
             <button on:click={onCancel}>Close</button>
+            {/if}
             <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>

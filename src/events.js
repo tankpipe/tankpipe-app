@@ -41,7 +41,6 @@ const loadFile = async (path) => {
 
 const loadFileSuccess = (result) => {
     console.log(result)
-    loadConfig()
     emit('file-loaded', "")
     accounts.set(result)
 }
@@ -52,7 +51,3 @@ const loadFileFailure = (result) => {
     errors.addError("all", "We hit a snag: " + result)
 }
 
-const loadConfig = async () => {
-    let result = await invoke('config')
-    config.set(result)
-}

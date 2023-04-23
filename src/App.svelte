@@ -8,18 +8,23 @@
     import {settings} from './settings'
     import {accounts} from './accounts'
     import {config} from './config'
+    import {context, initializeContext, updateContext} from './context'
     import EditBooks from './EditBooks.svelte';
     import {onDestroy, onMount} from 'svelte';
     import {listen} from '@tauri-apps/api/event'
 
     export let curAccount = null
     let initializing = true
+    initializeContext()
 
     export let transactions = []
 
     let unlistenLoaded
     onMount(async () => {
-        unlistenLoaded = await listen('file-loaded', (event) => curAccount = null)
+        unlistenLoaded = await listen('file-loaded', (event) => {
+            curAccount = null
+            loadConfig()
+        })
     })
 
     onDestroy(async () => {
@@ -41,9 +46,10 @@
         let result = await invoke('config')
         config.set(result)
         console.log(result)
+        updateContext({hasBooks: $config.recent_files.length > 0})
     };
 
-    const initialize = async () => {
+    (async () => {
         initializing = true
         await loadSettings()
         await loadAccounts()
@@ -52,8 +58,8 @@
             page.set({view: views.ACCOUNTS, mode: modes.LIST})
         }
         initializing = false
-    }
-    initialize()
+        updateContext({hasBooks: $config.recent_files.length > 0})
+    })()
 
 </script>
 
@@ -76,8 +82,7 @@
                         {/if}
                         {#if $accounts.length < 1 }
                         <li class="disabled">Schedules</li>
-                        {/if}
-                        {#if $accounts.length > 0 }
+                        {:else}
                         <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
                         {/if}
                         <li on:click={() => page.set({view: views.SETTINGS, mode: modes.LIST})} class:menu-selected={$page.view === views.SETTINGS}>Settings</li>

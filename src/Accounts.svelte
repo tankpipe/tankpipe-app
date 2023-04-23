@@ -7,6 +7,8 @@
     import {page, isEditMode, modes, views} from "./page"
     import {config} from './config'
     import {accounts} from './accounts'
+    import { context } from "./context";
+    import EditBooks from "./EditBooks.svelte";
 
     export let curAccount
     export let loadAccounts
@@ -110,14 +112,15 @@
 </div>
 
 
-{#if isEditMode($page)}
+{#if ! $context.hasBooks}
+<EditBooks />
+{:else if isEditMode($page)}
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
-{/if}
-{#if !isEditMode($page)}
+{:else}
 
-{#if $config.last_file}
-<div class="form-heading">{$config.last_file.name}</div>
-{/if}
+    {#if $config.last_file}
+    <div class="form-heading">{$config.last_file.name}</div>
+    {/if}
     {#if !isEditMode($page)}
     <div class="clear"><hr/></div>
     <div class="toolbar">
