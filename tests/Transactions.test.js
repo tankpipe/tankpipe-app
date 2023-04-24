@@ -6,6 +6,7 @@ import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
 import { config } from '../src/config'
 
+Element.prototype.scrollTo = () => {} 
 accounts.set(account_data)
 
 it('is displayed correctly for Regular date', async () => {
