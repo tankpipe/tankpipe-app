@@ -9,6 +9,7 @@
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
+    import { afterUpdate } from 'svelte'
 
     export let curAccount
 
@@ -16,6 +17,7 @@
     let errors = new Errors()
     let msg = ""
     let previousAccount
+    let topScroll
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -28,7 +30,24 @@
         }
     }
 
+    afterUpdate(() => {
+        if (!$page.isEditMode) {
+            scrollToPosition()
+        }
+    });
+
+    const setCurrentScroll = () => {
+        topScroll = document.getElementById("scroller").scrollTop
+    }
+
+    const scrollToPosition = () => {
+        if (!isEditMode($page)) {
+            document.getElementById("scroller").scrollTo(0, topScroll)
+        }
+    }
+
     const selectTransaction = (transaction) => {
+        setCurrentScroll()
         curTransaction = transaction
         page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
     }
@@ -81,6 +100,7 @@
     }
 
     const handleAddClick = () => {
+        setCurrentScroll()
         page.set({view: views.TRANSACTIONS, mode: modes.NEW})
     }
 
@@ -121,9 +141,8 @@
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 
-
 </script>
-
+{curTransaction}
 <div class="account-heading">
     {#if !isEditMode($page)}
     <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
@@ -147,14 +166,14 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
-<div class="scroller">
+<div class="scroller" id="scroller">
     {#if transactions.length > 0}
     <table>
         <tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
             {#if e}
-            <tr on:click={() => selectTransaction(e)}><!--{t.id}-->
+            <tr on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
