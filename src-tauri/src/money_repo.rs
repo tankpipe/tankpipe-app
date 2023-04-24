@@ -188,10 +188,7 @@ fn write_config<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<()> {
 
 pub fn initial_setup() -> Result<Config, BooksError> {
     let files = setup_app_directories()?;
-    let mut config = initialise_settings(files)?;
-    let books = Books::build_empty("My Books");
-    config.last_file = FileDetails::from_path("My Books", config.file_path("books1.json"));
-    let _ = save_books(config.last_file.path.clone(), &books);
+    let config = initialise_settings(files)?;
     match write_config(config.settings_path(), &config) {
         Ok(_) => Ok(config),
         Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),

@@ -6,8 +6,8 @@
 #![allow(dead_code)]
 
 use std::sync::Mutex;
-use tauri::{Menu, CustomMenuItem, Submenu, MenuEntry};
 use crate::handlers::{account, transaction, schedule, repo};
+use crate::menu::build_menu;
 use crate::money_repo::Repo;
 
 pub mod account_display;
@@ -15,6 +15,7 @@ pub mod config;
 pub mod money_repo;
 pub mod reader;
 mod handlers;
+mod menu;
 
 pub struct BooksState(Mutex<Repo>);
 
@@ -80,31 +81,6 @@ fn emit_event(event: &tauri::WindowMenuEvent, event_name: &str) {
     }
 }
 
-fn build_menu(context: &tauri::Context<tauri::utils::assets::EmbeddedAssets>) -> Menu {
-    let open_file = CustomMenuItem::new("open".to_string(), "Open");
-    let new_file = CustomMenuItem::new("new".to_string(), "New");
-    let os_menu = tauri::Menu::os_default(&context.package_info().name);
-
-    let mut submenus: Vec<Submenu> = vec![];
-    for item in os_menu.items {
-        match item {
-            MenuEntry::Submenu(s) =>  {
-                if s.title.eq("File") {
-                    submenus.push(Submenu::new("File", Menu::new().add_item(new_file.clone()).add_item(open_file.clone())));
-                } else  {
-                    submenus.push(s);
-                }
-            },
-            _ => (),
-        }
-    }
-    let mut menu = Menu::new();
-
-    for s in submenus {
-        menu = menu.add_submenu(s);
-    }
-    menu
-}
 
 #[cfg(test)]
 mod tests {

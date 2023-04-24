@@ -82,7 +82,6 @@ pub fn read_transations<P: AsRef<Path>>(path: P, account: &Account, fmt: &str) -
             for result in reader.deserialize() {
                 match result {
                     Ok(item) => {
-                        println!("{:?}", item);
                         transactions.push(to_transaction(&columns, item, account, fmt)?);
 
                     },
@@ -282,7 +281,6 @@ mod tests {
     fn test_reader() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
         let transactions = read_transations("test.csv", &account, "%d/%m/%Y").unwrap();
-        println!("{:?}", transactions);
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
@@ -296,7 +294,6 @@ mod tests {
     fn test_reader_dr_cr() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
         let transactions = read_transations("test_dr_cr.csv", &account, "%d/%m/%Y").unwrap();
-        println!("{:?}", transactions);
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);

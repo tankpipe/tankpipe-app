@@ -18,6 +18,9 @@
     let previousAccount
 
     $: {
+        if (!curAccount && $accounts.length > 0) {
+            curAccount = $accounts[0]
+        }
         if (curAccount && curAccount !== previousAccount) {
             transactions = []
             loadTransactions()
