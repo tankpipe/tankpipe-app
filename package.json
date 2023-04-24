@@ -14,7 +14,7 @@
     "@babel/preset-env": "^7.20.2",
     "@iconify/svelte": "^2.2.1",
     "@rollup/plugin-commonjs": "^24.1.0",
-    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-node-resolve": "^15.0.2",
     "@tauri-apps/cli": "^1.0.2",
     "@testing-library/svelte": "^3.2.2",
     "babel-jest": "^28.1.3",
