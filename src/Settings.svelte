@@ -64,22 +64,22 @@
     <div class="form-heading">Settings</div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings}/>
+            <div class="label label-column">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings}/>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label">Display date format</div><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}/>
+            <div class="label label-column">Display date format</div><div class="field"><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}/></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label">Import date format</div><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig}/>
+            <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig}/></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label">Schedule until </div><div class="date-input"><input type="date" bind:value={dateStr}/></div>
+            <div class="label label-column">Schedule until </div><div class="date-input field"><input type="date" bind:value={dateStr}/></div>
         </div>
     </div>
 </div>
@@ -107,12 +107,18 @@
     }
 
     .label {
-        font-size: .8em;
+        font-size: .9em;
         color: #aaa !important;
         margin: 0 5px 5px 0;
-        display: inline;
-        vertical-align: middle;
+        display: inline-block;
+        text-align: left;
         line-height: 36px;
+        width: 11em;
+    }
+
+    .field {
+        text-align: left;
+        display: inline-block;
     }
 
     .controls input {
