@@ -114,6 +114,13 @@
 {/if}
 
 <style>
+    .scroller{
+        height: 100%;
+        width: 100%;
+        overflow: scroll;
+        margin-top: 15px;
+    }
+
     .widget {
         display: inline-block;
         text-align: left;
