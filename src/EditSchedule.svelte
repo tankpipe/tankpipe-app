@@ -59,6 +59,7 @@
                 console.log($page.payload)
                 entries = $page.payload.entries
                 entries.forEach((e, i) => e.schedule_id = zeros)
+                name = $page.payload.entries[0].description
             }
         }
     })
