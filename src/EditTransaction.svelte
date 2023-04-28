@@ -156,6 +156,7 @@
       msg = "Transaction saved."
       if ($page.mode === modes.EDIT) {
         loadTransactions()
+        close()
       }
     }
 
