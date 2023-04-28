@@ -5,6 +5,7 @@
     import Select from './Select.svelte'
     import { page, modes } from './page.js'
     import {accounts} from './accounts'
+    import {generate} from './generate'
 
     export let close
     export let curSchedule
@@ -131,6 +132,7 @@
 
     function resolved(result) {
       msg = "Schedule added."
+      generate()
       loadSchedules()
     }
 
@@ -138,6 +140,7 @@
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
+
     const addSchedule = async (schedule) => {
         console.log(schedule)
         schedule.id = zeros
