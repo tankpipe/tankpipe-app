@@ -5,6 +5,7 @@
     import Select from './Select.svelte'
     import { page, modes } from './page.js'
     import {accounts} from './accounts'
+    import {generate} from './generate'
 
     export let close
     export let curSchedule
@@ -59,6 +60,7 @@
                 console.log($page.payload)
                 entries = $page.payload.entries
                 entries.forEach((e, i) => e.schedule_id = zeros)
+                name = $page.payload.entries[0].description
             }
         }
     })
@@ -130,6 +132,7 @@
 
     function resolved(result) {
       msg = "Schedule added."
+      generate()
       loadSchedules()
     }
 
@@ -137,6 +140,7 @@
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
+
     const addSchedule = async (schedule) => {
         console.log(schedule)
         schedule.id = zeros

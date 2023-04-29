@@ -1,6 +1,6 @@
 {
-  "name": "money",
-  "version": "1.0.0",
+  "name": "aqueducts",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "rollup -c",

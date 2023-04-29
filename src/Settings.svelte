@@ -2,6 +2,7 @@
     import {settings} from './settings.js'
     import {config} from './config.js'
     import Select from './Select.svelte';
+    import {generate, getEndDate} from './generate'
 
     let dateStr
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
@@ -12,23 +13,6 @@
         }
     }
 
-    function resolved(result) {
-      const msg = "Generation complete."
-      console.log(msg)
-    }
-
-    function rejected(result) {
-        errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
-        console.log(result)
-    }
-
-    const generate = async () => {
-        if (dateStr) {
-            console.log("generating to " + dateStr)
-            await invoke('generate', {date: {date: dateStr}}).then(resolved, rejected)
-        }
-    }
 
     const updateSettings = async () => {
         if ($settings) {
@@ -53,11 +37,10 @@
         }
     }
 
-    const getEndDate = async () => {
-        let tempDate = await invoke('end_date')
-        if (tempDate) dateStr = tempDate.date
+    const getDate = async () => {
+        dateStr = await getEndDate()
     }
-    getEndDate()
+    getDate()
 
 </script>
 <div class="controls">
