@@ -123,7 +123,7 @@ impl Repo {
 
 
 fn setup_app_directories() -> Result<AppDirectories, BooksError> {
-    let dir = ProjectDirs::from("com", "aqueducks", "");
+    let dir = ProjectDirs::from("com", "appraker", "money");
     match dir {
         Some(d) => {
             let mut directories = AppDirectories::from_project_dirs(&d);
@@ -158,7 +158,7 @@ fn build_home_dir_path() -> Result<OsString, BooksError> {
     if h.is_none() {
         return Err(BooksError{ error: "Could not determine home directory".to_string() })
     }
-    Ok(h.unwrap().join("com.aqueducks").as_os_str().to_os_string())
+    Ok(h.unwrap().join("com.appraker.money").as_os_str().to_os_string())
 }
 
 pub fn load_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
