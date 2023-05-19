@@ -1,5 +1,5 @@
 ```bash
-cd money
+cd tankpipe-app
 npm install
 npm run tauri dev
 
