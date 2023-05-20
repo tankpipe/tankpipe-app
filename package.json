@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
+    "@babel/core": "^7.21.8",
     "@babel/preset-env": "^7.21.5",
     "@iconify/svelte": "^2.2.1",
     "@rollup/plugin-commonjs": "^24.1.0",
