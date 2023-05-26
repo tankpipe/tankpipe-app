@@ -124,16 +124,6 @@
 </div>
 {/if}
 <style>
-    .clear {
-        clear:both;
-    }
-
-    hr {
-        border-color: #363636;
-        border-style: solid;
-        margin-left: -20px;
-    }
-
     .scroller{
         height: 100%;
         width: 100%;
@@ -199,10 +189,6 @@
     .toolbar-icon:hover{
         color: #F0F0F0;
         cursor: pointer;
-    }
-
-    .import-icon {
-        margin-top: 1px
     }
 
 </style>
