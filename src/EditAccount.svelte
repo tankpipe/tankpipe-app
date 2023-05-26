@@ -5,6 +5,7 @@
     import Icon from '@iconify/svelte'
     import {page, modes} from './page.js'
     import {accounts} from './accounts.js'
+    import {config} from './config.js'
 
     export let close
     export let curAccount
@@ -129,7 +130,7 @@
 
 
 </script>
-{#if $accounts.length < 1}
+{#if $accounts.length < 1 && $config.recent_files.length < 2}
 <div class="message">Add your first account. For example, your main bank account used for everyday transactions.</div>
 {/if}
 
