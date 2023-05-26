@@ -8,7 +8,7 @@
     import {settings} from './settings'
     import {accounts} from './accounts'
     import {config} from './config'
-    import {context, initializeContext, updateContext} from './context'
+    import {initializeContext, updateContext} from './context'
     import EditBooks from './EditBooks.svelte';
     import {onDestroy, onMount} from 'svelte';
     import {listen} from '@tauri-apps/api/event'
@@ -46,19 +46,24 @@
         let result = await invoke('config')
         config.set(result)
         console.log(result)
-        updateContext({hasBooks: $config.recent_files.length > 0})
+        resetMenu()
     };
+
+    const resetMenu = () => {
+        updateContext({hasBooks: $config.recent_files.length > 0})
+        if ($accounts.length < 1) {
+            page.set({view: views.ACCOUNTS, mode: modes.NEW})
+        }
+    }
 
     (async () => {
         initializing = true
         await loadSettings()
         await loadAccounts()
         await loadConfig()
-        if ($accounts.length < 1) {
-            page.set({view: views.ACCOUNTS, mode: modes.LIST})
-        }
+        resetMenu()
         initializing = false
-        updateContext({hasBooks: $config.recent_files.length > 0})
+
     })()
 
 </script>
@@ -73,17 +78,13 @@
             <div class="column left">
                 <div class="menu-left">
                     <ul>
-                        {#if $accounts.length < 1 }
-                        <li class="disabled">Transactions</li>
-                        {/if}
                         <li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>Accounts</li>
                         {#if $accounts.length > 0 }
                         <li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>Transactions</li>
-                        {/if}
-                        {#if $accounts.length < 1 }
-                        <li class="disabled">Schedules</li>
-                        {:else}
                         <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
+                        {:else}
+                        <li class="disabled">Transactions</li>
+                        <li class="disabled">Schedules</li>
                         {/if}
                         <li on:click={() => page.set({view: views.SETTINGS, mode: modes.LIST})} class:menu-selected={$page.view === views.SETTINGS}>Settings</li>
                     </ul>

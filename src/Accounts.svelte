@@ -100,33 +100,19 @@
 
 </script>
 
-<div class="account-heading">
-    {#if !isEditMode($page)}
-    <div class="toolbar">
-        <div class="toolbar-icon import-icon" on:click={openFile} title="Open file"><Icon icon="mdi:folder-open" width="22"/></div>
-        <div class="toolbar-icon import-icon" on:click={newFile} title="New file"><Icon icon="mdi:folder-plus" width="22"/></div>
-    </div>
-    {/if}
-</div>
-
-
 {#if ! $context.hasBooks}
 <EditBooks />
 {:else if isEditMode($page)}
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
 {:else}
 
-    {#if $config.last_file}
-    <div class="form-heading">{$config.last_file.name}</div>
-    {/if}
     {#if !isEditMode($page)}
-    <div class="clear"><hr/></div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
     {/if}
-<div class="form-heading">Accounts</div>
-<div class="scroller">
+    <div class="form-heading">Accounts</div>
+    <div class="scroller">
     <div class="accounts">
     {#each $accounts as a}
     {#if checkAccountType(a)}
