@@ -1,9 +1,9 @@
 [package]
 name = "app"
-version = "0.1.0"
+version = "0.1.0-alpha"
 description = "Cashflow Manager"
-authors = ["you"]
-license = ""
+authors = ["tankpipe.com"]
+license = "MIT"
 repository = ""
 default-run = "app"
 edition = "2021"

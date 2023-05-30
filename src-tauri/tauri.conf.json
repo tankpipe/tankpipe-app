@@ -8,8 +8,8 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "Tankpipe",
-    "version": "0.1.0"
+    "productName": "tankpipe",
+    "version": "0.1.0-alpha"
   },
   "tauri": {
     "allowlist": {
