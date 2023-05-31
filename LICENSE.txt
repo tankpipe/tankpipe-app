@@ -1,26 +1,3 @@
-# Tankpipe
-
-This is the source code repository for the Tankpipe Cashflow Manager.
-
-Visit [tankpipe.com](https://tankpipe.com) to learn more about his app.
-
-# Build
-
-Built on the [Tauri](https://tauri.app/) app toolkit.
-
-```bash
-
-cd tankpipe-app
-npm install
-npm run tauri dev
-
-npm test
-```
-<em>Note: currently there is a local dependency on [accounts](https://github.com/tankpipe/accounts "accounts git repo") which is assumed to be under the same parent directory.</em>
-
-
-# License
-
 MIT License
 
 Copyright (c) 2023 tankpipe.com
