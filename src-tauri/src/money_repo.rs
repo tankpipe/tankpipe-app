@@ -8,6 +8,7 @@ use accounts::book_repo::{load_books, save_books, new_books};
 use directories::ProjectDirs;
 use regex::Regex;
 use tauri::api::path::home_dir;
+use uuid::Uuid;
 
 use crate::config::{Config, FileDetails, DateFormat};
 
@@ -35,6 +36,7 @@ impl AppDirectories {
 
     pub fn to_config(&self) -> Config {
         Config{
+            id: Uuid::new_v4(),
             version: VERSION.to_string(),
             data_dir: self.data_dir.clone(),
             config_dir: self.config_dir.clone(),
