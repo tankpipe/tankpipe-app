@@ -11,6 +11,8 @@ use tauri::api::path::home_dir;
 
 use crate::config::{Config, FileDetails, DateFormat};
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Manage storage
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -33,6 +35,7 @@ impl AppDirectories {
 
     pub fn to_config(&self) -> Config {
         Config{
+            version: VERSION.to_string(),
             data_dir: self.data_dir.clone(),
             config_dir: self.config_dir.clone(),
             last_file: FileDetails::empty(),

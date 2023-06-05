@@ -33,6 +33,7 @@ pub enum DateFormat {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub struct Config {
+    pub version: String,
     #[serde(serialize_with = "serialize_osstring")]
     #[serde(deserialize_with = "deserialize_osstring")]
     pub data_dir: OsString,
