@@ -1,5 +1,6 @@
 use std::{ffi::{OsString, OsStr}, path::PathBuf};
 use serde::{Deserializer, Serializer, Serialize, Deserialize};
+use uuid::Uuid;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub struct FileDetails {
@@ -33,6 +34,8 @@ pub enum DateFormat {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub struct Config {
+    pub id: Uuid,
+    pub version: String,
     #[serde(serialize_with = "serialize_osstring")]
     #[serde(deserialize_with = "deserialize_osstring")]
     pub data_dir: OsString,
