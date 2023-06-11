@@ -16,7 +16,6 @@ const listener = async () => {
         console.log(event)
         page.set({view: views.BOOKS, mode: modes.NEW})
     })
-
 }
 
 listener()

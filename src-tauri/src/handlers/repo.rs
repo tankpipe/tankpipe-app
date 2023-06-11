@@ -2,6 +2,7 @@ use accounts::books::Settings;
 use accounts::account::Account;
 use std::ffi::OsString;
 use crate::BooksState;
+use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::error_handler;
@@ -28,6 +29,11 @@ pub fn config(state: tauri::State<BooksState>) -> Config {
     println!("Fetching config");
     let mutex_guard = state.0.lock().unwrap();
     mutex_guard.config.clone()
+}
+
+#[tauri::command]
+pub fn about() -> About {
+    About::new()
 }
 
 #[tauri::command]

@@ -9,11 +9,14 @@
     import {accounts} from './accounts'
     import {config} from './config'
     import {initializeContext, updateContext} from './context'
-    import EditBooks from './EditBooks.svelte';
-    import {onDestroy, onMount} from 'svelte';
+    import EditBooks from './EditBooks.svelte'
+    import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
+    import Dialog from './Dialog.svelte'
+    import About from './About.svelte';
 
     export let curAccount = null
+    let dialog
     let initializing = true
     initializeContext()
 
@@ -33,7 +36,7 @@
 
     const loadAccounts = async () => {
         curAccount = null
-        let result = await invoke('accounts');
+        let result = await invoke('accounts')
         accounts.set(result)
     };
 
@@ -65,6 +68,17 @@
         initializing = false
 
     })()
+
+    const listener = async () => {
+
+        listen('about', (event) => {
+            console.log(event)
+            dialog.showModal()
+        })
+
+    }
+
+    listener()
 
 </script>
 
@@ -108,7 +122,13 @@
                     {#if $page.view === views.BOOKS}
                     <EditBooks />
                     {/if}
+                    {#if $page.view === views.ABOUT}
+                    <About />
+                    {/if}
             </div>
+            <Dialog bind:dialog on:close={() => console.log('closed')} heading="About">
+                <About />
+            </Dialog>
         {/if}
     </div>
 </main>
