@@ -1,5 +1,4 @@
-const generate = async () => {
-    let dateStr = await getEndDate()
+const generate = async (dateStr) => {
     if (dateStr) {
         console.log("generating to " + dateStr)
         await invoke('generate', {date: {date: dateStr}}).then(resolved, rejected)

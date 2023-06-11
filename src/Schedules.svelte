@@ -3,8 +3,16 @@
     import Icon from '@iconify/svelte'
     import { page, isEditMode, views, modes } from './page'
     import {accounts} from './accounts'
+    import {generate, getEndDate} from './generate'
 
     let curSchedule
+    let dateStr
+
+    const updateSchedule = async () => {
+        console.log("onChange")
+        await generate(dateStr)
+        loadSchedules()
+    }
 
     const close = () => {
         console.log("close")
@@ -24,7 +32,7 @@
     let schedules = []
     const loadSchedules = async () => {
         console.log("loadSchedules")
-           schedules = await invoke('schedules')
+        schedules = await invoke('schedules')
         checkForLoadMode()
     }
 
@@ -64,6 +72,11 @@
         page.set({view: views.SCHEDULES, mode: modes.NEW})
     }
 
+    const getDate = async () => {
+        dateStr = await getEndDate()
+    }
+    getDate()
+
 </script>
 
 <div class="account-heading">
@@ -71,6 +84,13 @@
     <div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title="Create a new schedule"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
     <div class="form-heading">Schedules</div>
     {/if}
+</div>
+<div class="controls">
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">Schedule until </div><div class="date-input field"><input type="date" bind:value={dateStr} on:change={updateSchedule}/></div>
+        </div>
+    </div>
 </div>
 {#if isEditMode($page)}
 <EditSchedule {close} {curSchedule} {loadSchedules}/>
@@ -202,5 +222,44 @@
         color: #F0F0F0;
         cursor: pointer;
     }
+
+    .controls {
+        text-align: center;
+    }
+
+    .form-row2 {
+        display: block;
+        float: left;
+        clear: both;
+        margin-top: -10px;
+    }
+
+    .date-input {
+        float: right;
+    }
+
+    .date-input input {
+        border: none;
+    }
+
+    .label {
+        font-size: .9em;
+        color: #aaa !important;
+        margin: 0 5px 5px 0;
+        display: inline-block;
+        text-align: left;
+        line-height: 36px;
+        padding-right: .5em;
+    }
+
+    .field {
+        text-align: left;
+        display: inline-block;
+    }
+
+    .controls input {
+        background-color: #aaa;
+    }
+
 
 </style>
