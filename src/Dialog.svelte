@@ -1,7 +1,6 @@
 <script>
     import Icon from '@iconify/svelte'
     export let dialog
-    export let heading
 
     const close = () => {
         dialog.close()
@@ -21,12 +20,8 @@
         border-radius: 10px;
     }
 
-    .dialog-body {
-        padding-top: 50px;
-    }
-
     dialog::backdrop {
-        background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.3);
     }
 
 </style>
