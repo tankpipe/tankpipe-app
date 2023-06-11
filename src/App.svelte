@@ -12,8 +12,11 @@
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
-    import About from './About.svelte'
+    import Dialog from './Dialog.svelte'
+    import About from './About.svelte';
+
     export let curAccount = null
+    let dialog
     let initializing = true
     initializeContext()
 
@@ -66,6 +69,17 @@
 
     })()
 
+    const listener = async () => {
+
+        listen('about', (event) => {
+            console.log(event)
+            dialog.showModal()
+        })
+
+    }
+
+    listener()
+
 </script>
 
 <main>
@@ -112,6 +126,9 @@
                     <About />
                     {/if}
             </div>
+            <Dialog bind:dialog on:close={() => console.log('closed')} heading="About">
+                <About />
+            </Dialog>
         {/if}
     </div>
 </main>
