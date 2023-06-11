@@ -45,6 +45,7 @@ fn main() {
               "open" => emit_event(&event, "file-open"),
               "new" => emit_event(&event, "file-new"),
               "about" => emit_event(&event, "about"),
+              "preferences" => emit_event(&event, "preferences"),
               _ => {}
             }
           })

@@ -4,6 +4,7 @@ pub fn build_menu(context: &tauri::Context<tauri::utils::assets::EmbeddedAssets>
     let open_file = CustomMenuItem::new("open".to_string(), "Open");
     let new_file = CustomMenuItem::new("new".to_string(), "New");
     let about = CustomMenuItem::new("about".to_string(), "About Tankpipe");
+    let preferences = CustomMenuItem::new("preferences".to_string(), "preferences");
     let os_menu = tauri::Menu::os_default(&context.package_info().name);
 
     let mut submenus: Vec<Submenu> = vec![];
@@ -11,9 +12,16 @@ pub fn build_menu(context: &tauri::Context<tauri::utils::assets::EmbeddedAssets>
         match item {
             MenuEntry::Submenu(s) =>  {
                 if s.title.eq("File") {
-                    submenus.push(Submenu::new("File", Menu::new().add_item(new_file.clone()).add_item(open_file.clone())));
+                    submenus.push(Submenu::new("File", Menu::new()
+                        .add_item(new_file.clone())
+                        .add_item(open_file.clone())));
                 } else if s.title.eq("Tankpipe") {
-                    submenus.push(Submenu::new("Tankpipe", Menu::new().add_item(about.clone()).add_native_item(MenuItem::Separator).add_native_item(MenuItem::Quit)));
+                    submenus.push(Submenu::new("Tankpipe", Menu::new()
+                        .add_item(about.clone())
+                        .add_native_item(MenuItem::Separator)
+                        .add_item(preferences.clone())
+                        .add_native_item(MenuItem::Separator)
+                        .add_native_item(MenuItem::Quit)));
                 } else  {
                     submenus.push(s);
                 }
