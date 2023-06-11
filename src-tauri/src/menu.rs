@@ -4,7 +4,7 @@ pub fn build_menu(context: &tauri::Context<tauri::utils::assets::EmbeddedAssets>
     let open_file = CustomMenuItem::new("open".to_string(), "Open");
     let new_file = CustomMenuItem::new("new".to_string(), "New");
     let about = CustomMenuItem::new("about".to_string(), "About Tankpipe");
-    let preferences = CustomMenuItem::new("preferences".to_string(), "preferences");
+    let preferences = CustomMenuItem::new("preferences".to_string(), "Preferences");
     let os_menu = tauri::Menu::os_default(&context.package_info().name);
 
     let mut submenus: Vec<Submenu> = vec![];
