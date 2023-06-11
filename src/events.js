@@ -17,6 +17,11 @@ const listener = async () => {
         page.set({view: views.BOOKS, mode: modes.NEW})
     })
 
+    listen('about', (event) => {
+        console.log(event)
+        page.set({view: views.ABOUT, mode: modes.NEW})
+    })
+
 }
 
 listener()

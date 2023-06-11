@@ -12,6 +12,7 @@ use crate::money_repo::Repo;
 
 pub mod account_display;
 pub mod config;
+pub mod about;
 pub mod money_repo;
 pub mod reader;
 mod handlers;
@@ -43,6 +44,7 @@ fn main() {
             match event.menu_item_id() {
               "open" => emit_event(&event, "file-open"),
               "new" => emit_event(&event, "file-new"),
+              "about" => emit_event(&event, "about"),
               _ => {}
             }
           })
@@ -65,6 +67,7 @@ fn main() {
             repo::update_settings,
             repo::settings,
             repo::config,
+            repo::about,
             repo::update_config,
             repo::load_csv,
             repo::load_file,
