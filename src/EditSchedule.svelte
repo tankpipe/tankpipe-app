@@ -130,9 +130,9 @@
 
     }
 
-    function resolved(result) {
+    const resolved = async (result) => {
       msg = "Schedule added."
-      generate()
+      await generate()
       loadSchedules()
     }
 

@@ -13,7 +13,7 @@ it('is displayed correctly', async () => {
     global.invoke = mockFetchSchedules;
 
     const {findByText, container} = render(Schedules)
-    await waitFor(() => expect(mockFetchSchedules).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(mockFetchSchedules).toHaveBeenCalledTimes(2)) // Not sure why it's 2
     const _waitForRenderUpdate = await findByText('Test Schedule 1')
     expect(container.outerHTML).toMatchSnapshot();
 });

@@ -8,8 +8,12 @@
     let curSchedule
     let dateStr
 
+    $: {
+        loadSchedules()
+    }
+
     const updateSchedule = async () => {
-        console.log("onChange")
+        console.log("updateSchedule")
         await generate(dateStr)
         loadSchedules()
     }
@@ -17,10 +21,6 @@
     const close = () => {
         console.log("close")
         page.set({view: views.SCHEDULES, mode: modes.LIST})
-        loadSchedules()
-    }
-
-    $: {
         loadSchedules()
     }
 
