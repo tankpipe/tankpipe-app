@@ -237,7 +237,7 @@
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Schedule</div>
     <div class="form-row">
-        <div class="widget">
+        <div class="top-widget">
             <label for="desc">Name</label>
             <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
@@ -386,6 +386,15 @@
 
     .widget2 input {
         margin: 0px;
+    }
+
+    .top-widget {
+        display: inline-block;
+        padding: 5px 0px 5px 0px;
+    }
+
+    td .heading {
+        margin-bottom: -1px;
     }
 
     .money-input {
