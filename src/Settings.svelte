@@ -2,17 +2,8 @@
     import {settings} from './settings.js'
     import {config} from './config.js'
     import Select from './Select.svelte';
-    import {generate, getEndDate} from './generate'
 
-    let dateStr
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
-
-    $: {
-        if (dateStr) {
-            generate()
-        }
-    }
-
 
     const updateSettings = async () => {
         if ($settings) {
@@ -37,10 +28,6 @@
         }
     }
 
-    const getDate = async () => {
-        dateStr = await getEndDate()
-    }
-    getDate()
 
 </script>
 <div class="controls">
@@ -58,11 +45,6 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig}/></div>
-        </div>
-    </div>
-    <div class="form-row2">
-        <div class="widget">
-            <div class="label label-column">Schedule until </div><div class="date-input field"><input type="date" bind:value={dateStr}/></div>
         </div>
     </div>
 </div>

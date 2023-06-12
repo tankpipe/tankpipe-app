@@ -100,7 +100,6 @@
                         <li class="disabled">Transactions</li>
                         <li class="disabled">Schedules</li>
                         {/if}
-                        <li on:click={() => page.set({view: views.SETTINGS, mode: modes.LIST})} class:menu-selected={$page.view === views.SETTINGS}>Settings</li>
                     </ul>
                 </div>
 
@@ -126,7 +125,7 @@
                     <About />
                     {/if}
             </div>
-            <Dialog bind:dialog on:close={() => console.log('closed')} heading="About">
+            <Dialog bind:dialog on:close={() => console.log('closed')}>
                 <About />
             </Dialog>
         {/if}

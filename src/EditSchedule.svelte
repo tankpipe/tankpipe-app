@@ -3,15 +3,17 @@
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
-    import { page, modes } from './page.js'
+    import {page, modes} from './page.js'
     import {accounts} from './accounts'
     import {generate} from './generate'
+    import {settings} from './settings.js'
 
     export let close
     export let curSchedule
     export let loadSchedules
 
     const zeros = '00000000-0000-0000-0000-000000000000'
+    const minEntries = $settings.require_double_entry ? 2 : 1
     let hasEnd = false
     let msg = ""
     let errors = new Errors()
@@ -20,7 +22,6 @@
     let max = new Date(), min = new Date()
     max.setFullYear(date.getFullYear() + 20)
     min.setFullYear(date.getFullYear() - 10)
-    console.log(max)
     let format="yyyy-MM-dd"
     let addButtonLabel = "Add"
     let period = {value:"Months", name:"Months"}
@@ -61,6 +62,10 @@
                 entries = $page.payload.entries
                 entries.forEach((e, i) => e.schedule_id = zeros)
                 name = $page.payload.entries[0].description
+            } else {
+                for (var i = 0; i < minEntries; i++) {
+                    addEntry()
+                }
             }
         }
     })
@@ -130,9 +135,9 @@
 
     }
 
-    function resolved(result) {
+    const resolved = async (result) => {
       msg = "Schedule added."
-      generate()
+      await generate()
       loadSchedules()
     }
 
@@ -152,20 +157,20 @@
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
-    const handleAddClick = () => {
+    const addEntry = () => {
         entries = [...entries, {
             id: zeros,
             schedule_id: zeros,
-            description: "",
-            amount: 0,
-            drAmount: '',
-            crAmount: '',
+            description: (entries.length > 0) ? entries[0].description : "",
+            amount: (entries.length == 1) ? entries[0].amount : 0,
+            drAmount: (entries.length == 1 && entries[0].entry_type == "Credit") ? entries[0].crAmount : '',
+            crAmount: (entries.length == 1 && entries[0].entry_type == "Debit") ? entries[0].drAmount : '',
             account: {},
-            entry_type: "Debit"}]
+            entry_type: (entries.length == 1 && entries[0].entry_type == "Debit") ? "Credit" : "Debit"}]
     }
 
     const handleRemoveClick = () => {
-        if (entries.length > 2) {
+        if (entries.length > minEntries) {
             entries = [...entries.slice(0, entries.length - 1)]
         }
     }
@@ -190,9 +195,7 @@
         }
 
         if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            if (settings.require_double_entry || compoundMode) {
-                errors.addError(index + "_account", "Account is required")
-            }
+            errors.addError(index + "_account", "Account is required")
         }
 
         if (drTotal != crTotal) {
@@ -234,7 +237,7 @@
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Schedule</div>
     <div class="form-row">
-        <div class="widget">
+        <div class="top-widget">
             <label for="desc">Name</label>
             <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
@@ -259,7 +262,12 @@
             </tr>
             {/each}
             <tr>
-                <td><div class="toolbar entry-buttons"><i class="gg-add-r" on:click={handleAddClick}></i><i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= 2}></i></div></td>
+                <td>
+                    <div class="toolbar entry-buttons">
+                        <i class="gg-add-r" on:click={addEntry}></i>
+                        <i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
+                    </div>
+                </td>
                 <td><div class="total">Totals</div></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
@@ -380,6 +388,15 @@
         margin: 0px;
     }
 
+    .top-widget {
+        display: inline-block;
+        padding: 5px 0px 5px 0px;
+    }
+
+    td .heading {
+        margin-bottom: -1px;
+    }
+
     .money-input {
         width: 100px;
     }
@@ -427,7 +444,7 @@
     }
 
     .toolbar {
-        color: #7b7b7b;
+        color: #C0C0C0;
         display: flex;
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
@@ -441,13 +458,24 @@
     }
 
     .toolbar i:hover{
-        color: #666;
-        border-color: #666;
+        color: #F0F0F0;
+        border-color: #F0F0F0;
         cursor: pointer;
     }
 
     .toolbar i {
         margin-right: 5px;
+    }
+
+    .greyed {
+        color: #666;
+        border-color: #666;
+    }
+
+    .greyed:hover {
+        color: #666 !important;
+        border-color: #666 !important;
+        cursor: default !important;
     }
 
     .gg-add-r {
