@@ -85,6 +85,10 @@
     <div class="form-heading">Schedules</div>
     {/if}
 </div>
+{#if isEditMode($page)}
+<EditSchedule {close} {curSchedule} {loadSchedules}/>
+{/if}
+{#if !isEditMode($page)}
 <div class="controls">
     <div class="form-row2">
         <div class="widget">
@@ -92,10 +96,6 @@
         </div>
     </div>
 </div>
-{#if isEditMode($page)}
-<EditSchedule {close} {curSchedule} {loadSchedules}/>
-{/if}
-{#if !isEditMode($page)}
 <div class="scroller">
     {#if schedules.length < 1}
     <div class="message">No schedules</div>
