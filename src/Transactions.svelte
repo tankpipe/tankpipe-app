@@ -24,6 +24,7 @@
             curAccount = $accounts[0]
         }
         if (curAccount && curAccount !== previousAccount) {
+            topScroll = null
             transactions = []
             loadTransactions()
             previousAccount = curAccount
@@ -32,6 +33,12 @@
 
     afterUpdate(() => {
         if (!$page.isEditMode) {
+            if (!topScroll) {
+                const closest = findClosestTransaction()
+                if (closest) {
+                    topScroll = getScrollPosition(closest.id)
+                }
+            }
             scrollToPosition()
         }
     });
@@ -46,6 +53,14 @@
         }
     }
 
+    const getScrollPosition = (id) => {
+        var myElement = document.getElementById(id);
+        if (myElement) {
+            return myElement.offsetTop;
+        }
+        return 0
+    }
+
     const selectTransaction = (transaction) => {
         setCurrentScroll()
         curTransaction = transaction
@@ -57,6 +72,22 @@
         console.log("loadTransactions: " + curAccount.id)
         transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
+    }
+
+    const findClosestTransaction = () => {
+        const today = new Date().setUTCHours(0,0,0,0)
+        let tDate
+
+        if (transactions) {
+            for (const t of transactions) {
+                tDate = new Date(t.entries[0].date)
+                if (tDate >= today) {
+                    return t
+                }
+            }
+        }
+
+        return null
     }
 
     const formatter = new Intl.NumberFormat('en-AU', {
