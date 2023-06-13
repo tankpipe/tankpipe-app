@@ -6,9 +6,7 @@
         loadAbout()
     }
     export const loadAbout = async () => {
-        console.log("loadAbout ")
         about = await invoke('about')
-        console.log(about)
     }
 
 </script>
