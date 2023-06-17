@@ -3,6 +3,7 @@ import {open} from '@tauri-apps/api/dialog'
 import {page, modes, views} from './page.js'
 import {accounts} from './accounts'
 import {config} from './config'
+import { get } from 'svelte/store'
 
 
 const listener = async () => {
@@ -30,7 +31,7 @@ const openFile = async () => {
         directory: false,
         multiple: false,
         filters: [{name: '*', extensions: ['json']}],
-        defaultPath: config.data_dir,
+        defaultPath: get(config).data_dir,
     });
 
     if(selected) {

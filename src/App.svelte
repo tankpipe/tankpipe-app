@@ -3,11 +3,13 @@
     import Schedules from './Schedules.svelte'
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
+    import { afterUpdate } from 'svelte'
     import {page, modes, views} from './page.js'
     import './events'
     import {settings} from './settings'
     import {accounts} from './accounts'
     import {config} from './config'
+    import {context} from './context'
     import {initializeContext, updateContext} from './context'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
@@ -80,6 +82,16 @@
 
     listener()
 
+    let dialogShown = false
+    let closeIcon = true
+    afterUpdate(() => {
+        if ( ! $context.hasBooks && dialog && ! dialogShown) {
+            closeIcon = false
+            dialog.showModal()
+            dialogShown = true
+        }
+    })
+
 </script>
 
 <main>
@@ -125,7 +137,7 @@
                     <About />
                     {/if}
             </div>
-            <Dialog bind:dialog on:close={() => console.log('closed')}>
+            <Dialog bind:dialog on:close={() => console.log('closed')} closeButton={true} {closeIcon}>
                 <About />
             </Dialog>
         {/if}
