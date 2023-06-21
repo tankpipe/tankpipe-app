@@ -30,6 +30,14 @@
     </div>
     <hr/>
     {/if}
+
+    <div class="panel-title">Privacy policy</div>
+    <div class="license">
+            <div class="description">
+                <p>Our Privacy Policy is available at <a target="_blank" href="https://tankpipe.com/app/privacy">tankpipe.com/app/privacy</a>.</p>
+            </div>
+    </div>
+    <hr/>
     <div class="panel-title">Tankpipe is available under the MIT License</div>
         <div class="license">
             <h2>The MIT License (MIT)</h2>
@@ -55,6 +63,9 @@
             THE SOFTWARE.</p>
 
         </div>
+
+
+
     </div>
 </div>
 <style>
@@ -125,6 +136,13 @@
     }
     .license h2 {
         color: #F0F0F0;
+    }
+
+    a {
+        color: #C0C0C0;
+        font-family: Inconsolata,"DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;
+        font-size: .9em;
+        line-height: 1.2em;
     }
 
 </style>
