@@ -6,9 +6,12 @@
 #![allow(dead_code)]
 
 use std::sync::Mutex;
+use crate::account_display::Analytics;
 use crate::handlers::{account, transaction, schedule, repo};
 use crate::menu::build_menu;
 use crate::money_repo::Repo;
+use tauri_plugin_aptabase::EventTracker;
+use data_encoding::BASE64;
 
 pub mod account_display;
 pub mod config;
@@ -18,6 +21,7 @@ pub mod reader;
 mod handlers;
 mod menu;
 
+const ANALYTICS: &str = "QS1FVS0xMzc4MTM4OTE0";
 pub struct BooksState(Mutex<Repo>);
 
 #[derive(Clone, serde::Serialize)]
@@ -28,14 +32,26 @@ fn main() {
     use tauri::Manager;
     let context = tauri::generate_context!();
     let menu = build_menu(&context);
+    let input: Vec<u8> = ANALYTICS.into();
+    let binding = BASE64.decode(&input).unwrap();
+    let s = String::from_utf8_lossy(&binding);
+    #[cfg(not(debug_assertions))]
+    let analytics = Analytics::from_repo(&repo);
 
     tauri::Builder::default()
-        .setup(|app| {
-            #[cfg(debug_assertions)] // only include this code on debug builds
+        .plugin(tauri_plugin_aptabase::Builder::new(&s).build())
+        .setup(move |app| {
+            #[cfg(debug_assertions)]
             {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
             }
+
+            #[cfg(not(debug_assertions))]
+            {
+                app.track_event("app_started", Some(::serde_json::json!(analytics.clone())));
+            }
+
             Ok(())
         })
         .manage(BooksState(Mutex::from(repo)))
