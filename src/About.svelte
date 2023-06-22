@@ -29,6 +29,13 @@
         </div>
     </div>
     <hr/>
+    <div class="panel-title">Got questions?</div>
+    <div class="license">
+            <div class="description">
+                <a target="_blank" href="{about.contact}">Join our Discord</a>
+            </div>
+    </div>
+    <hr/>
     {/if}
 
     <div class="panel-title">Privacy policy</div>
