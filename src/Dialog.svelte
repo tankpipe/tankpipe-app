@@ -17,7 +17,7 @@
     <slot/>
     {#if closeButton}
     <div class="widget buttons">
-        <button on:click={close}>Ok</button>
+        <button on:click={close} autofocus>Ok</button>
     </div>
     {/if}
 </dialog>
