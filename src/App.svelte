@@ -60,14 +60,19 @@
             page.set({view: views.ACCOUNTS, mode: modes.NEW})
         }
     }
+    let supportedVersion = false;
 
     (async () => {
-        initializing = true
-        await loadSettings()
-        await loadAccounts()
-        await loadConfig()
-        resetMenu()
-        initializing = false
+        supportedVersion = (typeof HTMLDialogElement === 'function')
+
+        if (supportedVersion) {
+            initializing = true
+            await loadSettings()
+            await loadAccounts()
+            await loadConfig()
+            resetMenu()
+            initializing = false
+        }
 
     })()
 
@@ -96,11 +101,16 @@
 
 <main>
     <div class="app">
-        {#if initializing}
+        {#if !supportedVersion}
+        <div class="column middle">
+            <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
+            <div class="loading">User Agent: {window.navigator.userAgent}</div>
+        </div>
+        {:else if initializing}
             <div class="loading">Loading...</div>
         {/if}
 
-        {#if !initializing}
+        {#if !initializing && supportedVersion}
             <div class="column left">
                 <div class="menu-left">
                     <ul>
@@ -148,6 +158,7 @@
     .loading {
         margin: 50px 50px;
         color: #C0C0C0;
+        text-align: left;
     }
 
     .column {
