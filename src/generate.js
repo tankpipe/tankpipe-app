@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/tauri"
+
 const generate = async (dateStr) => {
     if (dateStr) {
         console.log("generating to " + dateStr)

@@ -10,6 +10,7 @@
     import { config } from './config.js'
     import { accounts } from './accounts'
     import { afterUpdate } from 'svelte'
+    import { invoke } from "@tauri-apps/api/tauri"
 
     export let curAccount
 
