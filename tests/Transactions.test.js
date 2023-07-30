@@ -1,12 +1,14 @@
-import { render, waitFor } from '@testing-library/svelte'
+import { render } from '@testing-library/svelte'
 import Transactions from '../src/Transactions.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
 import { config } from '../src/config'
+import { vi } from 'vitest'
+import { mockIPC } from "@tauri-apps/api/mocks"
 
-Element.prototype.scrollTo = () => {} 
+Element.prototype.scrollTo = () => {}
 accounts.set(account_data)
 
 it('is displayed correctly for Regular date', async () => {
@@ -28,9 +30,8 @@ it('is displayed correctly for ISO date', async () => {
 });
 
 async function checkResults(mockFetchTransactions) {
-    const { findByTitle, container } = render(Transactions, { curAccount: account_data[0] })
-    await waitFor(() => expect(mockFetchTransactions).toHaveBeenCalledTimes(1))
-    const _waitForRenderUpdate = await findByTitle('Add a transaction')
+    const { findByText, container } = render(Transactions, { curAccount: account_data[0] })
+    const _waitForRenderUpdate = await findByText('Description')
 
     // Note: Select should show Account 1 as selected but defaults to Account 3
     expect(container.outerHTML).toMatchSnapshot()
@@ -39,8 +40,6 @@ async function checkResults(mockFetchTransactions) {
 function loadTransactions() {
     page.set({ view: views.TRANSACTIONS, mode: modes.LIST })
     let transactions = [transaction_data[0], transaction_data[1]]
-    const mockFetchTransactions = jest.fn(() => Promise.resolve(transactions))
-    global.invoke = mockFetchTransactions
-    return mockFetchTransactions
+    mockIPC((cmd, args) => { return transactions });
 }
 

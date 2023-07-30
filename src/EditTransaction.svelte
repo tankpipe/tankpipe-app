@@ -7,7 +7,8 @@
     import {page, modes, views} from './page.js'
     import {settings} from './settings.js'
     import {accounts} from './accounts'
-    import {config, dateFormat} from './config.js';
+    import {config, dateFormat} from './config.js'
+    import { invoke } from "@tauri-apps/api/tauri"
 
     export let loadTransactions
     export let curTransaction
