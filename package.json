@@ -12,7 +12,7 @@
   "devDependencies": {
     "@babel/core": "^7.22.9",
     "@babel/preset-env": "^7.22.9",
-    "@iconify/svelte": "^2.2.1",
+    "@iconify/svelte": "^3.1.4",
     "@rollup/plugin-commonjs": "^25.0.3",
     "@rollup/plugin-node-resolve": "^15.1.0",
     "@sveltejs/adapter-auto": "^2.0.0",
