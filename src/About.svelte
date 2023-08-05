@@ -30,7 +30,7 @@
     </div>
     <hr/>
     <div class="panel-title">Got questions?</div>
-    <div class="license">
+    <div class="about">
             <div class="description">
                 <a target="_blank" href="{about.contact}">Join our Discord</a>
             </div>
@@ -39,7 +39,7 @@
     {/if}
 
     <div class="panel-title">Privacy policy</div>
-    <div class="license">
+    <div class="about">
             <div class="description">
                 <p>Our Privacy Policy is available at <a target="_blank" href="https://tankpipe.com/app/privacy">tankpipe.com/app/privacy</a>.</p>
             </div>
@@ -70,9 +70,16 @@
             THE SOFTWARE.</p>
 
         </div>
-
-
-
+        <hr/>
+        <div class="panel-title">Advice disclaimer</div>
+        <div class="about">
+                <div class="description">
+                    <p>Material, content, and functionality available on the Tankpipe app <span class="highlight">does not represent financial, tax, or legal advice</span>.
+                        As per the license, the Tankpipe App is provided "AS IS" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters.
+                        You should consult with a qualified professional for advice on anything relating to these matters.
+                        See also the Tankpipe <a target="_blank" href="https://tankpipe.com/app/terms">terms.</a></p>
+                </div>
+        </div>
     </div>
 </div>
 <style>
@@ -150,6 +157,19 @@
         font-family: Inconsolata,"DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;
         font-size: .9em;
         line-height: 1.2em;
+    }
+
+    .about {
+        min-width: 360px;
+        max-width: 700px;
+        color: #C0C0C0;
+        font-size: .9em;
+        text-align: left;
+        margin: 10px 10px;
+    }
+
+    .description .highlight {
+        color: #f0f0f0;
     }
 
 </style>
