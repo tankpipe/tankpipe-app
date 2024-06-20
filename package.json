@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.3",
-    "@babel/preset-env": "^7.22.10",
+    "@babel/preset-env": "^7.23.8",
     "@iconify/svelte": "^3.1.4",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -30,7 +30,7 @@
     "rollup-plugin-terser": "^7.0.0",
     "svelte": "^4.2.8",
     "svelte-jester": "^3.0.0",
-    "vite": "^4.4.9",
+    "vite": "^4.5.3",
     "vitest": "^0.33.0"
   },
   "dependencies": {
