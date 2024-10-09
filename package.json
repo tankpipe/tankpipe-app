@@ -20,7 +20,7 @@
     "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "@tauri-apps/cli": "^1.5.9",
     "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/svelte": "^4.0.5",
+    "@testing-library/svelte": "^5.2.3",
     "date-picker-svelte": "^2.6.0",
     "jsdom": "^22.1.0",
     "rollup": "^2.79.2",
