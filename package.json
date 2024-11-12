@@ -13,7 +13,7 @@
     "@babel/core": "^7.23.3",
     "@babel/preset-env": "^7.25.8",
     "@iconify/svelte": "^4.0.2",
-    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^1.30.4",
