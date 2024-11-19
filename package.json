@@ -10,7 +10,7 @@
     "test:watch": "vitest tests"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.3",
+    "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.25.8",
     "@iconify/svelte": "^4.0.2",
     "@rollup/plugin-commonjs": "^28.0.1",
