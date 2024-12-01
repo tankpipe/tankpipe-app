@@ -17,7 +17,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^1.30.4",
-    "@sveltejs/vite-plugin-svelte": "^2.4.5",
+    "@sveltejs/vite-plugin-svelte": "^5.0.1",
     "@tauri-apps/cli": "^2.1.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/svelte": "^4.0.5",
