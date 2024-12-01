@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`is displayed correctly 1`] = `"<body><div><div class=\\"widget svelte-vv6jek\\"><label for=\\"itemSelect\\" class=\\"svelte-vv6jek\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-vv6jek\\"><option value=\\"\\">None</option><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`is displayed correctly 1`] = `"<body><div><div class="widget svelte-vv6jek"><label for="itemSelect" class="svelte-vv6jek">Label 1</label> <select name="itemSelect" class="svelte-vv6jek"><option value="">None</option><option value="[object Object]">Account 1</option></select></div></div></body>"`;
 
-exports[`is displayed correctly with no label and no none 1`] = `"<body><div><div class=\\"widgetNoLabel svelte-vv6jek\\"> <select name=\\"itemSelect\\" class=\\"svelte-vv6jek\\"><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`is displayed correctly with no label and no none 1`] = `"<body><div><div class="widgetNoLabel svelte-vv6jek"> <select name="itemSelect" class="svelte-vv6jek"><option value="[object Object]">Account 1</option></select></div></div></body>"`;
 
-exports[`shows in error 1`] = `"<body><div><div class=\\"widget svelte-vv6jek\\"><label for=\\"itemSelect\\" class=\\"svelte-vv6jek\\">Label 1</label> <select name=\\"itemSelect\\" class=\\"svelte-vv6jek error\\"><option value=\\"\\">None</option><option value=\\"[object Object]\\">Account 1</option></select></div></div></body>"`;
+exports[`shows in error 1`] = `"<body><div><div class="widget svelte-vv6jek"><label for="itemSelect" class="svelte-vv6jek">Label 1</label> <select name="itemSelect" class="svelte-vv6jek error"><option value="">None</option><option value="[object Object]">Account 1</option></select></div></div></body>"`;
