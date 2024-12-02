@@ -4,4 +4,4 @@
 .DS_Store
 .vscode
 .code-workspace
-.svelte-kit
+/.svelte-kit
