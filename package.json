@@ -34,7 +34,7 @@
     "vitest": "^2.1.5"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.5.3",
+    "@tauri-apps/api": "^2.0.2",
     "sirv-cli": "^2.0.0"
   },
   "type": "module"
