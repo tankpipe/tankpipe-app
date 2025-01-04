@@ -1,7 +1,7 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
-    import {open} from '@tauri-apps/api/dialog'
+    import {open} from '@tauri-apps/plugin-dialog'
     import {page, isEditMode, modes, views} from "./page"
     import {config} from './config'
     import {accounts} from './accounts'

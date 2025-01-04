@@ -2,7 +2,7 @@
     import EditTransaction from './EditTransaction.svelte'
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { open } from '@tauri-apps/api/dialog'
+    import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
     import { page, modes, views, isEditMode } from './page'
@@ -10,7 +10,7 @@
     import { config } from './config.js'
     import { accounts } from './accounts'
     import { afterUpdate } from 'svelte'
-    import { invoke } from "@tauri-apps/api/tauri"
+    import { invoke } from "@tauri-apps/api/core"
 
     export let curAccount
 

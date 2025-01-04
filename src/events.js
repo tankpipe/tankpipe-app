@@ -1,5 +1,5 @@
 import {listen, emit} from '@tauri-apps/api/event'
-import {open} from '@tauri-apps/api/dialog'
+import {open} from '@tauri-apps/plugin-dialog'
 import {page, modes, views} from './page.js'
 import {accounts} from './accounts'
 import {config} from './config'
