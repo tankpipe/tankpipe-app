@@ -15,7 +15,8 @@
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
     import Dialog from './Dialog.svelte'
-    import About from './About.svelte';
+    import About from './About.svelte'
+    import { invoke } from '@tauri-apps/api/core'
 
     export let curAccount = null
     let dialog

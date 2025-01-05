@@ -6,12 +6,13 @@
 #![allow(dead_code)]
 
 use std::sync::Mutex;
-use crate::account_display::Analytics;
+//use crate::account_display::Analytics;
 use crate::handlers::{account, transaction, schedule, repo};
-use crate::menu::build_menu;
+//use crate::menu::build_menu;
+//use tauri::menu::MenuBuilder;
 use crate::money_repo::Repo;
-use tauri_plugin_aptabase::EventTracker;
-use data_encoding::BASE64;
+//use tauri_plugin_aptabase::EventTracker;
+//use data_encoding::BASE64;
 
 pub mod account_display;
 pub mod config;
@@ -27,23 +28,27 @@ pub struct BooksState(Mutex<Repo>);
 #[derive(Clone, serde::Serialize)]
 struct Payload {}
 
+
 fn main() {
     let repo = Repo::load_startup().expect("Unable to initialise app");
     use tauri::Manager;
     let context = tauri::generate_context!();
-    let menu = build_menu(&context);
-    let input: Vec<u8> = ANALYTICS.into();
-    let binding = BASE64.decode(&input).unwrap();
-    let s = String::from_utf8_lossy(&binding);
+    //let menu = build_menu(&context);
+
+    //let input: Vec<u8> = ANALYTICS.into();
+    //let binding = BASE64.decode(&input).unwrap();
+    //let s = String::from_utf8_lossy(&binding);
     #[cfg(not(debug_assertions))]
     let analytics = Analytics::from_repo(&repo);
 
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_aptabase::Builder::new(&s).build())
+        //.plugin(tauri_plugin_aptabase::Builder::new(&s).build())
+        .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             #[cfg(debug_assertions)]
             {
-                let window = app.get_window("main").unwrap();
+                let window = app.get_webview_window("main").unwrap();
                 window.open_devtools();
             }
 
@@ -55,16 +60,16 @@ fn main() {
             Ok(())
         })
         .manage(BooksState(Mutex::from(repo)))
-        .menu(menu)
-        .on_menu_event(|event| {
-            match event.menu_item_id() {
-              "open" => emit_event(&event, "file-open"),
-              "new" => emit_event(&event, "file-new"),
-              "about" => emit_event(&event, "about"),
-              "preferences" => emit_event(&event, "preferences"),
-              _ => {}
-            }
-          })
+        //.menu(menu)
+        // .on_menu_event(|event| {
+        //     match event.menu_item_id() {
+        //       "open" => emit_event(&event, "file-open"),
+        //       "new" => emit_event(&event, "file-new"),
+        //       "about" => emit_event(&event, "about"),
+        //       "preferences" => emit_event(&event, "preferences"),
+        //       _ => {}
+        //     }
+        //   })
         .invoke_handler(tauri::generate_handler![
             transaction::entries,
             transaction::transactions,
@@ -94,12 +99,12 @@ fn main() {
         .expect("error while running tauri application");
 }
 
-fn emit_event(event: &tauri::WindowMenuEvent, event_name: &str) {
-    match event.window().emit(event_name, Payload {}) {
-        Ok(_) => {},
-        Err(e) => println!("Error on {} event: {}", event_name, e),
-    }
-}
+// fn emit_event(event: &tauri::WindowMenuEvent, event_name: &str) {
+//     match event.window().emit(event_name, Payload {}) {
+//         Ok(_) => {},
+//         Err(e) => println!("Error on {} event: {}", event_name, e),
+//     }
+// }
 
 
 #[cfg(test)]

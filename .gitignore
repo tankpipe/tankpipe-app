@@ -1,7 +1,10 @@
 /node_modules/
 /public/build/
+/gen/
 
 .DS_Store
 .vscode
 .code-workspace
 .svelte-kit
+
+*.code-workspace

@@ -7,7 +7,7 @@ use accounts::books::{Books, BooksError};
 use accounts::book_repo::{load_books, save_books, new_books};
 use directories::ProjectDirs;
 use regex::Regex;
-use tauri::api::path::home_dir;
+use dirs::home_dir;
 use uuid::Uuid;
 
 use crate::config::{Config, FileDetails, DateFormat};
