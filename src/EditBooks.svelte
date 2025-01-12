@@ -5,6 +5,7 @@
     import {accounts} from './accounts'
     import {context} from './context.js';
     import {emit} from '@tauri-apps/api/event'
+    import { invoke } from '@tauri-apps/api/core'
 
     let msg = ""
     let errors = new Errors()

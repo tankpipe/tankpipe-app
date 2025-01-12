@@ -6,6 +6,7 @@
     import {page, modes} from './page.js'
     import {accounts} from './accounts.js'
     import {config} from './config.js'
+    import { invoke } from '@tauri-apps/api/core'
 
     export let close
     export let curAccount

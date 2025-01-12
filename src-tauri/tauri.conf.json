@@ -9,7 +9,7 @@
   "bundle": {
     "active": true,
     "category": "Finance",
-    "copyright": "© 2023 tankpipe.com",
+    "copyright": "© 2025 tankpipe.com",
     "targets": "all",
     "externalBin": [],
     "icon": [
@@ -43,7 +43,7 @@
   },
   "productName": "Tankpipe",
   "mainBinaryName": "Tankpipe",
-  "version": "0.1.0-alpha",
+  "version": "0.1.1-alpha",
   "identifier": "com.tankpipe.money",
   "plugins": {
     "updater": {

@@ -34,6 +34,7 @@
     "vitest": "^0.33.0"
   },
   "dependencies": {
+    "@aptabase/tauri": "github:aptabase/tauri-plugin-aptabase#v2",
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-dialog": "^2.2.0",
     "sirv-cli": "^2.0.0"

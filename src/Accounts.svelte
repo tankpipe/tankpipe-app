@@ -5,8 +5,9 @@
     import {page, isEditMode, modes, views} from "./page"
     import {config} from './config'
     import {accounts} from './accounts'
-    import { context } from "./context";
-    import EditBooks from "./EditBooks.svelte";
+    import { context } from "./context"
+    import EditBooks from "./EditBooks.svelte"
+    import { invoke } from '@tauri-apps/api/core'
 
     export let curAccount
     export let loadAccounts
