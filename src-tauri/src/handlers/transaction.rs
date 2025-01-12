@@ -55,7 +55,7 @@ pub fn add_transaction(
 ) -> Result<(), String> {
     println!("Adding transaction {:?}", transaction);
     transaction.id = Uuid::new_v4();
-    for mut e in transaction.entries.as_mut_slice() {
+    for e in transaction.entries.as_mut_slice() {
         e.id = Uuid::new_v4();
         e.transaction_id = transaction.id;
     }
@@ -71,7 +71,7 @@ pub fn update_transaction(
     mut transaction: Transaction,
 ) -> Result<(), String> {
     println!("Updating transaction {:?}", transaction);
-    for mut e in transaction.entries.as_mut_slice() {
+    for e in transaction.entries.as_mut_slice() {
         let zeros = Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
         if e.id == zeros {
             e.id = Uuid::new_v4();

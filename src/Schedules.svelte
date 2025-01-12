@@ -4,7 +4,7 @@
     import { page, isEditMode, views, modes } from './page'
     import {accounts} from './accounts'
     import {generate, getEndDate} from './generate'
-    import { invoke } from "@tauri-apps/api/tauri"
+    import { invoke } from "@tauri-apps/api/core"
 
     let curSchedule
     let dateStr

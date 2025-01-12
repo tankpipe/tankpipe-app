@@ -1,7 +1,11 @@
 /node_modules/
 /public/build/
+/src-tauri/gen/
 
 .DS_Store
 .vscode
 .code-workspace
 .svelte-kit
+
+*.code-workspace
+/src-tauri/gen/

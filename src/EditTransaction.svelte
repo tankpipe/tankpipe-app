@@ -8,7 +8,7 @@
     import {settings} from './settings.js'
     import {accounts} from './accounts'
     import {config, dateFormat} from './config.js'
-    import { invoke } from "@tauri-apps/api/tauri"
+    import { invoke } from "@tauri-apps/api/core"
 
     export let loadTransactions
     export let curTransaction

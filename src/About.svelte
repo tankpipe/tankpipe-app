@@ -1,5 +1,5 @@
-<script>
-
+x<script>
+    import { invoke } from '@tauri-apps/api/core'
     let about
 
     $: {

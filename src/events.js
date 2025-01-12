@@ -1,9 +1,11 @@
 import {listen, emit} from '@tauri-apps/api/event'
-import {open} from '@tauri-apps/api/dialog'
+import {open} from '@tauri-apps/plugin-dialog'
 import {page, modes, views} from './page.js'
 import {accounts} from './accounts'
 import {config} from './config'
 import { get } from 'svelte/store'
+import { invoke } from '@tauri-apps/api/core';
+
 
 
 const listener = async () => {
@@ -52,7 +54,7 @@ const loadFileSuccess = (result) => {
 
 const loadFileFailure = (result) => {
     console.log(result)
-    errors = new Errors()
+    let errors = new Errors()
     errors.addError("all", "We hit a snag: " + result)
 }
 

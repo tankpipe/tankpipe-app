@@ -3,69 +3,58 @@
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:8080",
-    "distDir": "../public",
-    "withGlobalTauri": true
+    "frontendDist": "../public",
+    "devUrl": "http://localhost:8080"
   },
-  "package": {
-    "productName": "Tankpipe",
-    "version": "0.1.0-alpha"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": true,
-      "fs": {
-        "all": true,
-        "scope": ["$APP/*", "$DESKTOP/*", "$HOME/*"]
-      },
-      "path": {
-        "all": true
-      }
+  "bundle": {
+    "active": true,
+    "category": "Finance",
+    "copyright": "© 2025 tankpipe.com",
+    "targets": "all",
+    "externalBin": [],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
     },
-    "bundle": {
-      "active": true,
-      "category": "Finance",
-      "copyright": "© 2023 tankpipe.com",
+    "longDescription": "",
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "resources": [],
+    "shortDescription": "",
+    "linux": {
       "deb": {
         "depends": []
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.tankpipe.money",
-      "longDescription": "",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
       }
     },
-    "security": {
-      "csp": null
-    },
+    "createUpdaterArtifacts": "v1Compatible"
+  },
+  "productName": "Tankpipe",
+  "mainBinaryName": "Tankpipe",
+  "version": "0.1.1-alpha",
+  "identifier": "com.tankpipe.money",
+  "plugins": {
     "updater": {
-      "active": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg2QkEyMzVBRjcwQURGQkYKUldTLzN3cjNXaU82aG45UjlCZjF1bXhjd2cyWWh6NjJPTURnYytWU2xVd1NLai9vd0JjK1daT0MK",
       "endpoints": [
         "https://tankpipe.com/releases/money/version.json"
-      ],
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg2QkEyMzVBRjcwQURGQkYKUldTLzN3cjNXaU82aG45UjlCZjF1bXhjd2cyWWh6NjJPTURnYytWU2xVd1NLai9vd0JjK1daT0MK"
-    },
+      ]
+    }
+  },
+  "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "fullscreen": false,
@@ -74,8 +63,12 @@
         "title": "Tankpipe",
         "width": 1025,
         "minWidth": 600,
-        "theme": "Dark"
+        "theme": "Dark",
+        "useHttpsScheme": true
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
   }
 }

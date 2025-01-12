@@ -7,6 +7,8 @@
     import {accounts} from './accounts'
     import {generate} from './generate'
     import {settings} from './settings.js'
+    import { invoke } from '@tauri-apps/api/core'
+
 
     export let close
     export let curSchedule

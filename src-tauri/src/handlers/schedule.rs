@@ -14,7 +14,7 @@ pub fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 pub fn add_schedule(state: tauri::State<BooksState>, mut schedule: Schedule) -> Result<(), String> {
     println!("Adding schedule: {}", schedule.name);
     schedule.id = Uuid::new_v4();
-    for mut e in schedule.entries.as_mut_slice() {
+    for e in schedule.entries.as_mut_slice() {
         e.schedule_id = schedule.id;
     }
     let mut mutex_guard = state.0.lock().unwrap();
