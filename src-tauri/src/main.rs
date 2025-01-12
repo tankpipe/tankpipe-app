@@ -5,12 +5,14 @@
 
 #![allow(dead_code)]
 
+use std::error::Error;
 use std::sync::Mutex;
-//use crate::account_display::Analytics;
+use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::{App, Emitter, Manager};
+use tauri_plugin_aptabase::EventTracker;
 use crate::handlers::{account, transaction, schedule, repo};
-//use crate::menu::build_menu;
-//use tauri::menu::MenuBuilder;
 use crate::money_repo::Repo;
+//use crate::account_display::Analytics;
 //use tauri_plugin_aptabase::EventTracker;
 //use data_encoding::BASE64;
 
@@ -31,10 +33,6 @@ struct Payload {}
 
 fn main() {
     let repo = Repo::load_startup().expect("Unable to initialise app");
-    use tauri::Manager;
-    let context = tauri::generate_context!();
-    //let menu = build_menu(&context);
-
     //let input: Vec<u8> = ANALYTICS.into();
     //let binding = BASE64.decode(&input).unwrap();
     //let s = String::from_utf8_lossy(&binding);
@@ -45,7 +43,7 @@ fn main() {
     tauri::Builder::default()
         //.plugin(tauri_plugin_aptabase::Builder::new(&s).build())
         .plugin(tauri_plugin_dialog::init())
-        .setup(move |app| {
+        .setup(|app| {
             #[cfg(debug_assertions)]
             {
                 let window = app.get_webview_window("main").unwrap();
@@ -56,20 +54,10 @@ fn main() {
             {
                 app.track_event("app_started", Some(::serde_json::json!(analytics.clone())));
             }
-
+            build_menus(app)?;
             Ok(())
         })
         .manage(BooksState(Mutex::from(repo)))
-        //.menu(menu)
-        // .on_menu_event(|event| {
-        //     match event.menu_item_id() {
-        //       "open" => emit_event(&event, "file-open"),
-        //       "new" => emit_event(&event, "file-new"),
-        //       "about" => emit_event(&event, "about"),
-        //       "preferences" => emit_event(&event, "preferences"),
-        //       _ => {}
-        //     }
-        //   })
         .invoke_handler(tauri::generate_handler![
             transaction::entries,
             transaction::transactions,
@@ -95,17 +83,72 @@ fn main() {
             repo::load_file,
             repo::new_file
         ])
-        .run(context)
+        .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
-// fn emit_event(event: &tauri::WindowMenuEvent, event_name: &str) {
-//     match event.window().emit(event_name, Payload {}) {
-//         Ok(_) => {},
-//         Err(e) => println!("Error on {} event: {}", event_name, e),
-//     }
-// }
 
+fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
+
+    let about = MenuItemBuilder::new("About...")
+        .id("about")
+        .build(app)?;
+
+    let preferences = MenuItemBuilder::new("Settings...")
+        .id("preferences")
+        .build(app)?;
+
+    let app_submenu = SubmenuBuilder::new(app, "App")
+        .item(&about)
+        .separator()
+        .item(&preferences)
+        .separator()
+        .quit()
+        .build()?;
+
+    let file_open = MenuItemBuilder::new("Open...")
+        .id("file-open")
+        .accelerator("CmdOrCtrl+O")
+        .build(app)?;
+
+    let file_new = MenuItemBuilder::new("New...")
+        .id("file-new")
+        .accelerator("CmdOrCtrl+N")
+        .build(app)?;
+
+    let file_submenu = SubmenuBuilder::new(app, "File")
+        .item(&file_new)
+        .item(&file_open)
+        .build()?;
+
+    let edit_submenu = SubmenuBuilder::new(app, "Edit")
+        .undo()
+        .redo()
+        .separator()
+        .cut()
+        .copy()
+        .paste()
+        .select_all()
+        .build()?;
+
+    let menu = MenuBuilder::new(app)
+        .items(&[
+            &app_submenu,
+            &file_submenu,
+            &edit_submenu,
+            // ... include references to any other submenus
+        ])
+        .build()?;
+
+    app.set_menu(menu)?;
+    app.on_menu_event(move |app, event| {
+        match app.emit(event.id().as_ref(), Payload {}) {
+            Ok(_) => {},
+            Err(e) => println!("Error on {} event: {}", event.id().as_ref(), e),
+        }
+    });
+    Ok(())
+}
 
 #[cfg(test)]
 mod tests {

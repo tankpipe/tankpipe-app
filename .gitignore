@@ -1,6 +1,6 @@
 /node_modules/
 /public/build/
-/gen/
+/src-tauri/gen/
 
 .DS_Store
 .vscode
@@ -8,3 +8,4 @@
 .svelte-kit
 
 *.code-workspace
+/src-tauri/gen/
