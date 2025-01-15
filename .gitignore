@@ -9,3 +9,4 @@
 
 *.code-workspace
 /src-tauri/gen/
+/.idea/money.iml
