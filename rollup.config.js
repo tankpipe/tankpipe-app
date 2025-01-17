@@ -51,7 +51,7 @@ export default {
                 if (warning.code === 'a11y-autofocus') return
                 if (warning.code.startsWith('css-unused-selector')) return
                 handler(warning)
-              }
+            }
 		}),
 		// we'll extract any component CSS out into
 		// a separate file - better for performance

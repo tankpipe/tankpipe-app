@@ -248,6 +248,7 @@
     <div class="panel-title">Transaction</div>
     <div class="entries">
         <table>
+            <tbody>
             <tr><td><div class="heading">Description</div></td><td><div class="heading">Account</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
             {#each entries as e, i}
             <tr>
@@ -273,6 +274,7 @@
                 <td><div class="total">Totals</div></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
+            </tbody>
         </table>
     </div>
     <hr/>

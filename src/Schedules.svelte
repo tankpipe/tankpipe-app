@@ -102,7 +102,6 @@
     <div class="message">No schedules</div>
     {/if}
         {#each schedules as s}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
             <div class="card" on:click={() => selectSchedule(s)}>
                 <div class="row">
                     <div class="widget">
@@ -113,6 +112,7 @@
                 <div class="row">
                     <div class="widget schedule-entries">
                     <table>
+                        <tbody>
                         {#each s.entries as e}
                         <tr>
                             <td>{getAccountName(e.account_id)}</td>
@@ -120,6 +120,7 @@
                             <td>{#if e.entry_type == "Credit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
                         </tr>
                         {/each}
+                        </tbody>
                     </table>
                 </div>
                 </div>

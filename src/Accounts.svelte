@@ -8,6 +8,7 @@
     import { context } from "./context"
     import EditBooks from "./EditBooks.svelte"
     import { invoke } from '@tauri-apps/api/core'
+    import {onMount} from 'svelte';
 
     export let curAccount
     export let loadAccounts
@@ -21,14 +22,14 @@
     }
     let lastAccountType
 
-    $: {
+    onMount(() => {
         lastAccountType = ""
         if ($accounts) {
             if ($accounts.length < 1) {
                 page.set({view: views.ACCOUNTS, mode: modes.NEW})
             }
         }
-    }
+    })
 
     const close = () => {
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
