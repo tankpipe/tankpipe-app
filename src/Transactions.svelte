@@ -200,6 +200,7 @@
 <div class="scroller" id="scroller">
     {#if transactions.length > 0}
     <table>
+        <tbody>
         <tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
@@ -219,6 +220,7 @@
             </tr>
             {/if}
         {/each}
+        </tbody>
     </table>
     {/if}
     {#if transactions.length < 1}

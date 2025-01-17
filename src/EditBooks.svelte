@@ -58,7 +58,7 @@
 </script>
 
 {#if ! context.hasBooks}
-    <div class="message">To get started give your first set of accounts a name. For example, Personal Finances.</div>
+    <div class="message">To get started give your first set of accounts a name. For example, Personal Finances.<p></p></div>
 {/if}
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Books</div>

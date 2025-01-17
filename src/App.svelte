@@ -67,12 +67,12 @@
         supportedVersion = (typeof HTMLDialogElement === 'function')
 
         if (supportedVersion) {
-            initializing = true
-            await loadSettings()
-            await loadAccounts()
-            await loadConfig()
-            resetMenu()
-            initializing = false
+             initializing = true
+             await loadSettings()
+             await loadAccounts()
+             await loadConfig()
+             resetMenu()
+             initializing = false
         }
 
     })()
@@ -90,13 +90,13 @@
 
     let dialogShown = false
     let closeIcon = true
-    afterUpdate(() => {
-        if ( ! $context.hasBooks && dialog && ! dialogShown) {
-            closeIcon = false
-            dialog.showModal()
-            dialogShown = true
-        }
-    })
+    // afterUpdate(() => {
+    //     if ( ! $context.hasBooks && dialog && ! dialogShown) {
+    //         closeIcon = false
+    //         dialog.showModal()
+    //         dialogShown = true
+    //     }
+    // })
 
 </script>
 
