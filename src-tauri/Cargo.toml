@@ -29,6 +29,7 @@ regex = "1"
 data-encoding = "2.4.0"
 dirs = "5.0.1"
 tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
 
 
 [dev-dependencies]
