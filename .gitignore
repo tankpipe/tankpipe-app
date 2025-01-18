@@ -8,5 +8,5 @@
 .svelte-kit
 
 *.code-workspace
-/src-tauri/gen/
-/.idea/money.iml
+/.idea
+.history

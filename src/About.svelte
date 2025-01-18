@@ -1,10 +1,13 @@
 x<script>
+    import Icon from '@iconify/svelte';
     import { invoke } from '@tauri-apps/api/core'
+    import { onMount } from 'svelte';
     let about
 
-    $: {
+    onMount(() => {
         loadAbout()
-    }
+    })
+
     export const loadAbout = async () => {
         about = await invoke('about')
     }
@@ -32,7 +35,8 @@ x<script>
     <div class="panel-title">Got questions?</div>
     <div class="about">
             <div class="description">
-                <a target="_blank" href="{about.contact}">Join our Discord</a>
+                <div class="link"><a target="_blank" href="https://github.com/tankpipe/tankpipe-app/issues"><Icon icon="mdi:github-circle"  width="24"/><div class="link-text"> Raise an issue on Github</div></a><br/></div>
+                <div class="link"><a target="_blank" href="{about.contact}"><Icon icon="mdi:discord"  width="24"/><div class="link-text"> Reach out on Discord</div></a></div>
             </div>
     </div>
     <hr/>
@@ -49,7 +53,7 @@ x<script>
         <div class="license">
             <h2>The MIT License (MIT)</h2>
 
-            <p>Copyright © 2023 Tankpipe.com</p>
+            <p>Copyright © 2025 Tankpipe.com</p>
 
             <p>Permission is hereby granted, free of charge, to any person obtaining a copy
             of this software and associated documentation files (the “Software”), to deal
@@ -170,6 +174,17 @@ x<script>
 
     .description .highlight {
         color: #f0f0f0;
+    }
+
+    .link-text {
+        vertical-align: super;
+        display: initial;
+        padding-left: 5px;
+    }
+
+    .link {
+        margin-bottom: 5px;
+        margin-left: 3px;
     }
 
 </style>

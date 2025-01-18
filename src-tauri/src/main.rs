@@ -30,6 +30,7 @@ fn main() {
     let repo = Repo::load_startup().expect("Unable to initialise app");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             #[cfg(debug_assertions)]
