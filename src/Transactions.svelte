@@ -12,6 +12,7 @@
     import { afterUpdate } from 'svelte'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
+    import { onMount } from 'svelte'
 
     export let curAccount
 
@@ -104,7 +105,6 @@
         },
     }
 
-
     let transactions = []
     let chartValues = []
 
@@ -118,8 +118,7 @@
             let entry = getEntry(t)
             chartValues.push([new Date(entry.date).valueOf(), entry.balance])
         }
-        console.log(chartValues);
-        chartOptions = {series: [{data: chartValues,}]}
+        chartOptions["series"] = [{data: chartValues}]
     }
 
     const findClosestTransaction = () => {
@@ -232,7 +231,9 @@
         {/if}
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
+    {#if transactions.length > 0}
     <div class="chart"><div use:chart={chartOptions}></div></div>
+    {/if}
     {/if}
 </div>
 {#if isEditMode($page)}
