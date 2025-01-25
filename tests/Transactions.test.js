@@ -5,11 +5,21 @@ import {page, views, modes} from '../src/page'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
 import { config } from '../src/config'
-import { vi } from 'vitest'
+import { vi, jest } from 'vitest'
 import { mockIPC } from "@tauri-apps/api/mocks"
 
 Element.prototype.scrollTo = () => {}
 accounts.set(account_data)
+
+const ResizeObserverMock = vi.fn(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+
+  // Stub the global ResizeObserver
+  vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+
 
 it('is displayed correctly for Regular date', async () => {
     const mockFetchTransactions = loadTransactions()

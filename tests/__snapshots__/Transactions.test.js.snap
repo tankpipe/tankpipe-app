@@ -1,7 +1,199 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`is displayed correctly for ISO date 1`] = `"<div><div class="account-heading"><div class="account svelte-ltnpon"><div class="widgetNoLabel svelte-vv6jek"><!----> <select name="itemSelect" class="svelte-vv6jek flat"><!----><!----><option value="[object Object]">Account 1</option><!----><option value="[object Object]">Account 2</option><!----><option value="[object Object]">Account 3</option><!----></select></div><!----></div> <div class="toolbar svelte-ltnpon"><div class="toolbar-icon import-icon svelte-ltnpon" title="Import transactions"><!----><!----></div><!----> <div class="toolbar-icon svelte-ltnpon" title="Add a transaction"><!----><!----></div></div> <div class="chart svelte-ltnpon"><div></div></div><!----><!----></div> <!----> <div class="widget errors"><!----> <!----></div> <div class="scroller svelte-ltnpon" id="scroller"><table class="svelte-ltnpon"><tbody><tr><th class="justify-left svelte-ltnpon">Date</th><th class="justify-left svelte-ltnpon">Description</th><th class="svelte-ltnpon">Debit</th><th class="svelte-ltnpon">Credit</th><th class="svelte-ltnpon">Balance</th></tr><!----><tr class="svelte-ltnpon" id="066374b6-9849-4d8c-ad7c-ba955aa216ab"><td class="  svelte-ltnpon">2023-01-21</td><td class=" svelte-ltnpon" title="A test transaction"><div class="description svelte-ltnpon">A test transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">200.00</td></tr><!----><tr class="svelte-ltnpon" id="6fbc1081-5bc8-42e4-b085-6354d12eb30f"><td class="  svelte-ltnpon">2023-01-21</td><td class=" svelte-ltnpon" title="A test compound transaction"><div class="description svelte-ltnpon">A test compound transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">400.00</td></tr><!----></tbody></table><!----> <!----></div><!----></div>"`;
+exports[`is displayed correctly for ISO date 1`] = `
+"<div><div class="account-heading"><div class="account svelte-ltnpon"><div class="widgetNoLabel svelte-vv6jek"><!----> <select name="itemSelect" class="svelte-vv6jek flat"><!----><!----><option value="[object Object]">Account 1</option><!----><option value="[object Object]">Account 2</option><!----><option value="[object Object]">Account 3</option><!----></select></div><!----></div> <div class="toolbar svelte-ltnpon"><div class="toolbar-icon import-icon svelte-ltnpon" title="Import transactions"><!----><!----></div><!----> <div class="toolbar-icon svelte-ltnpon" title="Add a transaction"><!----><!----></div></div> <div class="chart svelte-ltnpon"><div style="min-height: 50px;"><div id="apexchartsu7j1azd" class="apexcharts-canvas apexchartsu7j1azd apexcharts-theme-" style="width: 100px; height: 50px;"><svg id="SvgjsSvg1144" width="100" height="50" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" class="apexcharts-svg" xmlns:data="ApexChartsNS" transform="translate(0, 0)"><foreignObject x="0" y="0" width="100" height="50"><div class="apexcharts-legend" xmlns="http://www.w3.org/1999/xhtml" style="max-height: 25px;"></div><style type="text/css">
+      .apexcharts-flip-y {
+        transform: scaleY(-1) translateY(-100%);
+        transform-origin: top;
+        transform-box: fill-box;
+      }
+      .apexcharts-flip-x {
+        transform: scaleX(-1);
+        transform-origin: center;
+        transform-box: fill-box;
+      }
+      .apexcharts-legend {
+        display: flex;
+        overflow: auto;
+        padding: 0 10px;
+      }
+      .apexcharts-legend.apx-legend-position-bottom, .apexcharts-legend.apx-legend-position-top {
+        flex-wrap: wrap
+      }
+      .apexcharts-legend.apx-legend-position-right, .apexcharts-legend.apx-legend-position-left {
+        flex-direction: column;
+        bottom: 0;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-left, .apexcharts-legend.apx-legend-position-top.apexcharts-align-left, .apexcharts-legend.apx-legend-position-right, .apexcharts-legend.apx-legend-position-left {
+        justify-content: flex-start;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-center, .apexcharts-legend.apx-legend-position-top.apexcharts-align-center {
+        justify-content: center;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-right, .apexcharts-legend.apx-legend-position-top.apexcharts-align-right {
+        justify-content: flex-end;
+      }
+      .apexcharts-legend-series {
+        cursor: pointer;
+        line-height: normal;
+        display: flex;
+        align-items: center;
+      }
+      .apexcharts-legend-text {
+        position: relative;
+        font-size: 14px;
+      }
+      .apexcharts-legend-text *, .apexcharts-legend-marker * {
+        pointer-events: none;
+      }
+      .apexcharts-legend-marker {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-right: 1px;
+      }
 
-exports[`is displayed correctly for Regular date 1`] = `"<div><div class="account-heading"><div class="account svelte-ltnpon"><div class="widgetNoLabel svelte-vv6jek"><!----> <select name="itemSelect" class="svelte-vv6jek flat"><!----><!----><option value="[object Object]">Account 1</option><!----><option value="[object Object]">Account 2</option><!----><option value="[object Object]">Account 3</option><!----></select></div><!----></div> <div class="toolbar svelte-ltnpon"><div class="toolbar-icon import-icon svelte-ltnpon" title="Import transactions"><!----><!----></div><!----> <div class="toolbar-icon svelte-ltnpon" title="Add a transaction"><!----><!----></div></div> <div class="chart svelte-ltnpon"><div></div></div><!----><!----></div> <!----> <div class="widget errors"><!----> <!----></div> <div class="scroller svelte-ltnpon" id="scroller"><table class="svelte-ltnpon"><tbody><tr><th class="justify-left svelte-ltnpon">Date</th><th class="justify-left svelte-ltnpon">Description</th><th class="svelte-ltnpon">Debit</th><th class="svelte-ltnpon">Credit</th><th class="svelte-ltnpon">Balance</th></tr><!----><tr class="svelte-ltnpon" id="066374b6-9849-4d8c-ad7c-ba955aa216ab"><td class=" align_right svelte-ltnpon">21/01/2023</td><td class=" svelte-ltnpon" title="A test transaction"><div class="description svelte-ltnpon">A test transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">200.00</td></tr><!----><tr class="svelte-ltnpon" id="6fbc1081-5bc8-42e4-b085-6354d12eb30f"><td class=" align_right svelte-ltnpon">21/01/2023</td><td class=" svelte-ltnpon" title="A test compound transaction"><div class="description svelte-ltnpon">A test compound transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">400.00</td></tr><!----></tbody></table><!----> <!----></div><!----></div>"`;
+      .apexcharts-legend-series.apexcharts-no-click {
+        cursor: auto;
+      }
+      .apexcharts-legend .apexcharts-hidden-zero-series, .apexcharts-legend .apexcharts-hidden-null-series {
+        display: none !important;
+      }
+      .apexcharts-inactive-legend {
+        opacity: 0.45;
+      }</style></foreignObject><rect id="SvgjsRect1150" width="0" height="0" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fefefe"></rect><g id="SvgjsG1169" class="apexcharts-datalabels-group" transform="translate(0, 0) scale(1)"></g><g id="SvgjsG1170" class="apexcharts-datalabels-group" transform="translate(0, 0) scale(1)"></g><g id="SvgjsG1209" class="apexcharts-yaxis" rel="0" transform="translate(-18, 0)"></g><g id="SvgjsG1146" class="apexcharts-inner apexcharts-graphical" transform="translate(0, 1)"><defs id="SvgjsDefs1145"><clipPath id="gridRectMasku7j1azd"><rect id="SvgjsRect1160" width="100" height="48" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="gridRectBarMasku7j1azd"><rect id="SvgjsRect1163" width="106" height="54" x="-3" y="-3" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="gridRectMarkerMasku7j1azd"><rect id="SvgjsRect1166" width="100" height="48" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="forecastMasku7j1azd"></clipPath><clipPath id="nonForecastMasku7j1azd"></clipPath><linearGradient id="SvgjsLinearGradient1175" x1="0" y1="0" x2="0" y2="1"><stop id="SvgjsStop1176" stop-opacity="0.65" stop-color="rgba(239,239,239,0.65)" offset="0"></stop><stop id="SvgjsStop1177" stop-opacity="0.5" stop-color="rgba(247,247,247,0.5)" offset="1"></stop><stop id="SvgjsStop1178" stop-opacity="0.5" stop-color="rgba(247,247,247,0.5)" offset="1"></stop></linearGradient></defs><line id="SvgjsLine1153" x1="0" y1="0" x2="0" y2="48" stroke="#b6b6b6" stroke-dasharray="3" stroke-linecap="butt" class="apexcharts-xcrosshairs" x="0" y="0" width="1" height="48" fill="#b1b9c4" filter="none" fill-opacity="0.9" stroke-width="1"></line><g id="SvgjsG1181" class="apexcharts-grid"><g id="SvgjsG1182" class="apexcharts-gridlines-horizontal" style="display: none;"><line id="SvgjsLine1185" x1="0" y1="0" x2="100" y2="0" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line><line id="SvgjsLine1186" x1="0" y1="24" x2="100" y2="24" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line><line id="SvgjsLine1187" x1="0" y1="48" x2="100" y2="48" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line></g><g id="SvgjsG1183" class="apexcharts-gridlines-vertical" style="display: none;"></g><line id="SvgjsLine1189" x1="0" y1="48" x2="100" y2="48" stroke="transparent" stroke-dasharray="0" stroke-linecap="butt"></line><line id="SvgjsLine1188" x1="0" y1="1" x2="0" y2="48" stroke="transparent" stroke-dasharray="0" stroke-linecap="butt"></line></g><g id="SvgjsG1184" class="apexcharts-grid-borders" style="display: none;"></g><g id="SvgjsG1171" class="apexcharts-area-series apexcharts-plot-series"><g id="SvgjsG1172" class="apexcharts-series" zIndex="0" seriesName="series-1" data:longestSeries="true" rel="1" data:realIndex="0"><path id="SvgjsPath1179" d="M 0 96 L 0 96 L 50 96z" fill="url(#SvgjsLinearGradient1175)" fill-opacity="1" stroke-opacity="1" stroke-linecap="butt" stroke-width="0" stroke-dasharray="0" class="apexcharts-area" index="0" clip-path="url(#gridRectMasku7j1azd)" pathTo="M 50 48 L 50 0 L 50 48 L 50 48z" pathFrom="M 0 96 L 0 96 L 50 96z"></path><path id="SvgjsPath1180" d="M 0 96 L 0 96 L 50 96" fill="none" fill-opacity="1" stroke="#efefef" stroke-opacity="1" stroke-linecap="butt" stroke-width="2" stroke-dasharray="0" class="apexcharts-area" index="0" clip-path="url(#gridRectMasku7j1azd)" pathTo="M 50 48 L 50 0" pathFrom="M 0 96 L 0 96 L 50 96" fill-rule="evenodd"></path><g id="SvgjsG1173" class="apexcharts-series-markers-wrap apexcharts-element-hidden" data:realIndex="0"></g></g><g id="SvgjsG1174" class="apexcharts-datalabels" data:realIndex="0"></g></g><line id="SvgjsLine1190" x1="0" y1="0" x2="100" y2="0" stroke="#b6b6b6" stroke-dasharray="0" stroke-width="1" stroke-linecap="butt" class="apexcharts-ycrosshairs"></line><line id="SvgjsLine1191" x1="0" y1="0" x2="100" y2="0" stroke-dasharray="0" stroke-width="0" stroke-linecap="butt" class="apexcharts-ycrosshairs-hidden"></line><g id="SvgjsG1192" class="apexcharts-xaxis" transform="translate(0, 0)"><g id="SvgjsG1193" class="apexcharts-xaxis-texts-g" transform="translate(0, -4)"></g></g><g id="SvgjsG1210" class="apexcharts-yaxis-annotations apexcharts-element-hidden"></g><g id="SvgjsG1211" class="apexcharts-xaxis-annotations apexcharts-element-hidden"></g><g id="SvgjsG1212" class="apexcharts-point-annotations apexcharts-element-hidden"></g></g></svg></div></div></div><!----><!----></div> <!----> <div class="widget errors"><!----> <!----></div> <div class="scroller svelte-ltnpon" id="scroller"><table class="svelte-ltnpon"><tbody><tr><th class="justify-left svelte-ltnpon">Date</th><th class="justify-left svelte-ltnpon">Description</th><th class="svelte-ltnpon">Debit</th><th class="svelte-ltnpon">Credit</th><th class="svelte-ltnpon">Balance</th></tr><!----><tr class="svelte-ltnpon" id="066374b6-9849-4d8c-ad7c-ba955aa216ab"><td class="  svelte-ltnpon">2023-01-21</td><td class=" svelte-ltnpon" title="A test transaction"><div class="description svelte-ltnpon">A test transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">200.00</td></tr><!----><tr class="svelte-ltnpon" id="6fbc1081-5bc8-42e4-b085-6354d12eb30f"><td class="  svelte-ltnpon">2023-01-21</td><td class=" svelte-ltnpon" title="A test compound transaction"><div class="description svelte-ltnpon">A test compound transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">400.00</td></tr><!----></tbody></table><!----> <!----></div><!----></div>"
+`;
 
-exports[`is displayed correctly for US date 1`] = `"<div><div class="account-heading"><div class="account svelte-ltnpon"><div class="widgetNoLabel svelte-vv6jek"><!----> <select name="itemSelect" class="svelte-vv6jek flat"><!----><!----><option value="[object Object]">Account 1</option><!----><option value="[object Object]">Account 2</option><!----><option value="[object Object]">Account 3</option><!----></select></div><!----></div> <div class="toolbar svelte-ltnpon"><div class="toolbar-icon import-icon svelte-ltnpon" title="Import transactions"><!----><!----></div><!----> <div class="toolbar-icon svelte-ltnpon" title="Add a transaction"><!----><!----></div></div> <div class="chart svelte-ltnpon"><div></div></div><!----><!----></div> <!----> <div class="widget errors"><!----> <!----></div> <div class="scroller svelte-ltnpon" id="scroller"><table class="svelte-ltnpon"><tbody><tr><th class="justify-left svelte-ltnpon">Date</th><th class="justify-left svelte-ltnpon">Description</th><th class="svelte-ltnpon">Debit</th><th class="svelte-ltnpon">Credit</th><th class="svelte-ltnpon">Balance</th></tr><!----><tr class="svelte-ltnpon" id="066374b6-9849-4d8c-ad7c-ba955aa216ab"><td class=" align_right svelte-ltnpon">1/21/2023</td><td class=" svelte-ltnpon" title="A test transaction"><div class="description svelte-ltnpon">A test transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">200.00</td></tr><!----><tr class="svelte-ltnpon" id="6fbc1081-5bc8-42e4-b085-6354d12eb30f"><td class=" align_right svelte-ltnpon">1/21/2023</td><td class=" svelte-ltnpon" title="A test compound transaction"><div class="description svelte-ltnpon">A test compound transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">400.00</td></tr><!----></tbody></table><!----> <!----></div><!----></div>"`;
+exports[`is displayed correctly for Regular date 1`] = `
+"<div><div class="account-heading"><div class="account svelte-ltnpon"><div class="widgetNoLabel svelte-vv6jek"><!----> <select name="itemSelect" class="svelte-vv6jek flat"><!----><!----><option value="[object Object]">Account 1</option><!----><option value="[object Object]">Account 2</option><!----><option value="[object Object]">Account 3</option><!----></select></div><!----></div> <div class="toolbar svelte-ltnpon"><div class="toolbar-icon import-icon svelte-ltnpon" title="Import transactions"><!----><!----></div><!----> <div class="toolbar-icon svelte-ltnpon" title="Add a transaction"><!----><!----></div></div> <div class="chart svelte-ltnpon"><div style="min-height: 50px;"><div id="apexcharts51ta59vnj" class="apexcharts-canvas apexcharts51ta59vnj apexcharts-theme-" style="width: 100px; height: 50px;"><svg id="SvgjsSvg1001" width="100" height="50" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" class="apexcharts-svg" xmlns:data="ApexChartsNS" transform="translate(0, 0)"><foreignObject x="0" y="0" width="100" height="50"><div class="apexcharts-legend" xmlns="http://www.w3.org/1999/xhtml" style="max-height: 25px;"></div><style type="text/css">
+      .apexcharts-flip-y {
+        transform: scaleY(-1) translateY(-100%);
+        transform-origin: top;
+        transform-box: fill-box;
+      }
+      .apexcharts-flip-x {
+        transform: scaleX(-1);
+        transform-origin: center;
+        transform-box: fill-box;
+      }
+      .apexcharts-legend {
+        display: flex;
+        overflow: auto;
+        padding: 0 10px;
+      }
+      .apexcharts-legend.apx-legend-position-bottom, .apexcharts-legend.apx-legend-position-top {
+        flex-wrap: wrap
+      }
+      .apexcharts-legend.apx-legend-position-right, .apexcharts-legend.apx-legend-position-left {
+        flex-direction: column;
+        bottom: 0;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-left, .apexcharts-legend.apx-legend-position-top.apexcharts-align-left, .apexcharts-legend.apx-legend-position-right, .apexcharts-legend.apx-legend-position-left {
+        justify-content: flex-start;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-center, .apexcharts-legend.apx-legend-position-top.apexcharts-align-center {
+        justify-content: center;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-right, .apexcharts-legend.apx-legend-position-top.apexcharts-align-right {
+        justify-content: flex-end;
+      }
+      .apexcharts-legend-series {
+        cursor: pointer;
+        line-height: normal;
+        display: flex;
+        align-items: center;
+      }
+      .apexcharts-legend-text {
+        position: relative;
+        font-size: 14px;
+      }
+      .apexcharts-legend-text *, .apexcharts-legend-marker * {
+        pointer-events: none;
+      }
+      .apexcharts-legend-marker {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-right: 1px;
+      }
+
+      .apexcharts-legend-series.apexcharts-no-click {
+        cursor: auto;
+      }
+      .apexcharts-legend .apexcharts-hidden-zero-series, .apexcharts-legend .apexcharts-hidden-null-series {
+        display: none !important;
+      }
+      .apexcharts-inactive-legend {
+        opacity: 0.45;
+      }</style></foreignObject><rect id="SvgjsRect1012" width="0" height="0" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fefefe"></rect><g id="SvgjsG1031" class="apexcharts-datalabels-group" transform="translate(0, 0) scale(1)"></g><g id="SvgjsG1032" class="apexcharts-datalabels-group" transform="translate(0, 0) scale(1)"></g><g id="SvgjsG1071" class="apexcharts-yaxis" rel="0" transform="translate(-18, 0)"></g><g id="SvgjsG1003" class="apexcharts-inner apexcharts-graphical" transform="translate(0, 1)"><defs id="SvgjsDefs1002"><clipPath id="gridRectMask51ta59vnj"><rect id="SvgjsRect1022" width="100" height="48" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="gridRectBarMask51ta59vnj"><rect id="SvgjsRect1025" width="106" height="54" x="-3" y="-3" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="gridRectMarkerMask51ta59vnj"><rect id="SvgjsRect1028" width="100" height="48" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="forecastMask51ta59vnj"></clipPath><clipPath id="nonForecastMask51ta59vnj"></clipPath><linearGradient id="SvgjsLinearGradient1037" x1="0" y1="0" x2="0" y2="1"><stop id="SvgjsStop1038" stop-opacity="0.65" stop-color="rgba(239,239,239,0.65)" offset="0"></stop><stop id="SvgjsStop1039" stop-opacity="0.5" stop-color="rgba(247,247,247,0.5)" offset="1"></stop><stop id="SvgjsStop1040" stop-opacity="0.5" stop-color="rgba(247,247,247,0.5)" offset="1"></stop></linearGradient></defs><line id="SvgjsLine1015" x1="0" y1="0" x2="0" y2="48" stroke="#b6b6b6" stroke-dasharray="3" stroke-linecap="butt" class="apexcharts-xcrosshairs" x="0" y="0" width="1" height="48" fill="#b1b9c4" filter="none" fill-opacity="0.9" stroke-width="1"></line><g id="SvgjsG1043" class="apexcharts-grid"><g id="SvgjsG1044" class="apexcharts-gridlines-horizontal" style="display: none;"><line id="SvgjsLine1047" x1="0" y1="0" x2="100" y2="0" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line><line id="SvgjsLine1048" x1="0" y1="24" x2="100" y2="24" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line><line id="SvgjsLine1049" x1="0" y1="48" x2="100" y2="48" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line></g><g id="SvgjsG1045" class="apexcharts-gridlines-vertical" style="display: none;"></g><line id="SvgjsLine1051" x1="0" y1="48" x2="100" y2="48" stroke="transparent" stroke-dasharray="0" stroke-linecap="butt"></line><line id="SvgjsLine1050" x1="0" y1="1" x2="0" y2="48" stroke="transparent" stroke-dasharray="0" stroke-linecap="butt"></line></g><g id="SvgjsG1046" class="apexcharts-grid-borders" style="display: none;"></g><g id="SvgjsG1033" class="apexcharts-area-series apexcharts-plot-series"><g id="SvgjsG1034" class="apexcharts-series" zIndex="0" seriesName="series-1" data:longestSeries="true" rel="1" data:realIndex="0"><path id="SvgjsPath1041" d="M 0 96 L 0 96 L 50 96z" fill="url(#SvgjsLinearGradient1037)" fill-opacity="1" stroke-opacity="1" stroke-linecap="butt" stroke-width="0" stroke-dasharray="0" class="apexcharts-area" index="0" clip-path="url(#gridRectMask51ta59vnj)" pathTo="M 50 48 L 50 0 L 50 48 L 50 48z" pathFrom="M 0 96 L 0 96 L 50 96z"></path><path id="SvgjsPath1042" d="M 0 96 L 0 96 L 50 96" fill="none" fill-opacity="1" stroke="#efefef" stroke-opacity="1" stroke-linecap="butt" stroke-width="2" stroke-dasharray="0" class="apexcharts-area" index="0" clip-path="url(#gridRectMask51ta59vnj)" pathTo="M 50 48 L 50 0" pathFrom="M 0 96 L 0 96 L 50 96" fill-rule="evenodd"></path><g id="SvgjsG1035" class="apexcharts-series-markers-wrap apexcharts-element-hidden" data:realIndex="0"></g></g><g id="SvgjsG1036" class="apexcharts-datalabels" data:realIndex="0"></g></g><line id="SvgjsLine1052" x1="0" y1="0" x2="100" y2="0" stroke="#b6b6b6" stroke-dasharray="0" stroke-width="1" stroke-linecap="butt" class="apexcharts-ycrosshairs"></line><line id="SvgjsLine1053" x1="0" y1="0" x2="100" y2="0" stroke-dasharray="0" stroke-width="0" stroke-linecap="butt" class="apexcharts-ycrosshairs-hidden"></line><g id="SvgjsG1054" class="apexcharts-xaxis" transform="translate(0, 0)"><g id="SvgjsG1055" class="apexcharts-xaxis-texts-g" transform="translate(0, -4)"></g></g><g id="SvgjsG1072" class="apexcharts-yaxis-annotations apexcharts-element-hidden"></g><g id="SvgjsG1073" class="apexcharts-xaxis-annotations apexcharts-element-hidden"></g><g id="SvgjsG1074" class="apexcharts-point-annotations apexcharts-element-hidden"></g></g></svg></div></div></div><!----><!----></div> <!----> <div class="widget errors"><!----> <!----></div> <div class="scroller svelte-ltnpon" id="scroller"><table class="svelte-ltnpon"><tbody><tr><th class="justify-left svelte-ltnpon">Date</th><th class="justify-left svelte-ltnpon">Description</th><th class="svelte-ltnpon">Debit</th><th class="svelte-ltnpon">Credit</th><th class="svelte-ltnpon">Balance</th></tr><!----><tr class="svelte-ltnpon" id="066374b6-9849-4d8c-ad7c-ba955aa216ab"><td class=" align_right svelte-ltnpon">21/01/2023</td><td class=" svelte-ltnpon" title="A test transaction"><div class="description svelte-ltnpon">A test transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">200.00</td></tr><!----><tr class="svelte-ltnpon" id="6fbc1081-5bc8-42e4-b085-6354d12eb30f"><td class=" align_right svelte-ltnpon">21/01/2023</td><td class=" svelte-ltnpon" title="A test compound transaction"><div class="description svelte-ltnpon">A test compound transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">400.00</td></tr><!----></tbody></table><!----> <!----></div><!----></div>"
+`;
+
+exports[`is displayed correctly for US date 1`] = `
+"<div><div class="account-heading"><div class="account svelte-ltnpon"><div class="widgetNoLabel svelte-vv6jek"><!----> <select name="itemSelect" class="svelte-vv6jek flat"><!----><!----><option value="[object Object]">Account 1</option><!----><option value="[object Object]">Account 2</option><!----><option value="[object Object]">Account 3</option><!----></select></div><!----></div> <div class="toolbar svelte-ltnpon"><div class="toolbar-icon import-icon svelte-ltnpon" title="Import transactions"><!----><!----></div><!----> <div class="toolbar-icon svelte-ltnpon" title="Add a transaction"><!----><!----></div></div> <div class="chart svelte-ltnpon"><div style="min-height: 50px;"><div id="apexchartsxpxnq9o9" class="apexcharts-canvas apexchartsxpxnq9o9 apexcharts-theme-" style="width: 100px; height: 50px;"><svg id="SvgjsSvg1075" width="100" height="50" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" class="apexcharts-svg" xmlns:data="ApexChartsNS" transform="translate(0, 0)"><foreignObject x="0" y="0" width="100" height="50"><div class="apexcharts-legend" xmlns="http://www.w3.org/1999/xhtml" style="max-height: 25px;"></div><style type="text/css">
+      .apexcharts-flip-y {
+        transform: scaleY(-1) translateY(-100%);
+        transform-origin: top;
+        transform-box: fill-box;
+      }
+      .apexcharts-flip-x {
+        transform: scaleX(-1);
+        transform-origin: center;
+        transform-box: fill-box;
+      }
+      .apexcharts-legend {
+        display: flex;
+        overflow: auto;
+        padding: 0 10px;
+      }
+      .apexcharts-legend.apx-legend-position-bottom, .apexcharts-legend.apx-legend-position-top {
+        flex-wrap: wrap
+      }
+      .apexcharts-legend.apx-legend-position-right, .apexcharts-legend.apx-legend-position-left {
+        flex-direction: column;
+        bottom: 0;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-left, .apexcharts-legend.apx-legend-position-top.apexcharts-align-left, .apexcharts-legend.apx-legend-position-right, .apexcharts-legend.apx-legend-position-left {
+        justify-content: flex-start;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-center, .apexcharts-legend.apx-legend-position-top.apexcharts-align-center {
+        justify-content: center;
+      }
+      .apexcharts-legend.apx-legend-position-bottom.apexcharts-align-right, .apexcharts-legend.apx-legend-position-top.apexcharts-align-right {
+        justify-content: flex-end;
+      }
+      .apexcharts-legend-series {
+        cursor: pointer;
+        line-height: normal;
+        display: flex;
+        align-items: center;
+      }
+      .apexcharts-legend-text {
+        position: relative;
+        font-size: 14px;
+      }
+      .apexcharts-legend-text *, .apexcharts-legend-marker * {
+        pointer-events: none;
+      }
+      .apexcharts-legend-marker {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-right: 1px;
+      }
+
+      .apexcharts-legend-series.apexcharts-no-click {
+        cursor: auto;
+      }
+      .apexcharts-legend .apexcharts-hidden-zero-series, .apexcharts-legend .apexcharts-hidden-null-series {
+        display: none !important;
+      }
+      .apexcharts-inactive-legend {
+        opacity: 0.45;
+      }</style></foreignObject><rect id="SvgjsRect1081" width="0" height="0" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fefefe"></rect><g id="SvgjsG1100" class="apexcharts-datalabels-group" transform="translate(0, 0) scale(1)"></g><g id="SvgjsG1101" class="apexcharts-datalabels-group" transform="translate(0, 0) scale(1)"></g><g id="SvgjsG1140" class="apexcharts-yaxis" rel="0" transform="translate(-18, 0)"></g><g id="SvgjsG1077" class="apexcharts-inner apexcharts-graphical" transform="translate(0, 1)"><defs id="SvgjsDefs1076"><clipPath id="gridRectMaskxpxnq9o9"><rect id="SvgjsRect1091" width="100" height="48" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="gridRectBarMaskxpxnq9o9"><rect id="SvgjsRect1094" width="106" height="54" x="-3" y="-3" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="gridRectMarkerMaskxpxnq9o9"><rect id="SvgjsRect1097" width="100" height="48" x="0" y="0" rx="0" ry="0" opacity="1" stroke-width="0" stroke="none" stroke-dasharray="0" fill="#fff"></rect></clipPath><clipPath id="forecastMaskxpxnq9o9"></clipPath><clipPath id="nonForecastMaskxpxnq9o9"></clipPath><linearGradient id="SvgjsLinearGradient1106" x1="0" y1="0" x2="0" y2="1"><stop id="SvgjsStop1107" stop-opacity="0.65" stop-color="rgba(239,239,239,0.65)" offset="0"></stop><stop id="SvgjsStop1108" stop-opacity="0.5" stop-color="rgba(247,247,247,0.5)" offset="1"></stop><stop id="SvgjsStop1109" stop-opacity="0.5" stop-color="rgba(247,247,247,0.5)" offset="1"></stop></linearGradient></defs><line id="SvgjsLine1084" x1="0" y1="0" x2="0" y2="48" stroke="#b6b6b6" stroke-dasharray="3" stroke-linecap="butt" class="apexcharts-xcrosshairs" x="0" y="0" width="1" height="48" fill="#b1b9c4" filter="none" fill-opacity="0.9" stroke-width="1"></line><g id="SvgjsG1112" class="apexcharts-grid"><g id="SvgjsG1113" class="apexcharts-gridlines-horizontal" style="display: none;"><line id="SvgjsLine1116" x1="0" y1="0" x2="100" y2="0" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line><line id="SvgjsLine1117" x1="0" y1="24" x2="100" y2="24" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line><line id="SvgjsLine1118" x1="0" y1="48" x2="100" y2="48" stroke="#e0e0e0" stroke-dasharray="0" stroke-linecap="butt" class="apexcharts-gridline"></line></g><g id="SvgjsG1114" class="apexcharts-gridlines-vertical" style="display: none;"></g><line id="SvgjsLine1120" x1="0" y1="48" x2="100" y2="48" stroke="transparent" stroke-dasharray="0" stroke-linecap="butt"></line><line id="SvgjsLine1119" x1="0" y1="1" x2="0" y2="48" stroke="transparent" stroke-dasharray="0" stroke-linecap="butt"></line></g><g id="SvgjsG1115" class="apexcharts-grid-borders" style="display: none;"></g><g id="SvgjsG1102" class="apexcharts-area-series apexcharts-plot-series"><g id="SvgjsG1103" class="apexcharts-series" zIndex="0" seriesName="series-1" data:longestSeries="true" rel="1" data:realIndex="0"><path id="SvgjsPath1110" d="M 0 96 L 0 96 L 50 96z" fill="url(#SvgjsLinearGradient1106)" fill-opacity="1" stroke-opacity="1" stroke-linecap="butt" stroke-width="0" stroke-dasharray="0" class="apexcharts-area" index="0" clip-path="url(#gridRectMaskxpxnq9o9)" pathTo="M 50 48 L 50 0 L 50 48 L 50 48z" pathFrom="M 0 96 L 0 96 L 50 96z"></path><path id="SvgjsPath1111" d="M 0 96 L 0 96 L 50 96" fill="none" fill-opacity="1" stroke="#efefef" stroke-opacity="1" stroke-linecap="butt" stroke-width="2" stroke-dasharray="0" class="apexcharts-area" index="0" clip-path="url(#gridRectMaskxpxnq9o9)" pathTo="M 50 48 L 50 0" pathFrom="M 0 96 L 0 96 L 50 96" fill-rule="evenodd"></path><g id="SvgjsG1104" class="apexcharts-series-markers-wrap apexcharts-element-hidden" data:realIndex="0"></g></g><g id="SvgjsG1105" class="apexcharts-datalabels" data:realIndex="0"></g></g><line id="SvgjsLine1121" x1="0" y1="0" x2="100" y2="0" stroke="#b6b6b6" stroke-dasharray="0" stroke-width="1" stroke-linecap="butt" class="apexcharts-ycrosshairs"></line><line id="SvgjsLine1122" x1="0" y1="0" x2="100" y2="0" stroke-dasharray="0" stroke-width="0" stroke-linecap="butt" class="apexcharts-ycrosshairs-hidden"></line><g id="SvgjsG1123" class="apexcharts-xaxis" transform="translate(0, 0)"><g id="SvgjsG1124" class="apexcharts-xaxis-texts-g" transform="translate(0, -4)"></g></g><g id="SvgjsG1141" class="apexcharts-yaxis-annotations apexcharts-element-hidden"></g><g id="SvgjsG1142" class="apexcharts-xaxis-annotations apexcharts-element-hidden"></g><g id="SvgjsG1143" class="apexcharts-point-annotations apexcharts-element-hidden"></g></g></svg></div></div></div><!----><!----></div> <!----> <div class="widget errors"><!----> <!----></div> <div class="scroller svelte-ltnpon" id="scroller"><table class="svelte-ltnpon"><tbody><tr><th class="justify-left svelte-ltnpon">Date</th><th class="justify-left svelte-ltnpon">Description</th><th class="svelte-ltnpon">Debit</th><th class="svelte-ltnpon">Credit</th><th class="svelte-ltnpon">Balance</th></tr><!----><tr class="svelte-ltnpon" id="066374b6-9849-4d8c-ad7c-ba955aa216ab"><td class=" align_right svelte-ltnpon">1/21/2023</td><td class=" svelte-ltnpon" title="A test transaction"><div class="description svelte-ltnpon">A test transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">200.00</td></tr><!----><tr class="svelte-ltnpon" id="6fbc1081-5bc8-42e4-b085-6354d12eb30f"><td class=" align_right svelte-ltnpon">1/21/2023</td><td class=" svelte-ltnpon" title="A test compound transaction"><div class="description svelte-ltnpon">A test compound transaction</div> <!----><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----><div class="description tiny svelte-ltnpon">Account 2</div><!----></td><td class=" money svelte-ltnpon">200.00</td><td class=" money svelte-ltnpon"></td><td class=" money svelte-ltnpon">400.00</td></tr><!----></tbody></table><!----> <!----></div><!----></div>"
+`;
