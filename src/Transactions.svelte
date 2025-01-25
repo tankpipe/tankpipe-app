@@ -11,6 +11,8 @@
     import { accounts } from './accounts'
     import { afterUpdate } from 'svelte'
     import { invoke } from "@tauri-apps/api/core"
+    import { chart } from "svelte-apexcharts"
+    import { onMount } from 'svelte'
 
     export let curAccount
 
@@ -68,11 +70,55 @@
         page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
     }
 
+    let chartOptions = {
+        series: [
+            {
+                name: "foo",
+                data: [],
+            },
+        ],
+        chart: {
+            type: "area",
+            height: 50,
+            width: 100,
+            sparkline: {
+                enabled: true,
+            },
+        },
+        stroke: {
+            curve: "straight",
+            width: 2,
+            colors:["#efefef"],
+        },
+        fill: {
+            opacity: 0.6,
+            colors: ["#efefef"],
+        },
+        xaxis: {
+            crosshairs: {
+                width: 1,
+            },
+            type: "datetime",
+        },
+        tooltip: {
+            enabled: false
+        },
+    }
+
     let transactions = []
+    let chartValues = []
+
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
-        transactions = await invoke('transactions', {accountId: curAccount.id})
-        console.log(transactions)
+        transactions = await invoke("transactions", {
+            accountId: curAccount.id,
+        })
+        chartValues = []
+        for (const t of transactions) {
+            let entry = getEntry(t)
+            chartValues.push([new Date(entry.date).valueOf(), entry.balance])
+        }
+        chartOptions["series"] = [{data: chartValues}]
     }
 
     const findClosestTransaction = () => {
@@ -176,13 +222,18 @@
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
-    <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
+    <div class="account">
+        <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
+    </div>
     <div class="toolbar">
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
+    {#if transactions.length > 0}
+    <div class="chart"><div use:chart={chartOptions}></div></div>
+    {/if}
     {/if}
 </div>
 {#if isEditMode($page)}
@@ -300,9 +351,22 @@
         margin: 3px 0 -5px 2px;
     }
 
-    .toolbar {
+    .account {
+        float: left;
+    }
+
+    .chart {
         float: right;
-        color: #C0C0C0;
+        color: #c0c0c0;
+        margin: 0 0 5px 10px;
+        display: flex;
+        padding-right: 9px;
+        width: 105px;
+    }
+
+    .toolbar {
+        float: left;
+        color: #c0c0c0;
         margin-left: 10px;
         display: flex;
         padding-right: 9px;
