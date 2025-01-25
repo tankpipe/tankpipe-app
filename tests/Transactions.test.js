@@ -5,21 +5,18 @@ import {page, views, modes} from '../src/page'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
 import { config } from '../src/config'
-import { vi, jest } from 'vitest'
+import { vi } from 'vitest'
 import { mockIPC } from "@tauri-apps/api/mocks"
 
 Element.prototype.scrollTo = () => {}
 accounts.set(account_data)
 
-const ResizeObserverMock = vi.fn(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  }));
-
-  // Stub the global ResizeObserver
-  vi.stubGlobal('ResizeObserver', ResizeObserverMock);
-
+// Mock chart to avoid dynamic identifiers.
+vi.mock("svelte-apexcharts", () => {
+    return {
+      chart: vi.fn(() => {})
+    };
+});
 
 it('is displayed correctly for Regular date', async () => {
     const mockFetchTransactions = loadTransactions()
@@ -42,7 +39,6 @@ it('is displayed correctly for ISO date', async () => {
 async function checkResults(mockFetchTransactions) {
     const { findByText, container } = render(Transactions, { curAccount: account_data[0] })
     const _waitForRenderUpdate = await findByText('Description')
-
     // Note: Select should show Account 1 as selected but defaults to Account 3
     expect(container.outerHTML).toMatchSnapshot()
 }
