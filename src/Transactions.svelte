@@ -116,9 +116,13 @@
         chartValues = []
         for (const t of transactions) {
             let entry = getEntry(t)
-            chartValues.push([new Date(entry.date).valueOf(), entry.balance])
+            chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
         }
         chartOptions["series"] = [{data: chartValues}]
+    }
+
+    const chartBalance = (balance) => {
+        return curAccount.account_type == "Liability" ? balance * -1 : balance
     }
 
     const findClosestTransaction = () => {
