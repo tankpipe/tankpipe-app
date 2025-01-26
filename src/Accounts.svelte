@@ -120,7 +120,7 @@
     {#if checkAccountType(a)}
         <div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
     {/if}
-        <div class="card" on:click={() => selectAccount(a) }>{a.name}<div class="edit-icon" on:click={() => editAccount(a) }><Icon icon="mdi:pencil" /></div></div>
+        <div class="card" on:click={() => selectAccount(a) }>{a.name}<div class="edit-icon" on:click|stopPropagation={() => editAccount(a) }><Icon icon="mdi:pencil" /></div></div>
     {/each}
     </div>
 </div>
