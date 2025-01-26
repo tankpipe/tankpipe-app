@@ -3,13 +3,11 @@ import adapter from '@sveltejs/adapter-auto';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
     onwarn: (warning, handler) => {
-        if (warning.code === 'a11y-click-events-have-key-events') return
-        if (warning.code === "a11y-no-static-element-interactions") return
         if (warning.code.startsWith('a11y-')) return
+        if (warning.code.startsWith('a11y_')) return
         if (warning.code === 'missing-exports-condition') return
-        if (warning.code === 'a11y-no-static-element-interactions') return
-        if (warning.code === 'a11y-autofocus') return
-        if (warning.code.startsWith('css-unused-selector')) return
+        if (warning.code.startsWith('css-')) return
+        if (warning.code.startsWith('css_')) return
         handler(warning)
     },
 	kit: {
