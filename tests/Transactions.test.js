@@ -11,6 +11,13 @@ import { mockIPC } from "@tauri-apps/api/mocks"
 Element.prototype.scrollTo = () => {}
 accounts.set(account_data)
 
+// Mock chart to avoid dynamic identifiers.
+vi.mock("svelte-apexcharts", () => {
+    return {
+      chart: vi.fn(() => {})
+    };
+});
+
 it('is displayed correctly for Regular date', async () => {
     const mockFetchTransactions = loadTransactions()
     config.set({display_date_format: "Regular"})
@@ -32,7 +39,6 @@ it('is displayed correctly for ISO date', async () => {
 async function checkResults(mockFetchTransactions) {
     const { findByText, container } = render(Transactions, { curAccount: account_data[0] })
     const _waitForRenderUpdate = await findByText('Description')
-
     // Note: Select should show Account 1 as selected but defaults to Account 3
     expect(container.outerHTML).toMatchSnapshot()
 }
