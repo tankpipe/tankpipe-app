@@ -86,7 +86,7 @@
             },
         },
         stroke: {
-            curve: "straight",
+            curve: "stepline",
             width: 2,
             colors:["#efefef"],
         },
