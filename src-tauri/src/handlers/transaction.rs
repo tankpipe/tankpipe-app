@@ -52,17 +52,19 @@ pub fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result
 pub fn add_transaction(
     state: tauri::State<BooksState>,
     mut transaction: Transaction,
-) -> Result<(), String> {
+) -> Result<Transaction, String> {
     println!("Adding transaction {:?}", transaction);
-    transaction.id = Uuid::new_v4();
+    let id = Uuid::new_v4();
+    transaction.id = id.clone();
     for e in transaction.entries.as_mut_slice() {
         e.id = Uuid::new_v4();
         e.transaction_id = transaction.id;
     }
 
     let mut mutex_guard = state.0.lock().unwrap();
-    error_handler(mutex_guard.books.add_transaction(transaction))?;
-    error_handler(mutex_guard.save())
+    error_handler(mutex_guard.books.add_transaction(transaction.clone()))?;
+    error_handler(mutex_guard.save())?;
+    Ok(transaction)
 }
 
 #[tauri::command]
