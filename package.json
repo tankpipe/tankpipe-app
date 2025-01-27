@@ -31,7 +31,7 @@
     "svelte": "^5.19.0",
     "svelte-jester": "^5.0.0",
     "vite": "^6.0.11",
-    "vitest": "^3.0.1"
+    "vitest": "^3.0.4"
   },
   "dependencies": {
     "@aptabase/tauri": "github:aptabase/tauri-plugin-aptabase#v2",
