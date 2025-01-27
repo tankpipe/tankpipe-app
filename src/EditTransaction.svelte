@@ -155,6 +155,7 @@
 
     function resolved(result) {
       msg = "Transaction saved."
+      curTransaction = result
       if ($page.mode === modes.EDIT) {
         loadTransactions()
         close()
@@ -291,10 +292,12 @@
 </script>
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Transaction</div>
+    {#if curTransaction && curTransaction.entries}
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{schedule(curTransaction)}" title="Schedule"><Icon icon="mdi:clipboard-text-clock"  width="24"/></div>
         <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
     </div>
+    {/if}
         {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>

@@ -86,7 +86,7 @@
             },
         },
         stroke: {
-            curve: "straight",
+            curve: "stepline",
             width: 2,
             colors:["#efefef"],
         },
@@ -116,9 +116,13 @@
         chartValues = []
         for (const t of transactions) {
             let entry = getEntry(t)
-            chartValues.push([new Date(entry.date).valueOf(), entry.balance])
+            chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
         }
         chartOptions["series"] = [{data: chartValues}]
+    }
+
+    const chartBalance = (balance) => {
+        return curAccount.account_type == "Liability" ? balance * -1 : balance
     }
 
     const findClosestTransaction = () => {
@@ -226,10 +230,10 @@
         <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
+        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
-        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
     {#if transactions.length > 0}
     <div class="chart"><div use:chart={chartOptions}></div></div>

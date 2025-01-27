@@ -94,7 +94,7 @@
 
     }
     function resolved(result) {
-      msg = "Account saved."
+        msg = "Account saved."
     }
 
     function rejected(result) {
@@ -103,21 +103,21 @@
     }
 
     const addAccount = async (account) => {
-           await invoke('add_account', {account: account}).then(resolved, rejected)
+        await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
         initialize = false
     }
 
     const saveAccount = async (account) => {
         console.log(account)
-           await invoke('update_account', {account: account}).then(resolved, rejected)
-         loadAccounts()
+        await invoke('update_account', {account: account}).then(resolved, rejected)
+        loadAccounts()
     }
 
     function deleteResolved(result) {
-      msg = "Account deleted."
-      loadAccounts()
-      close()
+        msg = "Account deleted."
+        loadAccounts()
+        close()
     }
 
     const deleteAccount = async (account) => {
