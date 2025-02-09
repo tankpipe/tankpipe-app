@@ -128,25 +128,19 @@
 
             </div>
             <div class="column middle">
-
-                    {#if $page.view === views.TRANSACTIONS}
-                    <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
-                    {/if}
-                    {#if $page.view === views.ACCOUNTS}
-                    <Accounts bind:curAccount={curAccount} {loadAccounts}/>
-                    {/if}
-                    {#if $page.view === views.SCHEDULES}
-                    <Schedules/>
-                    {/if}
-                    {#if $page.view === views.SETTINGS}
-                    <Settings />
-                    {/if}
-                    {#if $page.view === views.BOOKS}
-                    <EditBooks />
-                    {/if}
-                    {#if $page.view === views.ABOUT}
-                    <About />
-                    {/if}
+                {#if $page.view === views.TRANSACTIONS}
+                <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
+                {:else if $page.view === views.ACCOUNTS}
+                <Accounts bind:curAccount={curAccount} {loadAccounts}/>
+                {:else if $page.view === views.SCHEDULES}
+                <Schedules/>
+                {:else if $page.view === views.SETTINGS}
+                <Settings />
+                {:else if $page.view === views.BOOKS}
+                <EditBooks />
+                {:else if $page.view === views.ABOUT}
+                <About />
+                {/if}
             </div>
             <Dialog bind:dialog on:close={() => console.log('closed')} closeButton={true} {closeIcon}>
                 <About />
