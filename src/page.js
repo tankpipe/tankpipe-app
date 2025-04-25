@@ -5,7 +5,8 @@ const views = {
     ACCOUNTS: "ACCOUNTS",
     TRANSACTIONS: "TRANSACTIONS",
     SCHEDULES: "SCHEDULES",
-    SETTINGS: "SETTINGS"
+    SETTINGS: "SETTINGS",
+    NET_ASSETS: "NET_ASSETS",
 }
 
 const modes = {
@@ -15,7 +16,7 @@ const modes = {
     LOAD: "LOAD"
 }
 
-const page = writable({view: views.ACCOUNTS, mode:modes.LIST, payload:{}})
+const page = writable({view: views.NET_ASSETS, mode:modes.LIST, payload:{}})
 
 const isEditMode = (page) => {
     return page.mode === modes.EDIT || page.mode === modes.NEW

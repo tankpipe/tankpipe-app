@@ -17,6 +17,7 @@
     import Dialog from './Dialog.svelte'
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
+    import NetAssets from './NetAssets.svelte';
 
     export let curAccount = null
     let dialog
@@ -119,6 +120,7 @@
                         {#if $accounts.length > 0 }
                         <li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>Transactions</li>
                         <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
+                        <li on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>Net Assets</li>
                         {:else}
                         <li class="disabled">Transactions</li>
                         <li class="disabled">Schedules</li>
@@ -128,25 +130,21 @@
 
             </div>
             <div class="column middle">
-
-                    {#if $page.view === views.TRANSACTIONS}
-                    <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
-                    {/if}
-                    {#if $page.view === views.ACCOUNTS}
-                    <Accounts bind:curAccount={curAccount} {loadAccounts}/>
-                    {/if}
-                    {#if $page.view === views.SCHEDULES}
-                    <Schedules/>
-                    {/if}
-                    {#if $page.view === views.SETTINGS}
-                    <Settings />
-                    {/if}
-                    {#if $page.view === views.BOOKS}
-                    <EditBooks />
-                    {/if}
-                    {#if $page.view === views.ABOUT}
-                    <About />
-                    {/if}
+                {#if $page.view === views.TRANSACTIONS}
+                <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
+                {:else if $page.view === views.ACCOUNTS}
+                <Accounts bind:curAccount={curAccount} {loadAccounts}/>
+                {:else if $page.view === views.SCHEDULES}
+                <Schedules/>
+                {:else if $page.view === views.NET_ASSETS}
+                <NetAssets bind:curAccount={curAccount} {loadAccounts}/>
+                {:else if $page.view === views.SCHEDULES}
+                <Settings />
+                {:else if $page.view === views.BOOKS}
+                <EditBooks />
+                {:else if $page.view === views.ABOUT}
+                <About />
+                {/if}
             </div>
             <Dialog bind:dialog on:close={() => console.log('closed')} closeButton={true} {closeIcon}>
                 <About />
