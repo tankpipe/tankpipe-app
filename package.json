@@ -24,7 +24,7 @@
     "@testing-library/svelte": "^5.2.7",
     "date-picker-svelte": "^2.16.0",
     "jsdom": "^26.0.0",
-    "rollup": "^4.40.0",
+    "rollup": "^4.40.1",
     "rollup-plugin-css-only": "^4.5.2",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-svelte": "^7.2.2",
