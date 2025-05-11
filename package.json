@@ -22,7 +22,7 @@
     "@tauri-apps/cli": "^2.2.7",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.7",
-    "date-picker-svelte": "^2.15.1",
+    "date-picker-svelte": "^2.16.0",
     "jsdom": "^26.0.0",
     "rollup": "^4.40.1",
     "rollup-plugin-css-only": "^4.5.2",
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@aptabase/tauri": "github:aptabase/tauri-plugin-aptabase#v2",
-    "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-dialog": "^2.2.1",
     "@tauri-apps/plugin-shell": "^2.2.1",
     "apexcharts": "^4.4.0",
