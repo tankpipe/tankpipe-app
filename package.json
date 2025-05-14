@@ -23,7 +23,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.7",
     "date-picker-svelte": "^2.16.0",
-    "jsdom": "^26.0.0",
+    "jsdom": "^26.1.0",
     "rollup": "^4.40.2",
     "rollup-plugin-css-only": "^4.5.2",
     "rollup-plugin-livereload": "^2.0.5",
