@@ -403,7 +403,6 @@
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
-        max-width: 350px;
     }
 
     .success-msg {
