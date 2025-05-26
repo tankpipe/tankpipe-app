@@ -6,13 +6,13 @@
     import Icon from '@iconify/svelte'
     import {page, modes, views} from './page.js'
     import {settings} from './settings.js'
-    import {accounts} from './accounts'
+    import {accounts} from './accounts.js'
     import {config, dateFormat} from './config.js'
     import { invoke } from "@tauri-apps/api/core"
 
     export let loadTransactions
     export let curEntry
-    let curTransaction
+    export let transactions
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
@@ -25,24 +25,27 @@
     let compoundMode = false
     let recorded = false
     let entries = []
+    let curTransaction
+    let changesTransaction = {id: zeros, status:"Recorded"}
+
 
     onMount(() => {
-        console.log($page.mode, curEntry)
-        if ($page.mode === modes.EDIT) {
+        console.log($page.mode, curEntry, transactions)
+        if ($page.mode === modes.MULTI_EDIT) {
             console.log(curEntry)
             fetchTransaction(curEntry.transaction_id)
-        } else {
-            curTransaction = {id: zeros, status:"Recorded"}
-            let date = new Date()
-            entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
-            ]
-            addButtonLabel = "Add"
-            simpleAllowed = true
         }
 
+        resetChanges()
     })
+
+    const resetChanges = () => {
+        entries = [
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
+        ]
+    }
+
 
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
@@ -97,6 +100,21 @@
         return errors
     }
 
+    const applyChanges = (entry, changeEntry, index, errors) => {
+        const prefix = compoundMode ? index + "_" : ""
+
+        if (changeEntry.description && changeEntry.description.length > 0) {
+            entry.description = changeEntry.description
+        }
+
+        if (changeEntry.account && changeEntry.account.id) {
+            entry.account_id = changeEntry.account.id
+        }
+
+        console.log(index, entry, changeEntry)
+    }
+
+
     const toDateStr = (date) => {
         return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
     }
@@ -104,49 +122,21 @@
     const onSave = () => {
         msg = ""
         errors = new Errors()
+        const changedTransactions = []
         if (!compoundMode) syncSecondEntry(entries)
-        entries.forEach((e, i) => validateEntry(e, i, errors))
+        transactions.forEach(t => {
+            const transaction = structuredClone(t)
+            transaction.entries.forEach((e, i) => applyChanges(e, entries[i], i, errors))
+
+            if (!errors.hasErrors()) {
+                changedTransactions.push(transaction)
+            }
+
+        })
 
         if (!errors.hasErrors()) {
-            const transaction = {
-                    date: toDateStr(new Date()),
-                    description: "",
-                    entries: [...entries]
-            }
-
-            if (!compoundMode && !settings.require_double_entry) {
-                 transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
-            }
-
-            transaction.entries.forEach (
-                e => {
-                    e["date"] = toDateStr(e.realDate)
-                    e["account_id"] = e["account"]["id"]
-                    if (compoundMode) {
-                        e["amount"] = (e["entry_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
-                    }
-                }
-            )
-
-            if (!transaction["status"] || (transaction["status"] != "Recorded")) {
-                transaction["status"] = recorded?"Recorded":"Projected"
-            }
-
-            if ($page.mode === modes.NEW) {
-                transaction["id"] = zeros
-                transaction.entries.forEach (
-                    e => {
-                        e["id"] = zeros
-                        e["transaction_id"] = zeros
-                    }
-                )
-                addTransaction(transaction)
-            } else if ($page.mode === modes.EDIT) {
-                transaction["id"] = curTransaction.id
-                saveTransaction(transaction)
-            }
+            saveTransactions(changedTransactions)
         }
-
     }
 
     const matchAccount = (account_id) =>  {
@@ -155,12 +145,10 @@
     }
 
     function resolved(result) {
-      msg = "Transaction saved."
+      msg = "Transactions saved."
       curTransaction = result
-      if ($page.mode === modes.EDIT) {
-        loadTransactions()
-        close()
-      }
+      loadTransactions()
+      //close()
     }
 
     const syncSecondEntry = () => {
@@ -186,60 +174,17 @@
     function fetched(result) {
         curTransaction = result
         addButtonLabel = "Update"
-        console.log(result)
-        entries = curTransaction.entries
-
-        entries.forEach(e => {
-            e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
-            e.realDate = new Date(e.date)
-            e.account = matchAccount(e.account_id)
-        })
-
-        if (entries.length == 1) {
-            entries.push({})
-            syncSecondEntry()
-            entries[1].account = null
-            entries[0].entry_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
-        }
-
-        simpleAllowed = canBeSimple(entries)
-        if (!simpleAllowed) {
-            compoundMode = true
-        }
-
         recorded = curTransaction.status != "Projected"
-
-        console.log(entries)
     }
 
     function rejected(result) {
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
     }
-    const addTransaction = async (transaction) => {
-        console.log(transaction)
-        await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
-        loadTransactions()
-    }
 
-    const saveTransaction = async (transaction) => {
-        console.log(transaction)
-        await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
-        loadTransactions()
-    }
-
-    function resolvedDelete(result) {
-      msg = "Transaction deleted."
-      close()
-    }
-
-    const deleteTransaction = async (transaction) => {
-        console.log(transaction)
-        if (transaction && transaction.id) {
-               await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
-        } else {
-            close()
-        }
+    const saveTransactions = async (transactions) => {
+        console.log(transactions)
+        await invoke('update_transactions', {transactions: transactions}).then(resolved, rejected)
     }
 
 
@@ -282,21 +227,61 @@
         calculateTotals()
     }
 
-    const schedule = () => {
-        console.log("schedule", curTransaction.entries[0].schedule_id)
-        if (curTransaction.entries[0].schedule_id) {
-            page.set({view: views.SCHEDULES, mode: modes.LOAD, payload:{schedule_id: curTransaction.entries[0].schedule_id}})
-        } else {
-            page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
+    /*
+     * Transaction list functions.
+     */
+
+     const formatter = new Intl.NumberFormat('en-AU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })
+
+
+    const getDebitAmount = (transaction, curAccount) => {
+        return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
+    }
+
+    const getCreditAmount = (transaction, curAccount) => {
+        return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
+    }
+
+    const getBalance = (transaction) => {
+        return formatter.format(transaction.balance)
+    }
+
+    const getDate = (transaction) => {
+        const date = new Date(transaction.date)
+
+        switch ($config.display_date_format) {
+            case "Regular": return date.toLocaleDateString("en-GB")
+            case "US": return date.toLocaleDateString("en-US")
+            case "ISO": return transaction.date
+            default: return date.toLocaleDateString()
         }
     }
+
+    const date_style = () => {
+        switch ($config.display_date_format) {
+            case "ISO": return ""
+            default: return "align_right"
+        }
+    }
+
+    const getDescription = (transaction) => {
+        return transaction.description
+    }
+    const getEntry = (transaction) => {
+        return transaction.entries.find(e => e.account_id == curEntry.account_id)
+    }
+
+    const projected = (t) => t.status == 'Projected' ? 'projected' : ''
+    const date_class = date_style()
 </script>
+<div>
 <div class="form">
-    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Transaction</div>
+    <div class="form-heading">Edit Multiple Transactions</div>
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{schedule(curTransaction)}" title="Schedule"><Icon icon="mdi:clipboard-text-clock"  width="24"/></div>
-        <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title="Delete account"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -305,9 +290,9 @@
                 <tbody>
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" /></div></td>
+                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
                     <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount}></td>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount} disabled="disabled"></td>
                 </tr>
                 </tbody>
             </table>
@@ -315,11 +300,11 @@
         <div class="form-row2">
             {#if entries.length > 1}
             {#if entries[0].entry_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} />
+            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} disabled="disabled" />
             <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
             {#if entries[0].entry_type === "Credit"}
-            <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} />
+            <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} disabled="disabled" />
             <Select bind:item={entries[0].account} items={$accounts} label="Credit" none={true} flat={true} />
             {/if}
             {/if}
@@ -332,9 +317,9 @@
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
                 {#each entries as e, i}
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" /></div></td>
+                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
                     <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} /></div></td>
                     <td class="money">
                         {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
                         {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
@@ -360,26 +345,61 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
+            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled="disabled">
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={recorded}>
+            <input id="compound" type=checkbox bind:checked={recorded} disabled="disabled">
             <label for="compound">Recorded</label>
         </div>
         <div class="widget buttons">
             <button on:click={close}>Close</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
-        <div class="widget errors">
-            {#each errors.getErrorMessages() as e}
-            <div class="error-msg">{e}</div>
-            {/each}
-            {#if msg}
-            <div class="success-msg">{msg}</div>
-            {/if}
-        </div>
     </div>
+    <div class="widget errors">
+        {#each errors.getErrorMessages() as e}
+        <div class="error-msg">{e}</div>
+        {/each}
+        {#if msg}
+        <div class="success-msg">{msg}</div>
+        {/if}
+    </div>
+</div>
+<div class="section-heading">
+    <div class="form-heading">Selected Transactions</div>
+</div>
+<div class="scroller" id="scroller">
+    {#if transactions.length > 0}
+    <table>
+        <tbody>
+        <tr><th></th><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        {#each transactions as t}
+            {@const e =  getEntry(t)}
+            {#if e}
+            <tr id={t.id}><!--{t.id}-->
+                <td on:click|stopPropagation={() => toggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={true} disabled={true}/></td>
+                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
+                    {#each t.entries as en}
+                        {#if en.account_id != curEntry.account_id}
+                        <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
+                        {/if}
+                    {/each}
+                </td>
+                <td class="{projected(t)} money">{getDebitAmount(e, curEntry.account_id)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e, curEntry.account_id)}</td>
+                <td class="{projected(t)} money">{getBalance(e)}</td>
+            </tr>
+            {/if}
+        {/each}
+        </tbody>
+    </table>
+    {/if}
+    {#if transactions.length < 1}
+    <div class="message">No transactions</div>
+    {/if}
+</div>
 </div>
 
 <style>
@@ -398,6 +418,7 @@
     .form-row2, .form-button-row {
         display: block;
         text-align: left;
+        clear: left;
     }
 
     .form-row2{
@@ -413,7 +434,6 @@
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
-        max-width: 350px;
     }
 
     .success-msg {
@@ -557,4 +577,74 @@
         margin: 6px 0 0 0 !important;
     }
 
+    .section-heading {
+        width: 100%;
+        clear: both;
+        padding-top: 50px;
+    }
+
+    /* transactions styles*/
+    .scroller {
+        height: 100%;
+        width: 100%;
+        overflow: scroll;
+    }
+
+    .scroller table {
+        padding-right: 10px;
+    }
+
+    .scroller td {
+        text-align: left;
+        overflow: hidden;
+        line-height: 1em;
+        color: #ccc;
+        background-color: #393939;
+        padding: 8px;
+        white-space: nowrap;
+        font-size: 0.9em;
+    }
+
+    .align_right {
+        text-align: right;
+    }
+
+    .projected {
+        color: #878787;
+    }
+
+    .scroller th {
+        color:#666666;
+        background-color: #444;
+        font-weight: 400;
+        font-size: .8em;
+    }
+    .justify-left {
+        text-align: left;
+        padding-left: 10px;
+    }
+
+    .money {
+        text-align: right !important;
+        min-width: 92px;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+    }
+
+    .description {
+        min-width: 350px;
+        max-width: 33vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tiny {
+        font-size: 0.5em;
+        color: #878787;
+        margin: 3px 0 -5px 2px;
+    }
+
+    .account {
+        float: left;
+    }
 </style>

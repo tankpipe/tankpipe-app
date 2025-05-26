@@ -138,7 +138,7 @@
                 <Schedules/>
                 {:else if $page.view === views.NET_ASSETS}
                 <NetAssets bind:curAccount={curAccount} {loadAccounts}/>
-                {:else if $page.view === views.SCHEDULES}
+                {:else if $page.view === views.SETTINGS}
                 <Settings />
                 {:else if $page.view === views.BOOKS}
                 <EditBooks />

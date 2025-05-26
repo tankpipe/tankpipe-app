@@ -212,7 +212,7 @@ fn parse_money_str(amount: String) -> Decimal {
 fn parse_date_str(date_str: String, format: &str) -> Result<NaiveDate, BooksError> {
     match NaiveDate::parse_from_str(&date_str, format) {
         Ok(d) =>return Ok(d),
-        Err(e) => return Err(BooksError{error: format!("Unable to parse date: {}", e).to_string()}),
+        Err(e) => return Err(BooksError{error: format!("Unable to parse date '{}' using format '{}': {}", date_str, format, e).to_string()}),
     };
 }
 
@@ -288,6 +288,15 @@ mod tests {
         assert_eq!(account.id, transactions[0].entries[0].account_id);
         assert_eq!(dec!(500), transactions[1].entries[0].amount);
         assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
+    }
+
+    #[test]
+    fn test_invalid_date() {
+        let account = Account::create_new("Savings Account 1", AccountType::Asset);
+        let result = read_transations("test.csv", &account, "%Y-%M-%D");
+        assert!(result.is_err());
+        assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
+
     }
 
     #[test]
