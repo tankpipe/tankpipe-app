@@ -9,6 +9,7 @@
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
+    import { afterUpdate } from 'svelte'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
