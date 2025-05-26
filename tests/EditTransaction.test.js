@@ -34,3 +34,14 @@ it('is displayed correctly for compound EDIT', async () => {
     expect(container.outerHTML).toMatchSnapshot();
 });
 
+it('is displayed correctly for MULTI_EDIT', async () => {
+    page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
+    mockIPC((cmd, args) => { return transaction_data[0] })
+
+    const {findByText, container} =
+            render(EditTransaction, {loadTransactions: loadTransactions, curEntry: transaction_data[0], transactions: transaction_data})
+    const _waitForRenderUpdate = await findByText('Description')
+    expect(container.outerHTML).toMatchSnapshot();
+});
+
+
