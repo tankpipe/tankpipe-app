@@ -73,16 +73,25 @@ pub fn update_transaction(
     mut transaction: Transaction,
 ) -> Result<(), String> {
     println!("Updating transaction {:?}", transaction);
-    for e in transaction.entries.as_mut_slice() {
-        let zeros = Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
-        if e.id == zeros {
-            e.id = Uuid::new_v4();
-            e.transaction_id = transaction.id;
-        }
-
-    }
+    update_transaction_entries(&mut transaction);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_transaction(transaction))?;
+    error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+pub fn update_transactions(
+    state: tauri::State<BooksState>,
+    mut transactions: Vec<Transaction>,
+) -> Result<(), String> {
+    println!("Updating transactions {:?}", transactions);
+
+    let mut mutex_guard = state.0.lock().unwrap();
+    for transaction in transactions.iter_mut() {
+        update_transaction_entries(transaction);
+        error_handler(mutex_guard.books.update_transaction(transaction.clone()))?;
+    }
+
     error_handler(mutex_guard.save())
 }
 
@@ -94,6 +103,15 @@ pub fn delete_transaction(state: tauri::State<BooksState>, id: Uuid) -> Result<(
     error_handler(mutex_guard.save())
 }
 
+fn update_transaction_entries(transaction: &mut Transaction) {
+    for e in transaction.entries.as_mut_slice() {
+        let zeros = Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
+        if e.id == zeros {
+            e.id = Uuid::new_v4();
+            e.transaction_id = transaction.id;
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

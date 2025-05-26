@@ -48,6 +48,7 @@ fn main() {
             transaction::transactions,
             transaction::add_transaction,
             transaction::update_transaction,
+            transaction::update_transactions,
             transaction::delete_transaction,
             transaction::transaction,
             account::accounts,

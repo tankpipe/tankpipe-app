@@ -5,22 +5,23 @@
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
-    import { page, modes, views, isEditMode } from './page'
+    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode } from './page'
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
-    import { afterUpdate } from 'svelte'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
-    import { onMount } from 'svelte'
+    import EditMultipleTransactions from './EditMultipleTransactions.svelte';
 
     export let curAccount
 
-    let curTransaction
+    let curEntry
     let errors = new Errors()
     let msg = ""
     let previousAccount
     let topScroll
+    let showMultipleSelect = false
+    let showMultiEdit = false
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -64,10 +65,15 @@
         return 0
     }
 
-    const selectTransaction = (transaction) => {
+    const selectTransaction = (entry) => {
         setCurrentScroll()
-        curTransaction = transaction
+        curEntry = entry
         page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
+    }
+
+    const editTransactions = () => {
+        setCurrentScroll()
+        page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})
     }
 
     let chartOptions = {
@@ -106,6 +112,7 @@
     }
 
     let transactions = []
+    let selectedTransactions = new Set()
     let chartValues = []
 
     export const loadTransactions = async () => {
@@ -223,6 +230,35 @@
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 
+    const toggleSelected = (transaction) => {
+        if (selectedTransactions.has(transaction)) {
+            selectedTransactions.delete(transaction)
+        } else {
+            selectedTransactions.add(transaction)
+        }
+
+        showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
+    }
+
+    const toggleMultipleSelect = () => {
+        showMultipleSelect = !showMultipleSelect
+        showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
+    }
+
+    const getSortedSelectedTransactions = () => {
+        let selected = []
+        for (const t of transactions) {
+            if (selectedTransactions.has(t.id)) {
+                selected.push(t)
+            }
+        }
+
+        if (selected.length > 0) {
+            curEntry = getEntry(selected[0])
+        }
+        return selected;
+    }
+
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
@@ -231,6 +267,8 @@
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div class="toolbar-icon" on:click="{toggleMultipleSelect}" title="Edit transactions"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
@@ -240,8 +278,13 @@
     {/if}
     {/if}
 </div>
-{#if isEditMode($page)}
-<EditTransaction {loadTransactions} {curTransaction}/>
+{#if isSingleEditMode($page)}
+<EditTransaction {loadTransactions} {curEntry}/>
+{/if}
+{#if isMultiEditMode($page)}
+{#if isMultiEditMode($page)}
+<EditMultipleTransactions {loadTransactions} {curEntry} transactions={getSortedSelectedTransactions()}/>
+{/if}
 {/if}
 {#if !isEditMode($page)}
 <div class="widget errors">
@@ -256,11 +299,12 @@
     {#if transactions.length > 0}
     <table>
         <tbody>
-        <tr><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        <tr>{#if showMultipleSelect}<th></th>{/if}<th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
             {#if e}
             <tr on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selectedTransactions.has(t.id)}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
@@ -383,6 +427,11 @@
     .toolbar-icon:hover{
         color: #F0F0F0;
         cursor: pointer;
+    }
+
+    .toolbar-icon-disabled {
+        margin-left: 5px;
+        color: #303030;
     }
 
     .import-icon {
