@@ -24,8 +24,9 @@
     let topScroll
     let showMultipleSelect = false
     let showMultiEdit = false
-    let showFilter = true
     let isSelectAll = false
+    let showFilter = true
+    let descriptionFilter = "";
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -292,8 +293,6 @@
         return selected;
     }
 
-    let descriptionFilter = "";
-
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
@@ -337,7 +336,11 @@
         <tbody>
         <tr><th class="justify-left">Filter</th></tr>
         <tr class="form">
-            <td class="description"><input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }></td>
+            <td class="description">
+                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
+                <div class="filter-icon" on:click="{() => {descriptionFilter = ''; filterList()}}" title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
+            </td>
+
         </tr>
         </tbody>
     </table>
@@ -424,7 +427,7 @@
         padding-left: 10px;
     }
 
-    tr:hover td {
+    .scroller tr:hover td {
         cursor: pointer;
         color: #FFF;
     }
@@ -507,6 +510,16 @@
         margin-top: 1px
     }
 
+    .filter-icon {
+        display: inline-flex;
+        vertical-align: top;
+        margin-left: 0;
+    }
+
+    .filter-icon:hover {
+        cursor: pointer;
+        color: #F0F0F0;
+    }
     .message {
         color: #EFEFEF;
         margin: 5px 0 20px 0;
