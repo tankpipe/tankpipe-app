@@ -66,6 +66,7 @@
 
         if (changeEntry.account && changeEntry.account.id) {
             entry.account_id = changeEntry.account.id
+            entry.entry_type = changeEntry.entry_type
         }
 
         console.log(entry, changeEntry)
