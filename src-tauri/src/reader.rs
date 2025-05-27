@@ -155,7 +155,7 @@ pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError>
     match rdr {
         Ok(mut reader) => {
             let headers = reader.headers().unwrap();
-            detect_columns(headers)
+            detect_columns(headers, true)
         },
         Err(e) => {
             return Err(BooksError{ error: format!("Unable to read csv file. {}", e).to_string() })
@@ -163,14 +163,14 @@ pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError>
     }
 }
 
-fn detect_columns(headers: &StringRecord) -> Result<ColumnTypes, BooksError> {
+fn detect_columns(headers: &StringRecord, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
     let mut columns: Vec<ColumnType> = Vec::new();
     for header in headers {
         match header.to_lowercase().as_str() {
             "date" => columns.push(ColumnType::Date),
             "description" => columns.push(ColumnType::Description),
-            "debit" => columns.push(ColumnType::Debit),
-            "credit" => columns.push(ColumnType::Credit),
+            "debit" => if reverse_dr_cr {columns.push(ColumnType::Credit)} else {columns.push(ColumnType::Debit)},
+            "credit" => if reverse_dr_cr {columns.push(ColumnType::Debit)} else {columns.push(ColumnType::Credit)},
             "amount" => columns.push(ColumnType::Amount),
             "balance" => columns.push(ColumnType::Balance),
             _ => columns.push(ColumnType::Unknown),
@@ -266,7 +266,7 @@ mod tests {
     #[test]
     fn test_detect_columns() {
         let headers = StringRecord::from(vec!["Date","Account","Description","Debit","Credit","Balance"]);
-        let columns = detect_columns(&headers).unwrap();
+        let columns = detect_columns(&headers, false).unwrap();
         assert_eq!(6, columns.len());
         assert!(columns.has_column(ColumnType::Unknown));
         assert_eq!(ColumnType::Date, columns[0]);
@@ -274,6 +274,20 @@ mod tests {
         assert_eq!(ColumnType::Description, columns[2]);
         assert_eq!(ColumnType::Debit, columns[3]);
         assert_eq!(ColumnType::Credit, columns[4]);
+        assert_eq!(ColumnType::Balance, columns[5]);
+    }
+
+     #[test]
+    fn test_detect_columns_with_reverse_dr_cr_for_banks() {
+        let headers = StringRecord::from(vec!["Date","Account","Description","Debit","Credit","Balance"]);
+        let columns = detect_columns(&headers, true).unwrap();
+        assert_eq!(6, columns.len());
+        assert!(columns.has_column(ColumnType::Unknown));
+        assert_eq!(ColumnType::Date, columns[0]);
+        assert_eq!(ColumnType::Unknown, columns[1]);
+        assert_eq!(ColumnType::Description, columns[2]);
+        assert_eq!(ColumnType::Credit, columns[3]);
+        assert_eq!(ColumnType::Debit, columns[4]);
         assert_eq!(ColumnType::Balance, columns[5]);
     }
 
