@@ -23,6 +23,7 @@
     let topScroll
     let showMultipleSelect = false
     let showMultiEdit = false
+    let showFilter = false
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -112,21 +113,26 @@
         },
     }
 
+    let allTransactions = []
     let transactions = []
     let selectedTransactions = new Set()
     let chartValues = []
 
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
-        transactions = await invoke("transactions", {
+        allTransactions = await invoke("transactions", {
             accountId: curAccount.id,
         })
         chartValues = []
-        for (const t of transactions) {
+        for (const t of allTransactions) {
             let entry = getEntry(t)
             chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
         }
         chartOptions["series"] = [{data: chartValues}]
+        filterList()
+    }
+    const filterList = () => {
+        transactions = allTransactions.filter(t => descriptionFilter == "" || getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase()))
     }
 
     const chartBalance = (balance) => {
@@ -246,6 +252,10 @@
         showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
     }
 
+    const toggleShowFilter = () => {
+        showFilter = !showFilter
+    }
+
     const getSortedSelectedTransactions = () => {
         let selected = []
         for (const t of transactions) {
@@ -260,6 +270,8 @@
         return selected;
     }
 
+    let descriptionFilter = "";
+
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
@@ -268,7 +280,8 @@
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="toolbar-icon" on:click="{toggleMultipleSelect}" title="Edit transactions"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="toolbar-icon" on:click="{toggleShowFilter}" title="Show Filter"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="toolbar-icon" on:click="{toggleMultipleSelect}" title="Select transactions"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
         <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
@@ -297,9 +310,15 @@
     {/if}
 </div>
 <div class="scroller" id="scroller">
-    {#if transactions.length > 0}
     <table>
         <tbody>
+        {#if showFilter}
+        <tr>{#if showMultipleSelect}<th></th>{/if}<th class="justify-left">Filter</th><th class="justify-left"></th><th></th><th></th><th></th></tr>
+        <tr class="form">{#if showMultipleSelect}<td></td>{/if}<td class="justify-left"></td>
+            <td class="description"><input id="desc" class="description-input-2" style="width: 100%" bind:value={descriptionFilter} on:input={() => {filterList()} }></td>
+            <td></td><td></td><td></td>
+        </tr>
+        {/if}
         <tr>{#if showMultipleSelect}<th></th>{/if}<th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
@@ -322,7 +341,6 @@
         {/each}
         </tbody>
     </table>
-    {/if}
     {#if transactions.length < 1}
     <div class="message">No transactions</div>
     {/if}
@@ -378,6 +396,10 @@
     tr:hover td .tiny{
         cursor: pointer;
         color: #C0C0C0;
+    }
+
+    .form input {
+        margin: 0px;
     }
 
     .money {
