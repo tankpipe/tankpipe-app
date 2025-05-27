@@ -13,6 +13,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
+    import { SvelteSet } from 'svelte/reactivity';
 
     export let curAccount
 
@@ -24,6 +25,7 @@
     let showMultipleSelect = false
     let showMultiEdit = false
     let showFilter = false
+    let isSelectAll = false
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -115,7 +117,7 @@
 
     let allTransactions = []
     let transactions = []
-    let selectedTransactions = new Set()
+    let selectedTransactions = new SvelteSet()
     let chartValues = []
 
     export const loadTransactions = async () => {
@@ -244,16 +246,36 @@
             selectedTransactions.add(transaction)
         }
 
-        showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
+        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
+    }
+
+    const toggleAllSelected = () => {
+        if (isSelectAll) {
+            selectedTransactions.clear()
+        } else {
+            transactions.forEach(t => selectedTransactions.add(t.id))
+        }
+
+        isSelectAll = !isSelectAll
+        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
     }
 
     const toggleMultipleSelect = () => {
         showMultipleSelect = !showMultipleSelect
-        showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
+        if (!showMultipleSelect) {
+            isSelectAll = false
+            selectedTransactions.clear()
+        }
+        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
     }
 
     const toggleShowFilter = () => {
         showFilter = !showFilter
+
+        if (!showFilter) {
+            descriptionFilter = ""
+            filterList()
+        }
     }
 
     const getSortedSelectedTransactions = () => {
@@ -280,8 +302,8 @@
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="toolbar-icon" on:click="{toggleShowFilter}" title="Show Filter"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="toolbar-icon" on:click="{toggleMultipleSelect}" title="Select transactions"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="{showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleMultipleSelect}" title="{showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
         <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
@@ -319,7 +341,11 @@
             <td></td><td></td><td></td>
         </tr>
         {/if}
-        <tr>{#if showMultipleSelect}<th></th>{/if}<th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        <tr>
+            {#if showMultipleSelect}
+            <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
+            {/if}
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
             {#if e}
@@ -455,6 +481,16 @@
     .toolbar-icon-disabled {
         margin-left: 5px;
         color: #303030;
+    }
+
+    .toolbar-icon-on {
+        margin-left: 5px;
+        color: #43bd6e; /*#55e688*/
+    }
+
+    .toolbar-icon-on:hover{
+        color: #55e688;
+        cursor: pointer;
     }
 
     .import-icon {
