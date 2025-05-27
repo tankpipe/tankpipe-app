@@ -21,13 +21,10 @@
     let addButtonLabel = "Add"
     let drTotal = 0
     let crTotal = 0
-    let simpleAllowed = false
     let compoundMode = false
     let recorded = false
     let entries = []
     let curTransaction
-    let changesTransaction = {id: zeros, status:"Recorded"}
-
 
     onMount(() => {
         console.log($page.mode, curEntry, transactions)
@@ -46,7 +43,6 @@
         ]
     }
 
-
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
     }
@@ -62,46 +58,7 @@
         page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
-    const validateEntry = (entry, index, errors) => {
-        const prefix = compoundMode ? index + "_" : ""
-        if (!entry.description || entry.description.length < 1) {
-             errors.addError(prefix + "description", "Description is required")
-        }
-
-        if (!entry.realDate || entry.realDate.length < 1) {
-            errors.addError(prefix + "date", "Date is required")
-        }
-
-        if (!compoundMode) {
-            if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
-                errors.addError("amount", "A valid amount is required")
-            }
-        } else if (entry.entry_type === "Credit") {
-            if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
-                errors.addError(prefix + "crAmount", "A valid amount is required")
-            }
-        } else {
-            if (!entry.drAmount || entry.drAmount.length < 1 || isNaN(entry.drAmount)) {
-                errors.addError(prefix + "drAmount", "A valid amount is required")
-                console.log(entry.drAmount)
-            }
-        }
-
-        if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            if (settings.require_double_entry || compoundMode) {
-                errors.addError(index + "_account", "Account is required")
-            }
-        }
-
-        if (compoundMode && (drTotal != crTotal)) {
-            errors.addError("totals", "Totals should balance")
-        }
-
-        return errors
-    }
-
     const applyChanges = (entry, changeEntry, index, errors) => {
-        const prefix = compoundMode ? index + "_" : ""
 
         if (changeEntry.description && changeEntry.description.length > 0) {
             entry.description = changeEntry.description
@@ -111,21 +68,20 @@
             entry.account_id = changeEntry.account.id
         }
 
-        console.log(index, entry, changeEntry)
-    }
-
-
-    const toDateStr = (date) => {
-        return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
     }
 
     const onSave = () => {
         msg = ""
         errors = new Errors()
+
         const changedTransactions = []
-        if (!compoundMode) syncSecondEntry(entries)
         transactions.forEach(t => {
             const transaction = structuredClone(t)
+
+            if (transaction.entries.length == 1 && (entries[1].account && entries[1].account.id)) {
+                createSecondEntry(transaction)
+            }
+
             transaction.entries.forEach((e, i) => applyChanges(e, entries[i], i, errors))
 
             if (!errors.hasErrors()) {
@@ -139,10 +95,6 @@
         }
     }
 
-    const matchAccount = (account_id) =>  {
-        let match = $accounts.filter(a => a.id == account_id)
-        return match.length > 0 ? match[0] : null
-    }
 
     function resolved(result) {
       msg = "Transactions saved."
@@ -151,23 +103,13 @@
       //close()
     }
 
-    const syncSecondEntry = () => {
-        entries[1].id = zeros
-        entries[1].transaction_id = entries[0].transaction_id
-        entries[1].entry_type =  entries[0].entry_type == "Credit" ? "Debit" : "Credit"
-        entries[1].realDate = new Date(entries[0].realDate)
-        entries[1].description = entries[0].description
-        entries[1].amount = entries[0].amount
-        entries[1].status = "Recorded"
-    }
-
-    const canBeSimple = () => {
-        return (
-            entries.length == 1 ||
-            (entries.length == 2 &&
-            entries[0].description === entries[1].description &&
-            entries[0].amount === entries[1].amount &&
-            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime())
+    const createSecondEntry = (transaction) => {
+        transaction.entries.push(
+            Object.assign({}, transaction.entries[0], {
+                id: zeros,
+                transaction_id: transaction.id,
+                entry_type: transaction.entries[0].entry_type == "Credit" ? "Debit" : "Credit"
+            })
         )
     }
 
