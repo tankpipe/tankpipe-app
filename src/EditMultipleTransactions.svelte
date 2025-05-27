@@ -38,8 +38,8 @@
 
     const resetChanges = () => {
         entries = [
-            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
-            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Debit', account: {}},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Credit', account: {}},
         ]
     }
 
@@ -68,6 +68,7 @@
             entry.account_id = changeEntry.account.id
         }
 
+        console.log(entry, changeEntry)
     }
 
     const onSave = () => {
@@ -77,6 +78,11 @@
         const changedTransactions = []
         transactions.forEach(t => {
             const transaction = structuredClone(t)
+            transaction.entries.sort((a, b) => {
+                            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1;
+                            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1;
+                            return 0;
+                        });
 
             if (transaction.entries.length == 1 && (entries[1].account && entries[1].account.id)) {
                 createSecondEntry(transaction)
@@ -91,6 +97,7 @@
         })
 
         if (!errors.hasErrors()) {
+            console.log(changedTransactions)
             saveTransactions(changedTransactions)
         }
     }
@@ -104,13 +111,19 @@
     }
 
     const createSecondEntry = (transaction) => {
-        transaction.entries.push(
-            Object.assign({}, transaction.entries[0], {
+        const newEntry = Object.assign({}, transaction.entries[0], {
                 id: zeros,
                 transaction_id: transaction.id,
+                account_id: '',
+                account: {},
                 entry_type: transaction.entries[0].entry_type == "Credit" ? "Debit" : "Credit"
             })
-        )
+
+        if (transaction.entries[0].entry_type = "Debit") {
+            transaction.entries.push(newEntry)
+        } else {
+            transaction.entries.unshift(newEntry)
+        }
     }
 
     function fetched(result) {
@@ -240,16 +253,8 @@
             </table>
         </div>
         <div class="form-row2">
-            {#if entries.length > 1}
-            {#if entries[0].entry_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} disabled="disabled" />
-            <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true} />
-            {/if}
-            {#if entries[0].entry_type === "Credit"}
-            <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} disabled="disabled" />
-            <Select bind:item={entries[0].account} items={$accounts} label="Credit" none={true} flat={true} />
-            {/if}
-            {/if}
+            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true}/>
+            <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true}/>
         </div>
         {/if}
         {#if compoundMode}
