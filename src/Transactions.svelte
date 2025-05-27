@@ -24,7 +24,7 @@
     let topScroll
     let showMultipleSelect = false
     let showMultiEdit = false
-    let showFilter = false
+    let showFilter = true
     let isSelectAll = false
 
     $: {
@@ -331,16 +331,21 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
+{#if showFilter}
+<div class="" id="filter">
+    <table>
+        <tbody>
+        <tr><th class="justify-left">Filter</th></tr>
+        <tr class="form">
+            <td class="description"><input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+{/if}
 <div class="scroller" id="scroller">
     <table>
         <tbody>
-        {#if showFilter}
-        <tr>{#if showMultipleSelect}<th></th>{/if}<th class="justify-left">Filter</th><th class="justify-left"></th><th></th><th></th><th></th></tr>
-        <tr class="form">{#if showMultipleSelect}<td></td>{/if}<td class="justify-left"></td>
-            <td class="description"><input id="desc" class="description-input-2" style="width: 100%" bind:value={descriptionFilter} on:input={() => {filterList()} }></td>
-            <td></td><td></td><td></td>
-        </tr>
-        {/if}
         <tr>
             {#if showMultipleSelect}
             <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
@@ -374,6 +379,10 @@
 {/if}
 
 <style>
+    .filter {
+        width: 100%;
+    }
+
     .scroller{
         height: 100%;
         width: 100%;
@@ -382,6 +391,7 @@
 
     table {
         padding-right: 10px;
+        width: 100%;
     }
 
     td {
