@@ -164,7 +164,7 @@
     }
 
     const syncSecondEntry = () => {
-        entries[1].id = zeros
+        if (entries[1].id === undefined) entries[1].id = zeros
         entries[1].transaction_id = entries[0].transaction_id
         entries[1].entry_type =  entries[0].entry_type == "Credit" ? "Debit" : "Credit"
         entries[1].realDate = new Date(entries[0].realDate)
