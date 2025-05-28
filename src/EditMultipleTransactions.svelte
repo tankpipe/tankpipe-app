@@ -18,7 +18,7 @@
     let msg = ""
     let errors = new Errors()
     let format = dateFormat($config)
-    let addButtonLabel = "Add"
+    let addButtonLabel = "Update"
     let drTotal = 0
     let crTotal = 0
     let compoundMode = false
@@ -28,11 +28,6 @@
 
     onMount(() => {
         console.log($page.mode, curEntry, transactions)
-        if ($page.mode === modes.MULTI_EDIT) {
-            console.log(curEntry)
-            fetchTransaction(curEntry.transaction_id)
-        }
-
         resetChanges()
     })
 
@@ -72,6 +67,22 @@
         console.log(entry, changeEntry)
     }
 
+    const needSecondEntry = (transaction) =>  {
+        if (transaction.entries.length == 1) {
+            console.log(entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type))
+            return entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type).length > 0
+        }
+        return false
+    }
+
+    const sortEntries = (entries) => {
+        entries.sort((a, b) => {
+            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
+            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
+            return 0
+        })
+    }
+
     const onSave = () => {
         msg = ""
         errors = new Errors()
@@ -79,14 +90,12 @@
         const changedTransactions = []
         transactions.forEach(t => {
             const transaction = structuredClone(t)
-            transaction.entries.sort((a, b) => {
-                            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1;
-                            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1;
-                            return 0;
-                        });
 
-            if (transaction.entries.length == 1 && (entries[1].account && entries[1].account.id)) {
+            if (needSecondEntry(transaction)) {
+                console.log("Creating second entry ", transaction)
                 createSecondEntry(transaction)
+            } else if (transaction.entries.length > 1) {
+                sortEntries(transaction.entries)
             }
 
             transaction.entries.forEach((e, i) => applyChanges(e, entries[i], i, errors))
@@ -102,7 +111,6 @@
             saveTransactions(changedTransactions)
         }
     }
-
 
     function resolved(result) {
       msg = "Transactions saved."
@@ -120,17 +128,11 @@
                 entry_type: transaction.entries[0].entry_type == "Credit" ? "Debit" : "Credit"
             })
 
-        if (transaction.entries[0].entry_type = "Debit") {
+        if (transaction.entries[0].entry_type == "Debit") {
             transaction.entries.push(newEntry)
         } else {
             transaction.entries.unshift(newEntry)
         }
-    }
-
-    function fetched(result) {
-        curTransaction = result
-        addButtonLabel = "Update"
-        recorded = curTransaction.status != "Projected"
     }
 
     function rejected(result) {
@@ -141,12 +143,6 @@
     const saveTransactions = async (transactions) => {
         console.log(transactions)
         await invoke('update_transactions', {transactions: transactions}).then(resolved, rejected)
-    }
-
-
-    const fetchTransaction = async (transactionId) => {
-        console.log(transactionId)
-        await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
     }
 
     const showAmount = (entry, type) => {
@@ -173,7 +169,6 @@
         drTotal = total("Debit")
         crTotal = total("Credit")
     }
-
 
     const afterToggle = () => {
         if (compoundMode) syncSecondEntry()
@@ -351,7 +346,6 @@
 </div>
 
 <style>
-
     :global(.date-time-field input) {
         border: 1px solid #CCC !important;
         border-radius: 2px !important;
@@ -501,6 +495,7 @@
 
     .entries {
         padding: 5px 5px 10px 10px;
+        clear: left;
     }
 
     .toolbar {
