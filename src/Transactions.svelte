@@ -26,7 +26,8 @@
     let showMultiEdit = false
     let isSelectAll = false
     let showFilter = true
-    let descriptionFilter = "";
+    let descriptionFilter = ""
+    let deleteUnlocked = false
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -79,6 +80,18 @@
     const editTransactions = () => {
         setCurrentScroll()
         page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})
+    }
+
+    const deleteTransactions = async () => {
+        const selectedIds = Array.from(selectedTransactions)
+        if (selectedIds.length > 0) {
+            await invoke('delete_transactions', {ids: selectedIds}).then(resolvedDelete, rejected)
+        }
+    }
+
+    function resolvedDelete(result) {
+      msg = "Transactions deleted."
+      loadTransactions()
     }
 
     let chartOptions = {
@@ -303,7 +316,8 @@
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
         <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
         <div class="{showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleMultipleSelect}" title="{showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if (showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
@@ -510,6 +524,10 @@
     .toolbar-icon-on:hover{
         color: #55e688;
         cursor: pointer;
+    }
+
+    .warning:hover {
+        color: #e68843;
     }
 
     .import-icon {
