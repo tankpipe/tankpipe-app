@@ -356,9 +356,10 @@
             <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
+            {@const selected = selectedTransactions.has(t.id)}
             {#if e}
-            <tr on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
-                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selectedTransactions.has(t.id)}></td>{/if}
+            <tr class="{selected ? 'selected' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
@@ -435,6 +436,11 @@
     tr:hover td .tiny{
         cursor: pointer;
         color: #C0C0C0;
+    }
+
+    .selected td {
+        background-color: #1a3924;
+        color: #e3e3e3;
     }
 
     .form input {
