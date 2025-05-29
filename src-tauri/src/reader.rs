@@ -186,7 +186,7 @@ fn validate_columns(columns: &ColumnTypes) -> Result<(), BooksError> {
         return Err(BooksError{ error: "Header row should include Date, Description, [Debit, Credit | Amount].".to_string()})
     }
 
-    if columns.len() > 3 && (columns.has_column(ColumnType::Amount) || (columns.has_column(ColumnType::Debit) && columns.has_column(ColumnType::Credit))) {
+    if columns.len() >= 3 && (columns.has_column(ColumnType::Amount) || (columns.has_column(ColumnType::Debit) && columns.has_column(ColumnType::Credit))) {
         return Ok(())
     }
 
