@@ -306,6 +306,12 @@
         return selected;
     }
 
+    const clearFilter = () => {
+        descriptionFilter = '';
+        if (isSelectAll) toggleAllSelected();
+        filterList();
+    }
+
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
@@ -352,7 +358,7 @@
         <tr class="form">
             <td class="description">
                 <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
-                <div class="filter-icon" on:click="{() => {descriptionFilter = ''; filterList()}}" title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
+                <div class="filter-icon" on:click={clearFilter} title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
             </td>
 
         </tr>
