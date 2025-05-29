@@ -307,8 +307,12 @@
     }
 
     const clearFilter = () => {
-        descriptionFilter = '';
-        if (isSelectAll) toggleAllSelected();
+        descriptionFilter = ''
+        if (isSelectAll) {
+            toggleAllSelected()
+        } else {
+             selectedTransactions.clear()
+        }
         filterList();
     }
 
