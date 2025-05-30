@@ -11,6 +11,7 @@
     import { invoke } from "@tauri-apps/api/core"
 
     export let loadTransactions
+    export let onClose
     export let curEntry
     export let transactions
 
@@ -51,6 +52,7 @@
     const close = () => {
         loadTransactions()
         page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        onClose()
     }
 
     const applyChanges = (entry, changeEntry, index, errors) => {

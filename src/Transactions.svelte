@@ -36,6 +36,9 @@
         if (curAccount && curAccount !== previousAccount) {
             topScroll = null
             transactions = []
+            selectedTransactions.clear()
+            errors = new Errors()
+            msg = ""
             loadTransactions()
             previousAccount = curAccount
         }
@@ -59,6 +62,7 @@
 
     const scrollToPosition = () => {
         if (!isEditMode($page)) {
+            console.log("scrollToPosition: ", topScroll)
             document.getElementById("scroller").scrollTo(0, topScroll)
         }
     }
@@ -258,6 +262,7 @@
             selectedTransactions.delete(transaction)
         } else {
             selectedTransactions.add(transaction)
+            setCurrentScroll()
         }
 
         showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
@@ -316,6 +321,11 @@
         filterList();
     }
 
+    const onCloseMultiEdit = () => {
+        selectedTransactions.clear()
+        scrollToPosition()
+    }
+
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
@@ -342,7 +352,7 @@
 {/if}
 {#if isMultiEditMode($page)}
 {#if isMultiEditMode($page)}
-<EditMultipleTransactions {loadTransactions} {curEntry} transactions={getSortedSelectedTransactions()}/>
+<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curEntry} transactions={getSortedSelectedTransactions()}/>
 {/if}
 {/if}
 {#if !isEditMode($page)}
