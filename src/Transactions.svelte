@@ -57,11 +57,13 @@
     });
 
     const setCurrentScroll = () => {
+        console.log("setCurrentScroll: ", document.getElementById("scroller").scrollTop)
         topScroll = document.getElementById("scroller").scrollTop
     }
 
     const scrollToPosition = () => {
-        if (!isEditMode($page)) {
+        const scroller = document.getElementById("scroller")
+        if (scroller && !isEditMode($page)) {
             console.log("scrollToPosition: ", topScroll)
             document.getElementById("scroller").scrollTo(0, topScroll)
         }
@@ -323,7 +325,6 @@
 
     const onCloseMultiEdit = () => {
         selectedTransactions.clear()
-        scrollToPosition()
     }
 
 </script>
