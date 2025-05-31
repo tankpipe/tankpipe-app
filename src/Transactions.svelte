@@ -353,7 +353,7 @@
 {/if}
 {#if isMultiEditMode($page)}
 {#if isMultiEditMode($page)}
-<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curEntry} transactions={getSortedSelectedTransactions()}/>
+<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
 {/if}
 {#if !isEditMode($page)}

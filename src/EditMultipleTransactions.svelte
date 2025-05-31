@@ -12,7 +12,7 @@
 
     export let loadTransactions
     export let onClose
-    export let curEntry
+    export let curAccount
     export let transactions
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -28,7 +28,7 @@
     let curTransaction
 
     onMount(() => {
-        console.log($page.mode, curEntry, transactions)
+        console.log($page.mode, curAccount, transactions)
         resetChanges()
     })
 
@@ -224,7 +224,7 @@
         return transaction.description
     }
     const getEntry = (transaction) => {
-        return transaction.entries.find(e => e.account_id == curEntry.account_id)
+        return transaction.entries.find(e => e.account_id == curAccount.id)
     }
 
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
@@ -327,13 +327,13 @@
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
-                        {#if en.account_id != curEntry.account_id}
+                        {#if en.account_id != curAccount.id}
                         <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
                         {/if}
                     {/each}
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curEntry.account_id)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curEntry.account_id)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e, curAccount.id)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e, curAccount.id)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
             </tr>
             {/if}
