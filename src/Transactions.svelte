@@ -13,6 +13,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
+    import { SvelteSet } from 'svelte/reactivity';
 
     export let curAccount
 
@@ -23,6 +24,10 @@
     let topScroll
     let showMultipleSelect = false
     let showMultiEdit = false
+    let isSelectAll = false
+    let showFilter = true
+    let descriptionFilter = ""
+    let deleteUnlocked = false
 
     $: {
         if (!curAccount && $accounts.length > 0) {
@@ -31,6 +36,9 @@
         if (curAccount && curAccount !== previousAccount) {
             topScroll = null
             transactions = []
+            selectedTransactions.clear()
+            errors = new Errors()
+            msg = ""
             loadTransactions()
             previousAccount = curAccount
         }
@@ -49,11 +57,14 @@
     });
 
     const setCurrentScroll = () => {
+        console.log("setCurrentScroll: ", document.getElementById("scroller").scrollTop)
         topScroll = document.getElementById("scroller").scrollTop
     }
 
     const scrollToPosition = () => {
-        if (!isEditMode($page)) {
+        const scroller = document.getElementById("scroller")
+        if (scroller && !isEditMode($page)) {
+            console.log("scrollToPosition: ", topScroll)
             document.getElementById("scroller").scrollTo(0, topScroll)
         }
     }
@@ -75,6 +86,18 @@
     const editTransactions = () => {
         setCurrentScroll()
         page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})
+    }
+
+    const deleteTransactions = async () => {
+        const selectedIds = Array.from(selectedTransactions)
+        if (selectedIds.length > 0) {
+            await invoke('delete_transactions', {ids: selectedIds}).then(resolvedDelete, rejected)
+        }
+    }
+
+    function resolvedDelete(result) {
+      msg = "Transactions deleted."
+      loadTransactions()
     }
 
     let chartOptions = {
@@ -112,21 +135,26 @@
         },
     }
 
+    let allTransactions = []
     let transactions = []
-    let selectedTransactions = new Set()
+    let selectedTransactions = new SvelteSet()
     let chartValues = []
 
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
-        transactions = await invoke("transactions", {
+        allTransactions = await invoke("transactions", {
             accountId: curAccount.id,
         })
         chartValues = []
-        for (const t of transactions) {
+        for (const t of allTransactions) {
             let entry = getEntry(t)
             chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
         }
         chartOptions["series"] = [{data: chartValues}]
+        filterList()
+    }
+    const filterList = () => {
+        transactions = allTransactions.filter(t => descriptionFilter == "" || getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase()))
     }
 
     const chartBalance = (balance) => {
@@ -236,14 +264,39 @@
             selectedTransactions.delete(transaction)
         } else {
             selectedTransactions.add(transaction)
+            setCurrentScroll()
         }
 
-        showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
+        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
+    }
+
+    const toggleAllSelected = () => {
+        if (isSelectAll) {
+            selectedTransactions.clear()
+        } else {
+            transactions.forEach(t => selectedTransactions.add(t.id))
+        }
+
+        isSelectAll = !isSelectAll
+        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
     }
 
     const toggleMultipleSelect = () => {
         showMultipleSelect = !showMultipleSelect
-        showMultiEdit = showMultipleSelect &&  selectedTransactions.size > 0
+        if (!showMultipleSelect) {
+            isSelectAll = false
+            selectedTransactions.clear()
+        }
+        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
+    }
+
+    const toggleShowFilter = () => {
+        showFilter = !showFilter
+
+        if (!showFilter) {
+            descriptionFilter = ""
+            filterList()
+        }
     }
 
     const getSortedSelectedTransactions = () => {
@@ -260,6 +313,20 @@
         return selected;
     }
 
+    const clearFilter = () => {
+        descriptionFilter = ''
+        if (isSelectAll) {
+            toggleAllSelected()
+        } else {
+             selectedTransactions.clear()
+        }
+        filterList();
+    }
+
+    const onCloseMultiEdit = () => {
+        selectedTransactions.clear()
+    }
+
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
@@ -268,8 +335,10 @@
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="toolbar-icon" on:click="{toggleMultipleSelect}" title="Edit transactions"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="{showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleMultipleSelect}" title="{showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if (showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
@@ -284,7 +353,7 @@
 {/if}
 {#if isMultiEditMode($page)}
 {#if isMultiEditMode($page)}
-<EditMultipleTransactions {loadTransactions} {curEntry} transactions={getSortedSelectedTransactions()}/>
+<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
 {/if}
 {#if !isEditMode($page)}
@@ -296,16 +365,36 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
-<div class="scroller" id="scroller">
-    {#if transactions.length > 0}
+{#if showFilter}
+<div class="" id="filter">
     <table>
         <tbody>
-        <tr>{#if showMultipleSelect}<th></th>{/if}<th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        <tr><th class="justify-left">Filter</th></tr>
+        <tr class="form">
+            <td class="description">
+                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
+                <div class="filter-icon" on:click={clearFilter} title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+</div>
+{/if}
+<div class="scroller" id="scroller">
+    <table>
+        <tbody>
+        <tr>
+            {#if showMultipleSelect}
+            <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
+            {/if}
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
+            {@const selected = selectedTransactions.has(t.id)}
             {#if e}
-            <tr on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
-                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selectedTransactions.has(t.id)}></td>{/if}
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
@@ -322,7 +411,6 @@
         {/each}
         </tbody>
     </table>
-    {/if}
     {#if transactions.length < 1}
     <div class="message">No transactions</div>
     {/if}
@@ -330,6 +418,10 @@
 {/if}
 
 <style>
+    .filter {
+        width: 100%;
+    }
+
     .scroller{
         height: 100%;
         width: 100%;
@@ -338,6 +430,7 @@
 
     table {
         padding-right: 10px;
+        width: 100%;
     }
 
     td {
@@ -370,7 +463,7 @@
         padding-left: 10px;
     }
 
-    tr:hover td {
+    .scroller tr:hover td {
         cursor: pointer;
         color: #FFF;
     }
@@ -378,6 +471,19 @@
     tr:hover td .tiny{
         cursor: pointer;
         color: #C0C0C0;
+    }
+
+    .selected td {
+        background-color: #1a3924;
+        color: #e3e3e3;
+    }
+
+    .single-entry td {
+        background-color: #34391a;
+    }
+
+    .form input {
+        margin: 0px;
     }
 
     .money {
@@ -435,10 +541,34 @@
         color: #303030;
     }
 
+    .toolbar-icon-on {
+        margin-left: 5px;
+        color: #43bd6e; /*#55e688*/
+    }
+
+    .toolbar-icon-on:hover{
+        color: #55e688;
+        cursor: pointer;
+    }
+
+    .warning:hover {
+        color: #e68843;
+    }
+
     .import-icon {
         margin-top: 1px
     }
 
+    .filter-icon {
+        display: inline-flex;
+        vertical-align: top;
+        margin-left: 0;
+    }
+
+    .filter-icon:hover {
+        cursor: pointer;
+        color: #F0F0F0;
+    }
     .message {
         color: #EFEFEF;
         margin: 5px 0 20px 0;

@@ -97,9 +97,19 @@ pub fn update_transactions(
 
 #[tauri::command]
 pub fn delete_transaction(state: tauri::State<BooksState>, id: Uuid) -> Result<(), String> {
-    println!("Deleting transaction {}", id);
+    println!("Deleting transactions {:?}", id);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.delete_transaction(&id))?;
+    error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+pub fn delete_transactions(state: tauri::State<BooksState>, ids: Vec<Uuid>) -> Result<(), String> {
+    println!("Deleting transaction {:?}", ids);
+    let mut mutex_guard = state.0.lock().unwrap();
+    for id in ids.iter() {
+        error_handler(mutex_guard.books.delete_transaction(&id))?;
+    }
     error_handler(mutex_guard.save())
 }
 

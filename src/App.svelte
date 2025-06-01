@@ -178,7 +178,9 @@
     }
 
     .column.middle {
-        margin: 40px 20px 30px 20px;
+        display: flex;
+        flex-direction: column;
+        margin: 40px 20px 0px 20px;
         min-width: 200px;
     }
 
