@@ -49,6 +49,13 @@ pub fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result
 }
 
 #[tauri::command]
+pub fn all_transactions(state: tauri::State<BooksState>) -> Vec<Transaction> {
+    println!("Fetching all transactions");
+    let mutex_guard = state.0.lock().unwrap();
+    mutex_guard.books.transactions().to_vec()
+}
+
+#[tauri::command]
 pub fn add_transaction(
     state: tauri::State<BooksState>,
     mut transaction: Transaction,

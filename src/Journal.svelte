@@ -31,7 +31,7 @@
 
     $: {
         if (!curAccount && $accounts.length > 0) {
-            curAccount = $accounts[0]
+            curAccount = {}
         }
         if (curAccount && curAccount !== previousAccount) {
             topScroll = null
@@ -80,12 +80,12 @@
     const selectTransaction = (entry) => {
         setCurrentScroll()
         curEntry = entry
-        page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
+        page.set({view: views.JOURNAL, mode: modes.EDIT})
     }
 
     const editTransactions = () => {
         setCurrentScroll()
-        page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})
+        page.set({view: views.JOURNAL, mode: modes.MULTI_EDIT})
     }
 
     const deleteTransactions = async () => {
@@ -141,16 +141,14 @@
     let chartValues = []
 
     export const loadTransactions = async () => {
-        console.log("loadTransactions: " + curAccount.id)
-        allTransactions = await invoke("transactions", {
-            accountId: curAccount.id,
-        })
-        chartValues = []
-        for (const t of allTransactions) {
-            let entry = getEntry(t)
-            chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
+        console.log("loadTransactions: " + curAccount)
+        if (!curAccount || !curAccount.id) {
+            allTransactions = await invoke("all_transactions", {})
+        } else {
+            allTransactions = await invoke("transactions", { accountId: curAccount.id })
         }
-        chartOptions["series"] = [{data: chartValues}]
+        console.log(allTransactions)
+        chartValues = []
         filterList()
     }
     const filterList = () => {
@@ -219,7 +217,7 @@
 
     const handleAddClick = () => {
         setCurrentScroll()
-        page.set({view: views.TRANSACTIONS, mode: modes.NEW})
+        page.set({view: views.JOURNAL, mode: modes.NEW})
     }
 
     const openFile = async () => {
@@ -329,14 +327,22 @@
 
     const onCloseEdit = () => {
         loadTransactions()
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        page.set({view: views.JOURNAL, mode: modes.LIST})
+    }
+
+    const sortEntries = (entries) => {
+        entries.sort((a, b) => {
+            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
+            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
+            return 0
+        })
     }
 
 </script>
 <div class="account-heading">
     {#if !isEditMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
+        <Select bind:item={curAccount} items={$accounts} none={true} flat={true}/>
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
@@ -380,7 +386,6 @@
                 <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
                 <div class="filter-icon" on:click={clearFilter} title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
             </td>
-
         </tr>
         </tbody>
     </table>
@@ -393,26 +398,22 @@
             {#if showMultipleSelect}
             <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
             {/if}
-            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th></tr>
         {#each transactions as t}
-            {@const e =  getEntry(t)}
+            {@const _entries = sortEntries(t.entries)}
             {@const selected = selectedTransactions.has(t.id)}
-            {#if e}
+            <tr style="height: 8px;"></tr>
+            {#each t.entries as e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
-                    {#each t.entries as en}
-                        {#if en.account_id != curAccount.id}
-                        <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
-                        {/if}
-                    {/each}
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                    <div class="description tiny">{e.description}</div>
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
-                <td class="{projected(t)} money">{getBalance(e)}</td>
             </tr>
-            {/if}
+            {/each}
         {/each}
         </tbody>
     </table>

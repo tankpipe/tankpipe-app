@@ -12,6 +12,8 @@
 
     export let loadTransactions
     export let curEntry
+    export let onClose
+
     let curTransaction
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -55,8 +57,7 @@
     }
 
     const close = () => {
-        loadTransactions()
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        onClose()
     }
 
     const validateEntry = (entry, index, errors) => {

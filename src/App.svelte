@@ -18,6 +18,7 @@
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import NetAssets from './NetAssets.svelte';
+    import Journal from './Journal.svelte';
 
     export let curAccount = null
     let dialog
@@ -119,8 +120,10 @@
                         <li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>Accounts</li>
                         {#if $accounts.length > 0 }
                         <li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>Transactions</li>
+                        <li on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>Journal</li>
                         <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
                         <li on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>Net Assets</li>
+
                         {:else}
                         <li class="disabled">Transactions</li>
                         <li class="disabled">Schedules</li>
@@ -132,6 +135,8 @@
             <div class="column middle">
                 {#if $page.view === views.TRANSACTIONS}
                 <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
+                {:else if $page.view === views.JOURNAL}
+                <Journal bind:this={transactions} bind:curAccount={curAccount}/>
                 {:else if $page.view === views.ACCOUNTS}
                 <Accounts bind:curAccount={curAccount} {loadAccounts}/>
                 {:else if $page.view === views.SCHEDULES}
