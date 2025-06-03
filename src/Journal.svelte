@@ -5,8 +5,7 @@
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
-    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode } from './page'
-    import { settings } from './settings'
+    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { config } from './config.js'
     import { accounts } from './accounts'
     import { afterUpdate } from 'svelte'
@@ -25,7 +24,7 @@
     let showMultipleSelect = false
     let showMultiEdit = false
     let isSelectAll = false
-    let showFilter = true
+    let showFilter = false
     let descriptionFilter = ""
     let deleteUnlocked = false
 
@@ -152,11 +151,9 @@
         filterList()
     }
     const filterList = () => {
-        transactions = allTransactions.filter(t => descriptionFilter == "" || getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase()))
-    }
-
-    const chartBalance = (balance) => {
-        return curAccount.account_type == "Liability" ? balance * -1 : balance
+        transactions = allTransactions.filter(
+            t => descriptionFilter == "" ||
+            t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0)
     }
 
     const findClosestTransaction = () => {
@@ -187,10 +184,6 @@
 
     const getCreditAmount = (transaction, curAccount) => {
         return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
-    }
-
-    const getBalance = (transaction) => {
-        return formatter.format(transaction.balance)
     }
 
     const getDate = (transaction) => {
@@ -322,7 +315,8 @@
     }
 
     const onCloseMultiEdit = () => {
-        selectedTransactions.clear()
+        loadTransactions()
+        page.set({view: views.JOURNAL, mode: modes.LIST})
     }
 
     const onCloseEdit = () => {
@@ -331,11 +325,16 @@
     }
 
     const sortEntries = (entries) => {
-        entries.sort((a, b) => {
+        return entries.sort((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
             if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
             return 0
         })
+    }
+
+    const getDisplayTransactions = () => {
+        if (isMultiEditMode($page)) return getSortedSelectedTransactions()
+        return transactions
     }
 
 </script>
@@ -363,11 +362,9 @@
 <EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
 {/if}
 {#if isMultiEditMode($page)}
-{#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
-{/if}
-{#if !isEditMode($page)}
+{#if !isSingleEditMode($page)}
 <div class="widget errors">
     {#each errors.getErrorMessages() as e}
     <div class="error-msg">{e}</div>
@@ -376,6 +373,8 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
+{/if}
+{#if isListMode($page)}
 {#if showFilter}
 <div class="" id="filter">
     <table>
@@ -398,14 +397,17 @@
             {#if showMultipleSelect}
             <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
             {/if}
-            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th></tr>
-        {#each transactions as t}
-            {@const _entries = sortEntries(t.entries)}
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
+        </tr>
+        {#each getDisplayTransactions() as t}
+            {@const sortedEntries = sortEntries(t.entries)}
             {@const selected = selectedTransactions.has(t.id)}
             <tr style="height: 8px;"></tr>
-            {#each t.entries as e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
-                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
+            {#each sortedEntries as e}
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+                {#if showMultipleSelect}
+                <td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
+                {/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
                     <div class="description tiny">{e.description}</div>

@@ -324,7 +324,8 @@
     }
 
     const onCloseMultiEdit = () => {
-        selectedTransactions.clear()
+        loadTransactions()
+        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
     }
 
     const onCloseEdit = () => {

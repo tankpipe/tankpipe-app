@@ -4,8 +4,7 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes, views} from './page.js'
-    import {settings} from './settings.js'
+    import {page} from './page.js'
     import {accounts} from './accounts.js'
     import {config, dateFormat} from './config.js'
     import { invoke } from "@tauri-apps/api/core"
@@ -50,8 +49,6 @@
     }
 
     const close = () => {
-        loadTransactions()
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
         onClose()
     }
 
@@ -78,7 +75,7 @@
     }
 
     const sortEntries = (entries) => {
-        entries.sort((a, b) => {
+        return entries.sort((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
             if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
             return 0
@@ -230,7 +227,6 @@
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 </script>
-<div>
 <div class="form">
     <div class="form-heading">Edit Multiple Transactions</div>
     {#if curTransaction && curTransaction.entries}
@@ -314,46 +310,34 @@
 <div class="section-heading">
     <div class="form-heading">Selected Transactions</div>
 </div>
+
 <div class="scroller" id="scroller">
-    {#if transactions.length > 0}
     <table>
         <tbody>
-        <tr><th></th><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        <tr>
+            <th></th><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
+        </tr>
         {#each transactions as t}
-            {@const e =  getEntry(t)}
-            {#if e}
-            <tr id={t.id}><!--{t.id}-->
-                <td on:click|stopPropagation={() => toggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={true} disabled={true}/></td>
+            {@const sortedEntries = sortEntries(t.entries)}
+            <tr style="height: 8px;"></tr>
+            {#each sortedEntries as e}
+            <tr id={t.id + "_" + e.id}><!--{t.id}-->
+                <td><input id={"selected_" + t.id} type=checkbox checked={true} disabled={true}></td>
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
-                    {#each t.entries as en}
-                        {#if en.account_id != curAccount.id}
-                        <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
-                        {/if}
-                    {/each}
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                    <div class="description tiny">{e.description}</div>
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curAccount.id)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curAccount.id)}</td>
-                <td class="{projected(t)} money">{getBalance(e)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
             </tr>
-            {/if}
+            {/each}
         {/each}
         </tbody>
     </table>
-    {/if}
-    {#if transactions.length < 1}
-    <div class="message">No transactions</div>
-    {/if}
-</div>
 </div>
 
+
 <style>
-    :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
-        border-radius: 2px !important;
-        height: 33px;
-        background-color: #aaa;
-    }
 
     :root {
         --date-input-width: 110px;
