@@ -5,7 +5,7 @@
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
-    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode } from './page'
+    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
@@ -16,6 +16,7 @@
     import { SvelteSet } from 'svelte/reactivity';
 
     export let curAccount
+    export let journalMode = false
 
     let curEntry
     let errors = new Errors()
@@ -25,13 +26,13 @@
     let showMultipleSelect = false
     let showMultiEdit = false
     let isSelectAll = false
-    let showFilter = true
+    let showFilter = false
     let descriptionFilter = ""
     let deleteUnlocked = false
 
     $: {
         if (!curAccount && $accounts.length > 0) {
-            curAccount = $accounts[0]
+            curAccount = journalMode ? {} : $accounts[0]
         }
         if (curAccount && curAccount !== previousAccount) {
             topScroll = null
@@ -80,12 +81,12 @@
     const selectTransaction = (entry) => {
         setCurrentScroll()
         curEntry = entry
-        page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
+        page.set({view: $page.view, mode: modes.EDIT})
     }
 
     const editTransactions = () => {
         setCurrentScroll()
-        page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})
+        page.set({view: $page.view, mode: modes.MULTI_EDIT})
     }
 
     const deleteTransactions = async () => {
@@ -141,20 +142,30 @@
     let chartValues = []
 
     export const loadTransactions = async () => {
-        console.log("loadTransactions: " + curAccount.id)
-        allTransactions = await invoke("transactions", {
-            accountId: curAccount.id,
-        })
-        chartValues = []
-        for (const t of allTransactions) {
-            let entry = getEntry(t)
-            chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
+        console.log("loadTransactions: " + curAccount)
+
+        if (!curAccount || !curAccount.id) {
+            allTransactions = await invoke("all_transactions", {})
+        } else {
+            allTransactions = await invoke("transactions", { accountId: curAccount.id })
         }
-        chartOptions["series"] = [{data: chartValues}]
+
+        chartValues = []
+        if (!journalMode) {
+            for (const t of allTransactions) {
+                let entry = getEntry(t)
+                chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
+            }
+            chartOptions["series"] = [{data: chartValues}]
+        }
         filterList()
     }
+
     const filterList = () => {
-        transactions = allTransactions.filter(t => descriptionFilter == "" || getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase()))
+        transactions = allTransactions.filter(
+            t => descriptionFilter == "" ||
+            (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||
+            (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase())))
     }
 
     const chartBalance = (balance) => {
@@ -219,7 +230,7 @@
 
     const handleAddClick = () => {
         setCurrentScroll()
-        page.set({view: views.TRANSACTIONS, mode: modes.NEW})
+        page.set({view: $page.view, mode: modes.NEW})
     }
 
     const openFile = async () => {
@@ -325,15 +336,28 @@
 
     const onCloseMultiEdit = () => {
         loadTransactions()
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        page.set({view: $page.view, mode: modes.LIST})
     }
 
     const onCloseEdit = () => {
         loadTransactions()
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        page.set({view: $page.view, mode: modes.LIST})
     }
 
+    const sortEntries = (entries) => {
+        return entries.sort((a, b) => {
+            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
+            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
+            return 0
+        })
+    }
+
+    const getDisplayTransactions = () => {
+        if (isMultiEditMode($page)) return getSortedSelectedTransactions()
+        return transactions
+    }
 </script>
+{#if !journalMode}
 <div class="account-heading">
     {#if !isEditMode($page)}
     <div class="account">
@@ -421,6 +445,96 @@
     <div class="message">No transactions</div>
     {/if}
 </div>
+{/if}
+{/if}
+{#if journalMode}
+<div class="account-heading">
+    {#if !isEditMode($page)}
+    <div class="account">
+        <Select bind:item={curAccount} items={$accounts} none={true} flat={true}/>
+    </div>
+    <div class="toolbar">
+        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="{showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleMultipleSelect}" title="{showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if (showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        {#if curAccount}
+        <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
+        {/if}
+    </div>
+    {#if transactions.length > 0}
+    <div class="chart"><div use:chart={chartOptions}></div></div>
+    {/if}
+    {/if}
+</div>
+{#if isSingleEditMode($page)}
+<EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
+{/if}
+{#if isMultiEditMode($page)}
+<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
+{/if}
+{#if !isSingleEditMode($page)}
+<div class="widget errors">
+    {#each errors.getErrorMessages() as e}
+    <div class="error-msg">{e}</div>
+    {/each}
+    {#if msg}
+    <div class="success-msg">{msg}</div>
+    {/if}
+</div>
+{/if}
+{#if isListMode($page)}
+{#if showFilter}
+<div class="" id="filter">
+    <table>
+        <tbody>
+        <tr><th class="justify-left">Filter</th></tr>
+        <tr class="form">
+            <td class="description">
+                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
+                <div class="filter-icon" on:click={clearFilter} title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+{/if}
+<div class="scroller" id="scroller">
+    <table>
+        <tbody>
+        <tr>
+            {#if showMultipleSelect}
+            <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
+            {/if}
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
+        </tr>
+        {#each getDisplayTransactions() as t}
+            {@const sortedEntries = sortEntries(t.entries)}
+            {@const selected = selectedTransactions.has(t.id)}
+            <tr style="height: 8px;"></tr>
+            {#each sortedEntries as e}
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+                {#if showMultipleSelect}
+                <td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
+                {/if}
+                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                    <div class="description tiny">{e.description}</div>
+                </td>
+                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
+            </tr>
+            {/each}
+        {/each}
+        </tbody>
+    </table>
+    {#if transactions.length < 1}
+    <div class="message">No transactions</div>
+    {/if}
+</div>
+{/if}
+
 {/if}
 
 <style>

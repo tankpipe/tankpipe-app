@@ -3,13 +3,11 @@
     import Schedules from './Schedules.svelte'
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
-    import { afterUpdate } from 'svelte'
     import {page, modes, views} from './page.js'
     import './events'
     import {settings} from './settings'
     import {accounts} from './accounts'
     import {config} from './config'
-    import {context} from './context'
     import {initializeContext, updateContext} from './context'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
@@ -18,7 +16,6 @@
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import NetAssets from './NetAssets.svelte';
-    import Journal from './Journal.svelte';
 
     export let curAccount = null
     let dialog
@@ -134,9 +131,9 @@
             </div>
             <div class="column middle">
                 {#if $page.view === views.TRANSACTIONS}
-                <Transactions bind:this={transactions} bind:curAccount={curAccount}/>
+                <Transactions bind:this={transactions} bind:curAccount={curAccount} journalMode={false}/>
                 {:else if $page.view === views.JOURNAL}
-                <Journal bind:this={transactions} bind:curAccount={curAccount}/>
+                <Transactions bind:this={transactions} bind:curAccount={curAccount} journalMode={true}/>
                 {:else if $page.view === views.ACCOUNTS}
                 <Accounts bind:curAccount={curAccount} {loadAccounts}/>
                 {:else if $page.view === views.SCHEDULES}
