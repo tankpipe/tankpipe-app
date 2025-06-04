@@ -31,10 +31,12 @@
     let deleteUnlocked = false
 
     $: {
-        if (!curAccount && $accounts.length > 0) {
-            curAccount = journalMode ? {} : $accounts[0]
-        }
-        if (curAccount && curAccount !== previousAccount) {
+        console.log("page.view: " + $page.view)
+        if (journalMode && !curAccount) {
+            curAccount = {}
+        } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
+            curAccount = $accounts[0]
+        } else if (curAccount && curAccount !== previousAccount) {
             topScroll = null
             transactions = []
             selectedTransactions.clear()
