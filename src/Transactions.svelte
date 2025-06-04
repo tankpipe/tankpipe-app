@@ -23,7 +23,7 @@
     let msg = ""
     let previousAccount
     let topScroll
-    let showMultipleSelect = false
+    let showMultipleSelect = true
     let showMultiEdit = false
     let isSelectAll = false
     let showFilter = false

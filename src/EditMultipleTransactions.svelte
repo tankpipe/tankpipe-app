@@ -21,6 +21,7 @@
     let addButtonLabel = "Update"
     let drTotal = 0
     let crTotal = 0
+    let simpleAllowed = false
     let compoundMode = false
     let recorded = false
     let entries = []
@@ -170,7 +171,7 @@
     }
 
     const afterToggle = () => {
-        if (compoundMode) syncSecondEntry()
+        //if (compoundMode) syncSecondEntry()
     }
 
     $: {
@@ -240,7 +241,7 @@
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
-                    <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
+                    <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount} disabled="disabled"></td>
                 </tr>
                 </tbody>
@@ -255,11 +256,11 @@
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
+                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Account</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
                 {#each entries as e, i}
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
-                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
+                    <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
                     <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} /></div></td>
                     <td class="money">
                         {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
@@ -286,7 +287,7 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled="disabled">
+            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={false}>
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget2 buttons-left">
