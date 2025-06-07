@@ -7,6 +7,7 @@ const views = {
     SCHEDULES: "SCHEDULES",
     SETTINGS: "SETTINGS",
     NET_ASSETS: "NET_ASSETS",
+    JOURNAL: "JOURNAL",
 }
 
 const modes = {
@@ -17,7 +18,7 @@ const modes = {
     LOAD: "LOAD"
 }
 
-const page = writable({view: views.TRANSACTIONS, mode:modes.LIST, payload:{}})
+const page = writable({view: views.ACCOUNTS, mode:modes.LIST, payload:{}})
 
 const isEditMode = (page) => {
     return page.mode === modes.EDIT || page.mode === modes.NEW || page.mode === modes.MULTI_EDIT
@@ -31,4 +32,8 @@ const isMultiEditMode = (page) => {
     return page.mode === modes.MULTI_EDIT
 }
 
-export {page, views, modes, isEditMode, isMultiEditMode, isSingleEditMode}
+const isListMode = (page) => {
+    return page.mode === modes.LIST
+}
+
+export {page, views, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode}

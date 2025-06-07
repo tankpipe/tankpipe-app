@@ -24,7 +24,7 @@
     "@testing-library/svelte": "^5.2.8",
     "date-picker-svelte": "^2.16.0",
     "jsdom": "^26.1.0",
-    "rollup": "^4.40.2",
+    "rollup": "^4.41.1",
     "rollup-plugin-css-only": "^4.5.2",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-svelte": "^7.2.2",
@@ -40,7 +40,7 @@
     "@tauri-apps/plugin-shell": "^2.2.1",
     "apexcharts": "^4.4.0",
     "sirv-cli": "^3.0.1",
-    "sv": "^0.8.6",
+    "sv": "^0.8.7",
     "svelte-apexcharts": "^1.0.2"
   },
   "type": "module"
