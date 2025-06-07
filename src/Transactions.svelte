@@ -332,11 +332,11 @@
     }
 
 </script>
-{#if !journalMode}
+
 <div class="account-heading">
     {#if !isEditMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
+        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
@@ -357,11 +357,9 @@
 <EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
 {/if}
 {#if isMultiEditMode($page)}
-{#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
-{/if}
-{#if !isEditMode($page)}
+{#if isListMode($page)}
 <div class="widget errors">
     {#each errors.getErrorMessages() as e}
     <div class="error-msg">{e}</div>
@@ -393,10 +391,12 @@
             {#if $selector.showMultipleSelect}
             <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
+        </tr>
         {#each transactions as t}
-            {@const e =  getEntry(t)}
             {@const selected = isSelected(t)}
+          {#if !journalMode}
+            {@const e =  getEntry(t)}
             {#if e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
@@ -413,80 +413,9 @@
                 <td class="{projected(t)} money">{getBalance(e)}</td>
             </tr>
             {/if}
-        {/each}
-        </tbody>
-    </table>
-    {#if transactions.length < 1}
-    <div class="message">No transactions</div>
-    {/if}
-</div>
-{/if}
-{/if}
-{#if journalMode}
-<div class="account-heading">
-    {#if !isEditMode($page)}
-    <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={true} flat={true}/>
-    </div>
-    <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
-        {#if curAccount}
-        <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
-        {/if}
-    </div>
-    {#if transactions.length > 0}
-    <div class="chart"><div use:chart={chartOptions}></div></div>
-    {/if}
-    {/if}
-</div>
-{#if isSingleEditMode($page)}
-<EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
-{/if}
-{#if isMultiEditMode($page)}
-<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
-{/if}
-{#if !isSingleEditMode($page)}
-<div class="widget errors">
-    {#each errors.getErrorMessages() as e}
-    <div class="error-msg">{e}</div>
-    {/each}
-    {#if msg}
-    <div class="success-msg">{msg}</div>
-    {/if}
-</div>
-{/if}
-{#if isListMode($page)}
-{#if showFilter}
-<div class="" id="filter">
-    <table>
-        <tbody>
-        <tr><th class="justify-left">Filter</th></tr>
-        <tr class="form">
-            <td class="description">
-                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
-                <div class="filter-icon" on:click={clearFilter} title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-{/if}
-<div class="scroller" id="scroller">
-    <table>
-        <tbody>
-        <tr>
-            {#if $selector.showMultipleSelect}
-            <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
-            {/if}
-            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
-        </tr>
-        {#each getDisplayTransactions() as t}
+          {/if}
+          {#if journalMode}
             {@const sortedEntries = sortEntries(t.entries)}
-            {@const selected = isSelected(t)}
             <tr style="height: 8px;"></tr>
             {#each sortedEntries as e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
@@ -501,6 +430,7 @@
                 <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
             </tr>
             {/each}
+          {/if}
         {/each}
         </tbody>
     </table>
@@ -508,8 +438,6 @@
     <div class="message">No transactions</div>
     {/if}
 </div>
-{/if}
-
 {/if}
 
 <style>
