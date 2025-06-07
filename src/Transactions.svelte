@@ -416,7 +416,6 @@
           {/if}
           {#if journalMode}
             {@const sortedEntries = sortEntries(t.entries)}
-            <tr style="height: 8px;"></tr>
             {#each sortedEntries as e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}
@@ -429,6 +428,7 @@
                 <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
             </tr>
+            <tr style="height: 8px;"></tr>
             {/each}
           {/if}
         {/each}
