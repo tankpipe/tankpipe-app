@@ -61,7 +61,7 @@
         "height": 1200,
         "resizable": true,
         "title": "Tankpipe",
-        "width": 1025,
+        "width": 1100,
         "minWidth": 600,
         "theme": "Dark",
         "useHttpsScheme": true

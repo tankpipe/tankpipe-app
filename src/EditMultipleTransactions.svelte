@@ -4,21 +4,21 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes, views} from './page.js'
-    import {settings} from './settings.js'
+    import {page} from './page.js'
     import {accounts} from './accounts.js'
     import {config, dateFormat} from './config.js'
     import { invoke } from "@tauri-apps/api/core"
 
     export let loadTransactions
-    export let curEntry
+    export let onClose
+    export let curAccount
     export let transactions
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let msg = ""
     let errors = new Errors()
     let format = dateFormat($config)
-    let addButtonLabel = "Add"
+    let addButtonLabel = "Update"
     let drTotal = 0
     let crTotal = 0
     let simpleAllowed = false
@@ -26,26 +26,18 @@
     let recorded = false
     let entries = []
     let curTransaction
-    let changesTransaction = {id: zeros, status:"Recorded"}
-
 
     onMount(() => {
-        console.log($page.mode, curEntry, transactions)
-        if ($page.mode === modes.MULTI_EDIT) {
-            console.log(curEntry)
-            fetchTransaction(curEntry.transaction_id)
-        }
-
+        console.log($page.mode, curAccount, transactions)
         resetChanges()
     })
 
     const resetChanges = () => {
         entries = [
-            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
-            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Debit', account: {}},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Credit', account: {}},
         ]
     }
-
 
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
@@ -58,50 +50,10 @@
     }
 
     const close = () => {
-        loadTransactions()
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
-    }
-
-    const validateEntry = (entry, index, errors) => {
-        const prefix = compoundMode ? index + "_" : ""
-        if (!entry.description || entry.description.length < 1) {
-             errors.addError(prefix + "description", "Description is required")
-        }
-
-        if (!entry.realDate || entry.realDate.length < 1) {
-            errors.addError(prefix + "date", "Date is required")
-        }
-
-        if (!compoundMode) {
-            if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
-                errors.addError("amount", "A valid amount is required")
-            }
-        } else if (entry.entry_type === "Credit") {
-            if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
-                errors.addError(prefix + "crAmount", "A valid amount is required")
-            }
-        } else {
-            if (!entry.drAmount || entry.drAmount.length < 1 || isNaN(entry.drAmount)) {
-                errors.addError(prefix + "drAmount", "A valid amount is required")
-                console.log(entry.drAmount)
-            }
-        }
-
-        if (!entry.account || !entry.account.id || entry.account.id < 1) {
-            if (settings.require_double_entry || compoundMode) {
-                errors.addError(index + "_account", "Account is required")
-            }
-        }
-
-        if (compoundMode && (drTotal != crTotal)) {
-            errors.addError("totals", "Totals should balance")
-        }
-
-        return errors
+        onClose()
     }
 
     const applyChanges = (entry, changeEntry, index, errors) => {
-        const prefix = compoundMode ? index + "_" : ""
 
         if (changeEntry.description && changeEntry.description.length > 0) {
             entry.description = changeEntry.description
@@ -109,23 +61,43 @@
 
         if (changeEntry.account && changeEntry.account.id) {
             entry.account_id = changeEntry.account.id
+            entry.entry_type = changeEntry.entry_type
         }
 
-        console.log(index, entry, changeEntry)
+        console.log(entry, changeEntry)
     }
 
+    const needSecondEntry = (transaction) =>  {
+        if (transaction.entries.length == 1) {
+            console.log(entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type))
+            return entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type).length > 0
+        }
+        return false
+    }
 
-    const toDateStr = (date) => {
-        return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
+    const sortEntries = (entries) => {
+        return entries.sort((a, b) => {
+            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
+            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
+            return 0
+        })
     }
 
     const onSave = () => {
         msg = ""
         errors = new Errors()
+
         const changedTransactions = []
-        if (!compoundMode) syncSecondEntry(entries)
         transactions.forEach(t => {
             const transaction = structuredClone(t)
+
+            if (needSecondEntry(transaction)) {
+                console.log("Creating second entry ", transaction)
+                createSecondEntry(transaction)
+            } else if (transaction.entries.length > 1) {
+                sortEntries(transaction.entries)
+            }
+
             transaction.entries.forEach((e, i) => applyChanges(e, entries[i], i, errors))
 
             if (!errors.hasErrors()) {
@@ -135,13 +107,9 @@
         })
 
         if (!errors.hasErrors()) {
+            console.log(changedTransactions)
             saveTransactions(changedTransactions)
         }
-    }
-
-    const matchAccount = (account_id) =>  {
-        let match = $accounts.filter(a => a.id == account_id)
-        return match.length > 0 ? match[0] : null
     }
 
     function resolved(result) {
@@ -151,30 +119,20 @@
       //close()
     }
 
-    const syncSecondEntry = () => {
-        entries[1].id = zeros
-        entries[1].transaction_id = entries[0].transaction_id
-        entries[1].entry_type =  entries[0].entry_type == "Credit" ? "Debit" : "Credit"
-        entries[1].realDate = new Date(entries[0].realDate)
-        entries[1].description = entries[0].description
-        entries[1].amount = entries[0].amount
-        entries[1].status = "Recorded"
-    }
+    const createSecondEntry = (transaction) => {
+        const newEntry = Object.assign({}, transaction.entries[0], {
+                id: zeros,
+                transaction_id: transaction.id,
+                account_id: '',
+                account: {},
+                entry_type: transaction.entries[0].entry_type == "Credit" ? "Debit" : "Credit"
+            })
 
-    const canBeSimple = () => {
-        return (
-            entries.length == 1 ||
-            (entries.length == 2 &&
-            entries[0].description === entries[1].description &&
-            entries[0].amount === entries[1].amount &&
-            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime())
-        )
-    }
-
-    function fetched(result) {
-        curTransaction = result
-        addButtonLabel = "Update"
-        recorded = curTransaction.status != "Projected"
+        if (transaction.entries[0].entry_type == "Debit") {
+            transaction.entries.push(newEntry)
+        } else {
+            transaction.entries.unshift(newEntry)
+        }
     }
 
     function rejected(result) {
@@ -185,12 +143,6 @@
     const saveTransactions = async (transactions) => {
         console.log(transactions)
         await invoke('update_transactions', {transactions: transactions}).then(resolved, rejected)
-    }
-
-
-    const fetchTransaction = async (transactionId) => {
-        console.log(transactionId)
-        await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
     }
 
     const showAmount = (entry, type) => {
@@ -218,9 +170,8 @@
         crTotal = total("Credit")
     }
 
-
     const afterToggle = () => {
-        if (compoundMode) syncSecondEntry()
+        //if (compoundMode) syncSecondEntry()
     }
 
     $: {
@@ -271,13 +222,12 @@
         return transaction.description
     }
     const getEntry = (transaction) => {
-        return transaction.entries.find(e => e.account_id == curEntry.account_id)
+        return transaction.entries.find(e => e.account_id == curAccount.id)
     }
 
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 </script>
-<div>
 <div class="form">
     <div class="form-heading">Edit Multiple Transactions</div>
     {#if curTransaction && curTransaction.entries}
@@ -291,34 +241,26 @@
                 <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
-                    <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
+                    <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount} disabled="disabled"></td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <div class="form-row2">
-            {#if entries.length > 1}
-            {#if entries[0].entry_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true} disabled="disabled" />
-            <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true} />
-            {/if}
-            {#if entries[0].entry_type === "Credit"}
-            <Select bind:item={entries[1].account} items={$accounts} label="Debit" none={true} flat={true} disabled="disabled" />
-            <Select bind:item={entries[0].account} items={$accounts} label="Credit" none={true} flat={true} />
-            {/if}
-            {/if}
+            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true}/>
+            <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true}/>
         </div>
         {/if}
         {#if compoundMode}
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
+                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Account</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
                 {#each entries as e, i}
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
-                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
+                    <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
                     <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} /></div></td>
                     <td class="money">
                         {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
@@ -345,7 +287,7 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled="disabled">
+            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={false}>
             <label for="compound">Compound entry</label>
         </div>
         <div class="widget2 buttons-left">
@@ -369,47 +311,34 @@
 <div class="section-heading">
     <div class="form-heading">Selected Transactions</div>
 </div>
+
 <div class="scroller" id="scroller">
-    {#if transactions.length > 0}
     <table>
         <tbody>
-        <tr><th></th><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        <tr>
+            <th></th><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
+        </tr>
         {#each transactions as t}
-            {@const e =  getEntry(t)}
-            {#if e}
-            <tr id={t.id}><!--{t.id}-->
-                <td on:click|stopPropagation={() => toggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={true} disabled={true}/></td>
+            {@const sortedEntries = sortEntries(t.entries)}
+            <tr style="height: 8px;"></tr>
+            {#each sortedEntries as e}
+            <tr id={t.id + "_" + e.id}><!--{t.id}-->
+                <td><input id={"selected_" + t.id} type=checkbox checked={true} disabled={true}></td>
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
-                    {#each t.entries as en}
-                        {#if en.account_id != curEntry.account_id}
-                        <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
-                        {/if}
-                    {/each}
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                    <div class="description tiny">{e.description}</div>
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curEntry.account_id)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curEntry.account_id)}</td>
-                <td class="{projected(t)} money">{getBalance(e)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
             </tr>
-            {/if}
+            {/each}
         {/each}
         </tbody>
     </table>
-    {/if}
-    {#if transactions.length < 1}
-    <div class="message">No transactions</div>
-    {/if}
 </div>
-</div>
+
 
 <style>
-
-    :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
-        border-radius: 2px !important;
-        height: 33px;
-        background-color: #aaa;
-    }
 
     :root {
         --date-input-width: 110px;
@@ -553,6 +482,7 @@
 
     .entries {
         padding: 5px 5px 10px 10px;
+        clear: left;
     }
 
     .toolbar {

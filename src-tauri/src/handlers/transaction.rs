@@ -49,6 +49,13 @@ pub fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result
 }
 
 #[tauri::command]
+pub fn all_transactions(state: tauri::State<BooksState>) -> Vec<Transaction> {
+    println!("Fetching all transactions");
+    let mutex_guard = state.0.lock().unwrap();
+    mutex_guard.books.transactions().to_vec()
+}
+
+#[tauri::command]
 pub fn add_transaction(
     state: tauri::State<BooksState>,
     mut transaction: Transaction,
@@ -97,9 +104,19 @@ pub fn update_transactions(
 
 #[tauri::command]
 pub fn delete_transaction(state: tauri::State<BooksState>, id: Uuid) -> Result<(), String> {
-    println!("Deleting transaction {}", id);
+    println!("Deleting transactions {:?}", id);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.delete_transaction(&id))?;
+    error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+pub fn delete_transactions(state: tauri::State<BooksState>, ids: Vec<Uuid>) -> Result<(), String> {
+    println!("Deleting transaction {:?}", ids);
+    let mut mutex_guard = state.0.lock().unwrap();
+    for id in ids.iter() {
+        error_handler(mutex_guard.books.delete_transaction(&id))?;
+    }
     error_handler(mutex_guard.save())
 }
 
