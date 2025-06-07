@@ -5,7 +5,7 @@
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
-    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
+    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
@@ -13,7 +13,6 @@
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
-    import { SvelteMap } from 'svelte/reactivity';
     import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
 
     export let curAccount
@@ -24,11 +23,8 @@
     let msg = ""
     let previousAccount
     let topScroll
-
-
     let showFilter = false
     let descriptionFilter = ""
-    let deleteUnlocked = false
 
     $: {
         console.log("page.view: " + $page.view)
@@ -298,7 +294,7 @@
         if ($selector.isSelectAll) {
             toggleAllSelected(transactions)
         } else {
-             selector.clear()
+            clearSelected()
         }
         filterList();
     }
@@ -319,11 +315,6 @@
             if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
             return 0
         })
-    }
-
-    const getDisplayTransactions = () => {
-        if (isMultiEditMode($page)) return getSortedSelectedTransactions()
-        return transactions
     }
 
     const handleToggleSelected = (t) => {
