@@ -46,6 +46,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             transaction::entries,
             transaction::transactions,
+            transaction::all_transactions,
             transaction::add_transaction,
             transaction::update_transaction,
             transaction::update_transactions,

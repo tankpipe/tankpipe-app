@@ -5,7 +5,7 @@
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
-    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode } from './page'
+    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
@@ -13,30 +13,29 @@
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
-    import { SvelteSet } from 'svelte/reactivity';
+    import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
 
     export let curAccount
+    export let journalMode = false
 
     let curEntry
     let errors = new Errors()
     let msg = ""
     let previousAccount
     let topScroll
-    let showMultipleSelect = false
-    let showMultiEdit = false
-    let isSelectAll = false
-    let showFilter = true
+    let showFilter = false
     let descriptionFilter = ""
-    let deleteUnlocked = false
 
     $: {
-        if (!curAccount && $accounts.length > 0) {
+        console.log("page.view: " + $page.view)
+        if (journalMode && !curAccount) {
+            curAccount = {}
+        } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
-        }
-        if (curAccount && curAccount !== previousAccount) {
+        } else if (curAccount && curAccount !== previousAccount) {
             topScroll = null
             transactions = []
-            selectedTransactions.clear()
+            clearSelected()
             errors = new Errors()
             msg = ""
             loadTransactions()
@@ -57,14 +56,12 @@
     });
 
     const setCurrentScroll = () => {
-        console.log("setCurrentScroll: ", document.getElementById("scroller").scrollTop)
         topScroll = document.getElementById("scroller").scrollTop
     }
 
     const scrollToPosition = () => {
         const scroller = document.getElementById("scroller")
         if (scroller && !isEditMode($page)) {
-            console.log("scrollToPosition: ", topScroll)
             document.getElementById("scroller").scrollTo(0, topScroll)
         }
     }
@@ -80,16 +77,16 @@
     const selectTransaction = (entry) => {
         setCurrentScroll()
         curEntry = entry
-        page.set({view: views.TRANSACTIONS, mode: modes.EDIT})
+        page.set({view: $page.view, mode: modes.EDIT})
     }
 
     const editTransactions = () => {
         setCurrentScroll()
-        page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})
+        page.set({view: $page.view, mode: modes.MULTI_EDIT})
     }
 
     const deleteTransactions = async () => {
-        const selectedIds = Array.from(selectedTransactions)
+        const selectedIds = getSelected()
         if (selectedIds.length > 0) {
             await invoke('delete_transactions', {ids: selectedIds}).then(resolvedDelete, rejected)
         }
@@ -137,24 +134,33 @@
 
     let allTransactions = []
     let transactions = []
-    let selectedTransactions = new SvelteSet()
     let chartValues = []
 
     export const loadTransactions = async () => {
-        console.log("loadTransactions: " + curAccount.id)
-        allTransactions = await invoke("transactions", {
-            accountId: curAccount.id,
-        })
-        chartValues = []
-        for (const t of allTransactions) {
-            let entry = getEntry(t)
-            chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
+        console.log("loadTransactions: " + curAccount)
+
+        if (!curAccount || !curAccount.id) {
+            allTransactions = await invoke("all_transactions", {})
+        } else {
+            allTransactions = await invoke("transactions", { accountId: curAccount.id })
         }
-        chartOptions["series"] = [{data: chartValues}]
+
+        chartValues = []
+        if (!journalMode) {
+            for (const t of allTransactions) {
+                let entry = getEntry(t)
+                chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
+            }
+            chartOptions["series"] = [{data: chartValues}]
+        }
         filterList()
     }
+
     const filterList = () => {
-        transactions = allTransactions.filter(t => descriptionFilter == "" || getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase()))
+        transactions = allTransactions.filter(
+            t => descriptionFilter == "" ||
+            (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||
+            (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase())))
     }
 
     const chartBalance = (balance) => {
@@ -219,7 +225,7 @@
 
     const handleAddClick = () => {
         setCurrentScroll()
-        page.set({view: views.TRANSACTIONS, mode: modes.NEW})
+        page.set({view: $page.view, mode: modes.NEW})
     }
 
     const openFile = async () => {
@@ -259,36 +265,6 @@
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 
-    const toggleSelected = (transaction) => {
-        if (selectedTransactions.has(transaction)) {
-            selectedTransactions.delete(transaction)
-        } else {
-            selectedTransactions.add(transaction)
-            setCurrentScroll()
-        }
-
-        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
-    }
-
-    const toggleAllSelected = () => {
-        if (isSelectAll) {
-            selectedTransactions.clear()
-        } else {
-            transactions.forEach(t => selectedTransactions.add(t.id))
-        }
-
-        isSelectAll = !isSelectAll
-        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
-    }
-
-    const toggleMultipleSelect = () => {
-        showMultipleSelect = !showMultipleSelect
-        if (!showMultipleSelect) {
-            isSelectAll = false
-            selectedTransactions.clear()
-        }
-        showMultiEdit = showMultipleSelect && selectedTransactions.size > 0
-    }
 
     const toggleShowFilter = () => {
         showFilter = !showFilter
@@ -302,7 +278,7 @@
     const getSortedSelectedTransactions = () => {
         let selected = []
         for (const t of transactions) {
-            if (selectedTransactions.has(t.id)) {
+            if (isSelected(t)) {
                 selected.push(t)
             }
         }
@@ -315,30 +291,50 @@
 
     const clearFilter = () => {
         descriptionFilter = ''
-        if (isSelectAll) {
-            toggleAllSelected()
+        if ($selector.isSelectAll) {
+            toggleAllSelected(transactions)
         } else {
-             selectedTransactions.clear()
+            clearSelected()
         }
         filterList();
     }
 
     const onCloseMultiEdit = () => {
-        selectedTransactions.clear()
+        loadTransactions()
+        page.set({view: $page.view, mode: modes.LIST})
+    }
+
+    const onCloseEdit = () => {
+        loadTransactions()
+        page.set({view: $page.view, mode: modes.LIST})
+    }
+
+    const sortEntries = (entries) => {
+        return entries.sort((a, b) => {
+            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
+            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
+            return 0
+        })
+    }
+
+    const handleToggleSelected = (t) => {
+        toggleSelected(t)
+        setCurrentScroll()
     }
 
 </script>
+
 <div class="account-heading">
     {#if !isEditMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={settings.require_double_entry} flat={true}/>
+        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleMultipleSelect}" title="{showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if (showMultiEdit) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
-        <div class="{showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if (showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
@@ -349,14 +345,12 @@
     {/if}
 </div>
 {#if isSingleEditMode($page)}
-<EditTransaction {loadTransactions} {curEntry}/>
+<EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
 {/if}
-{#if isMultiEditMode($page)}
 {#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
-{/if}
-{#if !isEditMode($page)}
+{#if isListMode($page)}
 <div class="widget errors">
     {#each errors.getErrorMessages() as e}
     <div class="error-msg">{e}</div>
@@ -385,16 +379,18 @@
     <table>
         <tbody>
         <tr>
-            {#if showMultipleSelect}
-            <th on:click|stopPropagation={() => toggleAllSelected()}><input id="selectAll" type=checkbox checked={isSelectAll}></th>
+            {#if $selector.showMultipleSelect}
+            <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
+        </tr>
         {#each transactions as t}
+            {@const selected = isSelected(t)}
+          {#if !journalMode}
             {@const e =  getEntry(t)}
-            {@const selected = selectedTransactions.has(t.id)}
             {#if e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
-                {#if showMultipleSelect}<td on:click|stopPropagation={() => toggleSelected(t.id)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
+                {#if $selector.showMultipleSelect}<td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
@@ -408,6 +404,24 @@
                 <td class="{projected(t)} money">{getBalance(e)}</td>
             </tr>
             {/if}
+          {/if}
+          {#if journalMode}
+            {@const sortedEntries = sortEntries(t.entries)}
+            {#each sortedEntries as e}
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+                {#if $selector.showMultipleSelect}
+                <td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
+                {/if}
+                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                    <div class="description tiny">{e.description}</div>
+                </td>
+                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
+            </tr>
+            <tr style="height: 8px;"></tr>
+            {/each}
+          {/if}
         {/each}
         </tbody>
     </table>
