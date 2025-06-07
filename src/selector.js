@@ -1,14 +1,15 @@
 import { writable } from 'svelte/store'
 import { SvelteMap } from 'svelte/reactivity';
 
+/* Use SvelteMap so that changes applied to the map (like select all) are reflected in the UI. */
 let selectedTransactions = new SvelteMap()
-const selector = writable({selectedTransactions: selectedTransactions, showMultiEdit: false, shapeMatch: false, isSelectAll: false, showMultipleSelect: true})
+const selector = writable({showMultiEdit: false, shapeMatch: false, isSelectAll: false, showMultipleSelect: true})
 
 const shapeOf = (transaction) => {
     return transaction.entries.map(e => e.account_id).join("_")
 }
 
-const checkShapes = (selector, checkShape = null) => {
+const checkShapes = (checkShape = null) => {
     if (selectedTransactions.size == 0) {
         updateSelector({ shapeMatch: false })
         return
@@ -31,39 +32,39 @@ const checkShapes = (selector, checkShape = null) => {
     updateSelector({ shapeMatch: true })
 }
 
-const toggleSelected = (selector, transaction) => {
+const toggleSelected = (transaction) => {
 
     if (selectedTransactions.has(transaction.id)) {
         selectedTransactions.delete(transaction.id)
-        checkShapes(selector)
+        checkShapes()
     } else {
         const shape = shapeOf(transaction)
         selectedTransactions.set(transaction.id, shape)
         if (selectedTransactions.size == 1) {
             updateSelector({ shapeMatch: true })
         } else {
-            checkShapes(selector, shape)
+            checkShapes(shape)
         }
 
     }
     selector.showMultiEdit = selector.showMultipleSelect && selectedTransactions.size > 0
 }
 
-const toggleAllSelected = (selector, transactions) => {
+const toggleAllSelected = (transactions) => {
     if (selector.isSelectAll) {
-        selector.selectedTransactions.clear()
+        selectedTransactions.clear()
     } else {
-        transactions.forEach(t => selector.selectedTransactions.set(t.id, shapeOf(t)))
+        transactions.forEach(t => selectedTransactions.set(t.id, shapeOf(t)))
     }
-    checkShapes(selector)
+    checkShapes()
         updateSelector({
-            showMultiEdit: selector.showMultipleSelect && selector.selectedTransactions.size > 0,
+            showMultiEdit: selector.showMultipleSelect && selectedTransactions.size > 0,
             isSelectAll: !selector.isSelectAll,
         })
 
 }
 
-const toggleMultipleSelect = (selector) => {
+const toggleMultipleSelect = () => {
     selector.showMultipleSelect = !selector.showMultipleSelect
     if (!selector.showMultipleSelect) {
             updateSelector({
@@ -79,7 +80,7 @@ const toggleMultipleSelect = (selector) => {
 
 }
 
-const clearSelected = (selector, ) => {
+const clearSelected = () => {
     selectedTransactions.clear()
     updateSelector({
         showMultiEdit: false,
@@ -87,8 +88,12 @@ const clearSelected = (selector, ) => {
     })
 }
 
-const isSelected = (selector, transaction) => {
+const isSelected = (transaction) => {
     return selectedTransactions.has(transaction.id)
+}
+
+const getSelected = () => {
+    return Array.from(selectedTransactions.keys())
 }
 
 const updateSelector = (update) => {
@@ -103,5 +108,6 @@ export {
     toggleAllSelected,
     toggleMultipleSelect,
     clearSelected,
-    isSelected
+    isSelected,
+    getSelected
 }

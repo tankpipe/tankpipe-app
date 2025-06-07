@@ -14,7 +14,7 @@
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
     import { SvelteMap } from 'svelte/reactivity';
-    import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected } from './selector.js'
+    import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
 
     export let curAccount
     export let journalMode = false
@@ -60,14 +60,12 @@
     });
 
     const setCurrentScroll = () => {
-        console.log("setCurrentScroll: ", document.getElementById("scroller").scrollTop)
         topScroll = document.getElementById("scroller").scrollTop
     }
 
     const scrollToPosition = () => {
         const scroller = document.getElementById("scroller")
         if (scroller && !isEditMode($page)) {
-            console.log("scrollToPosition: ", topScroll)
             document.getElementById("scroller").scrollTo(0, topScroll)
         }
     }
@@ -92,7 +90,7 @@
     }
 
     const deleteTransactions = async () => {
-        const selectedIds = Array.from($selector.selectedTransactions)
+        const selectedIds = getSelected()
         if (selectedIds.length > 0) {
             await invoke('delete_transactions', {ids: selectedIds}).then(resolvedDelete, rejected)
         }
@@ -284,7 +282,7 @@
     const getSortedSelectedTransactions = () => {
         let selected = []
         for (const t of transactions) {
-            if (isSelected($selector, t)) {
+            if (isSelected(t)) {
                 selected.push(t)
             }
         }
@@ -298,7 +296,7 @@
     const clearFilter = () => {
         descriptionFilter = ''
         if ($selector.isSelectAll) {
-            toggleAllSelected($selector, transactions)
+            toggleAllSelected(transactions)
         } else {
              selector.clear()
         }
@@ -329,7 +327,7 @@
     }
 
     const handleToggleSelected = (t) => {
-        toggleSelected($selector, t)
+        toggleSelected(t)
         setCurrentScroll()
     }
 
@@ -342,8 +340,8 @@
     </div>
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter($selector)}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect($selector)}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
         <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
         <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
@@ -398,9 +396,9 @@
             <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         {#each transactions as t}
             {@const e =  getEntry(t)}
-            {@const selected = isSelected($selector, t)}
+            {@const selected = isSelected(t)}
             {#if e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction($selector, e)} id={t.id}><!--{t.id}-->
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
@@ -433,7 +431,7 @@
     <div class="toolbar">
         <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
         <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{toggleShowFilter}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect($selector)}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
         <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
         <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
@@ -482,16 +480,16 @@
         <tbody>
         <tr>
             {#if $selector.showMultipleSelect}
-            <th on:click|stopPropagation={() => toggleAllSelected($selector, transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
+            <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
             <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
         </tr>
         {#each getDisplayTransactions() as t}
             {@const sortedEntries = sortEntries(t.entries)}
-            {@const selected = isSelected($selector, t.id)}
+            {@const selected = isSelected(t)}
             <tr style="height: 8px;"></tr>
             {#each sortedEntries as e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction($selector, e)} id={t.id}><!--{t.id}-->
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}
                 <td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
                 {/if}
