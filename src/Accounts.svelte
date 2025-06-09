@@ -1,3 +1,4 @@
+// In Accounts.svelte:
 <script>
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
@@ -8,17 +9,18 @@
     import { context } from "./context"
     import EditBooks from "./EditBooks.svelte"
     import { invoke } from '@tauri-apps/api/core'
-    import {onMount} from 'svelte';
+    import {onMount} from 'svelte'
+    import { _ } from 'svelte-i18n'
 
     export let curAccount
     export let loadAccounts
 
     let ACCOUNT_TYPES = {
-        Asset: "Assets",
-        Liability: "Liabilities",
-        Revenue: "Revenues",
-        Expense: "Expenses",
-        Equity: "Equity"
+        Asset: $_('accounts.accountTypes.assets'),
+        Liability: $_('accounts.accountTypes.liabilities'),
+        Revenue: $_('accounts.accountTypes.revenues'),
+        Expense: $_('accounts.accountTypes.expenses'),
+        Equity: $_('accounts.accountTypes.equity')
     }
     let lastAccountType
 
@@ -48,7 +50,7 @@
     const editAccount = (account) => {
         curAccount = account
         page.set({view: views.ACCOUNTS, mode: modes.EDIT})
-        console.log("selected: " + curAccount.name);
+        console.log($_('accounts.messages.selected', { name: curAccount.name }))
     }
 
     const checkAccountType = (account) => {
@@ -92,7 +94,7 @@
     function loadFileFailure(result) {
         console.log(result)
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", $_('accounts.errors.loadFailure', { result }))
     }
 
     const loadConfig = async () => {
@@ -110,10 +112,10 @@
 
     {#if !isEditMode($page)}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.actions.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
     {/if}
-    <div class="form-heading">Accounts</div>
+    <div class="form-heading">{$_('accounts.title')}</div>
     <div class="scroller">
     <div class="accounts">
     {#each $accounts as a}
@@ -194,3 +196,26 @@
     }
 
 </style>
+
+// In en.json:
+{
+  "accounts": {
+    "title": "Accounts",
+    "accountTypes": {
+      "assets": "Assets",
+      "liabilities": "Liabilities",
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "equity": "Equity"
+    },
+    "actions": {
+      "createNew": "Create New Account"
+    },
+    "messages": {
+      "selected": "selected: {name}"
+    },
+    "errors": {
+      "loadFailure": "We hit a snag: {result}"
+    }
+  }
+}

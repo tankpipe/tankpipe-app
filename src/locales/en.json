@@ -6,5 +6,48 @@
         "settings": "Settings",
         "schedules": "Schedules",
         "net_assets": "Net Assets"
+    },
+    "accounts": {
+        "title": "Accounts",
+        "accountTypes": {
+            "assets": "Assets",
+            "liabilities": "Liabilities",
+            "revenues": "Revenues",
+            "expenses": "Expenses",
+            "equity": "Equity"
+        },
+        "actions": {
+            "createNew": "Create a new account"
+        }
+    },
+    "account": {
+        "firstAccountMessage": "Add your first account. For example, your main bank account used for everyday transactions.",
+        "form": {
+            "title": {
+                "edit": "Edit Account",
+                "new": "New Account"
+            },
+            "deleteTooltip": "Delete account",
+            "labels": {
+                "name": "Name",
+                "startingBalance": "Starting balance",
+                "type": "Type"
+            },
+            "buttons": {
+                "close": "Close",
+                "add": "Add",
+                "update": "Update"
+            },
+            "errors": {
+                "nameRequired": "Name is required",
+                "startingBalanceRequired": "A valid starting balance is required",
+                "accountTypeRequired": "Account type needs to be selected",
+                "genericError": "We hit a snag: {0}"
+            },
+            "success": {
+                "saved": "Account saved.",
+                "deleted": "Account deleted."
+            }
+        }
     }
 }
