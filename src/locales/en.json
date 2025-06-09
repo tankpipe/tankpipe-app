@@ -1,0 +1,10 @@
+{
+    "app": {
+        "accounts": "Accounts",
+        "transactions": "Transactions",
+        "journal": "Journal",
+        "settings": "Settings",
+        "schedules": "Schedules",
+        "net_assets": "Net Assets"
+    }
+}

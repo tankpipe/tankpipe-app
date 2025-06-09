@@ -15,7 +15,9 @@
     import Dialog from './Dialog.svelte'
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
-    import NetAssets from './NetAssets.svelte';
+    import NetAssets from './NetAssets.svelte'
+    import { _, waitLocale } from 'svelte-i18n'
+    import './i18n'
 
     export let curAccount = null
     let dialog
@@ -67,6 +69,7 @@
 
         if (supportedVersion) {
              initializing = true
+             await waitLocale()
              await loadSettings()
              await loadAccounts()
              await loadConfig()
@@ -114,17 +117,16 @@
             <div class="column left">
                 <div class="menu-left">
                     <ul>
-                        <li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>Accounts</li>
+                        <li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</li>
                         {#if $accounts.length > 0 }
-                        <li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>Transactions</li>
-                        <li on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>Journal</li>
-                        <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>Schedules</li>
-                        <li on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>Net Assets</li>
+                        <li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</li>
+                        <li on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</li>
+                        <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</li>
+                        <li on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</li>
 
                         {:else}
-                        <li class="disabled">Transactions</li>
-                        <li class="disabled">Schedules</li>
-                        {/if}
+                        <li class="disabled">{$_('transactions')}</li>
+                        <li class="disabled">{$_('schedules')}</li>                        {/if}
                     </ul>
                 </div>
 
