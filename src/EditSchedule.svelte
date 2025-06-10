@@ -1,4 +1,3 @@
-<!-- EditSchedule.svelte -->
 <script>
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from './errors.js'
@@ -241,16 +240,16 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('schedule.edit_schedule') : $_('schedule.new_schedule')}</div>
     <div class="form-row">
         <div class="top-widget">
-            <label for="desc">{$_('schedule.name')}</label>
+            <label for="desc">{$_('labels.name')}</label>
             <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
     </div>
     <hr/>
-    <div class="panel-title">{$_('schedule.transaction')}</div>
+    <div class="panel-title">{$_('labels.transaction')}</div>
     <div class="entries">
         <table>
             <tbody>
-            <tr><td><div class="heading">{$_('schedule.description')}</div></td><td><div class="heading">{$_('schedule.account')}</div></td><td><div class="heading">{$_('schedule.debit')}</div></td><td><div class="heading">{$_('schedule.credit')}</div></td></tr>
+            <tr><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.account')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
             {#each entries as e, i}
             <tr>
                 <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
@@ -272,7 +271,7 @@
                         <i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
                     </div>
                 </td>
-                <td><div class="total">{$_('schedule.totals')}</div></td>
+                <td><div class="total">{$_('labels.totals')}</div></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
             </tbody>
@@ -307,7 +306,7 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>{$_('schedule.close')}</button>
+            <button on:click={onCancel}>{$_('buttons.close')}</button>
             <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>

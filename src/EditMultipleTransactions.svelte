@@ -239,7 +239,7 @@
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">{$_('editMultiple.form.date')}</div></td><td><div class="heading">{$_('editMultiple.form.description')}</div></td><td><div class="heading">{$_('editMultiple.form.amount')}</div></td><td></td><td></td></tr>
+                <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
@@ -249,15 +249,15 @@
             </table>
         </div>
         <div class="form-row2">
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('editMultiple.form.debit')} none={true} flat={true}/>
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('editMultiple.form.credit')} none={true} flat={true}/>
+            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true}/>
+            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true}/>
         </div>
         {/if}
         {#if compoundMode}
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">{$_('editMultiple.form.date')}</div></td><td><div class="heading">{$_('editMultiple.form.description')}</div></td><td><div class="heading">{$_('editMultiple.form.account')}</div></td><td><div class="heading">{$_('editMultiple.form.debit')}</div></td><td><div class="heading">{$_('editMultiple.form.credit')}</div></td></tr>
+                <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.account')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
@@ -279,7 +279,7 @@
                         <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('editMultiple.table.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></div>
                     </div></td>
                     <td></td>
-                    <td><div class="total">{$_('editMultiple.form.totals')}</div></td>
+                    <td><div class="total">{$_('labels.totals')}</div></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
                 </tbody>
@@ -296,7 +296,7 @@
             <label for="compound">{$_('editMultiple.form.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button on:click={close}>{$_('editMultiple.form.close')}</button>
+            <button on:click={close}>{$_('labels.close')}</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
     </div>
@@ -317,7 +317,7 @@
     <table>
         <tbody>
         <tr>
-            <th></th><th class="justify-left">{$_('editMultiple.form.date')}</th><th class="justify-left">{$_('editMultiple.form.description')}</th><th>{$_('editMultiple.form.debit')}</th><th>{$_('editMultiple.form.credit')}</th>
+            <th></th><th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>{$_('labels.debit')}</th><th>{$_('labels.credit')}</th>
         </tr>
         {#each transactions as t}
             {@const sortedEntries = sortEntries(t.entries)}

@@ -1,4 +1,3 @@
-// Dialog.svelte
 <script>
     import Icon from '@iconify/svelte'
     import { _ } from 'svelte-i18n'
@@ -19,7 +18,7 @@
     <slot/>
     {#if closeButton}
     <div class="widget buttons">
-        <button on:click={close} autofocus>{$_('dialog.ok')}</button>
+        <button on:click={close} autofocus>{$_('buttons.ok')}</button>
     </div>
     {/if}
 </dialog>

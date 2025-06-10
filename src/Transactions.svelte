@@ -14,6 +14,7 @@
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
     import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
+    import { _ } from 'svelte-i18n'
 
     export let curAccount
     export let journalMode = false
@@ -381,7 +382,7 @@
             {#if $selector.showMultipleSelect}
             <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">{$_('transactions.date')}</th><th class="justify-left">{$_('transactions.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
+            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
         </tr>
         {#each transactions as t}
             {@const selected = isSelected(t)}

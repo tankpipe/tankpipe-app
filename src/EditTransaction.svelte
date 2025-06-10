@@ -21,7 +21,7 @@
     let msg = ""
     let errors = new Errors()
     let format = dateFormat($config)
-    let addButtonLabel = $_('transaction.add')
+    let addButtonLabel = $_('buttons.add')
     let drTotal = 0
     let crTotal = 0
     let simpleAllowed = false
@@ -187,7 +187,7 @@
 
     function fetched(result) {
         curTransaction = result
-        addButtonLabel = $_('transaction.update')
+        addButtonLabel = $_('buttons.update')
         console.log(result)
         entries = curTransaction.entries
 
@@ -306,7 +306,7 @@
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">{$_('transaction.date')}</div></td><td><div class="heading">{$_('transaction.description')}</div></td><td><div class="heading">{$_('transaction.amount')}</div></td><td></td><td></td></tr>
+                <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" /></div></td>
                     <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
@@ -318,12 +318,12 @@
         <div class="form-row2">
             {#if entries.length > 1}
             {#if entries[0].entry_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('transaction.debit')} none={true} flat={true} />
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('transaction.credit')} none={true} flat={true} />
+            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true} />
+            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true} />
             {/if}
             {#if entries[0].entry_type === "Credit"}
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('transaction.debit')} none={true} flat={true} />
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('transaction.credit')} none={true} flat={true} />
+            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true} />
+            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true} />
             {/if}
             {/if}
         </div>
@@ -332,7 +332,7 @@
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">{$_('transaction.date')}</div></td><td><div class="heading">{$_('transaction.description')}</div></td><td><div class="heading">{$_('transaction.amount')}</div></td><td><div class="heading">{$_('transaction.debit')}</div></td><td><div class="heading">{$_('transaction.credit')}</div></td></tr>
+                <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" /></div></td>
@@ -350,11 +350,11 @@
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
-                        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('transaction.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
-                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('transaction.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></div>
+                        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
+                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></div>
                     </div></td>
                     <td></td>
-                    <td><div class="total">{$_('transaction.totals')}</div></td>
+                    <td><div class="total">{$_('labels.totals')}</div></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
                 </tbody>
@@ -371,7 +371,7 @@
             <label for="compound">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button on:click={close}>{$_('transaction.close')}</button>
+            <button on:click={close}>{$_('buttons.close')}</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">

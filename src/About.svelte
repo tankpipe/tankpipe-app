@@ -29,7 +29,7 @@
     {#if about}
     <div class="row">
         <div class="widget">
-            <div class="description">{$_('about.version', { version: about.version })}</div>
+            <div class="description">{$_('about.version', { values:{ version: about.version } })}</div>
         </div>
     </div>
     <hr/>

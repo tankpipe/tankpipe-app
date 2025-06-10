@@ -108,7 +108,7 @@
 <div class="bs-sub-heading">{$_('netAssets.asAt')} {formatDate(today)}</div>
 {#await loadEmUp()}
 {$_('common.loading')}
-{:then _}
+{:then _nothin}
 
 <div class="scroller" id="scroller">
     <table>
@@ -188,13 +188,6 @@
         color: #757575;
     }
 
-    .toolbar {
-        float: right;
-        color: #C0C0C0;
-        margin-left: 10px;
-        display: flex;
-        padding-right: 9px;
-    }
 
     .scroller{
         height: 100%;
@@ -246,10 +239,6 @@
         color: #FFF;
     }
 
-    tr:hover td .tiny{
-        cursor: pointer;
-        color: #C0C0C0;
-    }
 
     .money {
         text-align: right !important;

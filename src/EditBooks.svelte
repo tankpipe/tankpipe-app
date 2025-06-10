@@ -11,10 +11,10 @@
     let msg = ""
     let errors = new Errors()
     let name
-    let addButtonLabel = $_('editBooks.buttons.add')
+    let addButtonLabel = $_('buttons.add')
 
     onMount(() => {
-            addButtonLabel = $_('editBooks.buttons.add')
+            addButtonLabel = $_('buttons.add')
     })
 
     const onCancel = () => {
@@ -62,7 +62,7 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('editBooks.labels.edit_books') : $_('editBooks.labels.new_books')}</div>
     <div class="form-row">
         <div class="widget">
-            <label for="name">{$_('editBooks.labels.name')}</label>
+            <label for="name">{$_('labels.name')}</label>
             <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
     </div>
@@ -77,7 +77,7 @@
         </div>
         <div class="widget buttons">
             {#if context.hasBooks}
-            <button on:click={onCancel}>{$_('editBooks.buttons.close')}</button>
+            <button on:click={onCancel}>{$_('buttons.close')}</button>
             {/if}
             <button on:click={onAdd}>{addButtonLabel}</button>
         </div>

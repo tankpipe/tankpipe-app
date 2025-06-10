@@ -1,4 +1,3 @@
-// In Accounts.svelte:
 <script>
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
@@ -16,11 +15,11 @@
     export let loadAccounts
 
     let ACCOUNT_TYPES = {
-        Asset: $_('accounts.accountTypes.assets'),
-        Liability: $_('accounts.accountTypes.liabilities'),
-        Revenue: $_('accounts.accountTypes.revenues'),
-        Expense: $_('accounts.accountTypes.expenses'),
-        Equity: $_('accounts.accountTypes.equity')
+        Asset: $_('accountTypes.assets'),
+        Liability: $_('accountTypes.liabilities'),
+        Revenue: $_('accountTypes.revenues'),
+        Expense: $_('accountTypes.expenses'),
+        Equity: $_('accountTypes.equity')
     }
     let lastAccountType
 
@@ -112,7 +111,7 @@
 
     {#if !isEditMode($page)}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.actions.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
     </div>
     {/if}
     <div class="form-heading">{$_('accounts.title')}</div>

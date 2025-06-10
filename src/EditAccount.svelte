@@ -19,16 +19,16 @@
     let msg = ""
     let errors = new Errors()
     let name, startingBalance, accountType
-    let addButtonLabel = $_('account.form.buttons.add')
+    let addButtonLabel = $_('buttons.add')
 
     onMount(() => {
         if ($page.mode === modes.EDIT) {
             name = curAccount.name
             startingBalance = curAccount.starting_balance
             accountType = matchAccountType(curAccount.account_type)
-            addButtonLabel = $_('account.form.buttons.update')
+            addButtonLabel = $_('buttons.update')
         } else {
-            addButtonLabel = $_('account.form.buttons.add')
+            addButtonLabel = $_('buttons.add')
             startingBalance = "0"
             curAccount = null
         }
@@ -141,7 +141,7 @@
     </div>
     <div class="form-row">
         <div class="widget">
-            <label for="name">{$_('account.form.labels.name')}</label>
+            <label for="name">{$_('labels.name')}</label>
             <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
         <div class="widget">
@@ -162,12 +162,110 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>{$_('account.form.buttons.close')}</button>
+            <button on:click={onCancel}>{$_('buttons.close')}</button>
             <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
 
 <style>
-    /* styles remain unchanged */
+
+    :global(.date-time-field input) {
+        border: 1px solid #CCC !important;
+        border-radius: 2px !important;
+        height: 33px;
+    }
+
+    :root {
+        --date-input-width: 110px;
+    }
+
+    .msg-panel {
+        padding-left: 2px;
+        font-size: 0.9em;
+        float:left;
+    }
+
+    :global(.message) {
+        color: #EFEFEF;
+        margin-bottom: 20px;
+        text-align: left;
+        background-color: #303030;
+        padding:10px;
+        border-radius: 10px;
+    }
+
+    .msg-panel p {
+        margin: 8px 0;
+        max-width: 500px;
+    }
+
+    .error-msg {
+        color: #FBC969;
+    }
+
+    .success-msg {
+        color: green;
+    }
+
+    .error {
+        border: 1px solid #FBC969 !important;
+    }
+
+    :global(.error-input input) {
+        border: 1px solid #FBC969 !important;
+    }
+
+    .buttons {
+        float: right;
+        margin: 10px 12px 0 0;
+    }
+
+    .buttons button {
+        min-width: 80px;
+    }
+
+    .form-row {
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear:both;
+    }
+
+    .form-button-row {
+        display: block;
+        text-align: left;
+    }
+
+    .form-button-row {
+        margin-left: 7px;
+        margin-right: 2px;
+    }
+
+    input {
+        margin-right: 0px;
+    }
+
+    .form {
+        float: left;
+        border-radius: 10px;
+    }
+
+    .widget {
+        display: inline-block;
+        padding: 5px 0px 5px 10px;
+    }
+
+    .money-input {
+        width: 110px;
+    }
+
+    .money-input {
+        text-align: right;
+    }
+
+    .description-input {
+        width: 400px;
+    }
+
 </style>
