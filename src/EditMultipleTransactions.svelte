@@ -8,6 +8,7 @@
     import {accounts} from './accounts.js'
     import {config, dateFormat} from './config.js'
     import { invoke } from "@tauri-apps/api/core"
+    import { _ } from 'svelte-i18n'
 
     export let loadTransactions
     export let onClose
@@ -229,7 +230,7 @@
     const date_class = date_style()
 </script>
 <div class="form">
-    <div class="form-heading">Edit Multiple Transactions</div>
+    <div class="form-heading">{$_('editMultiple.form.editMultiple')}</div>
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar">
     </div>
@@ -238,7 +239,7 @@
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Amount</div></td><td></td><td></td></tr>
+                <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
@@ -248,15 +249,15 @@
             </table>
         </div>
         <div class="form-row2">
-            <Select bind:item={entries[0].account} items={$accounts} label="Debit" none={true} flat={true}/>
-            <Select bind:item={entries[1].account} items={$accounts} label="Credit" none={true} flat={true}/>
+            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true}/>
+            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true}/>
         </div>
         {/if}
         {#if compoundMode}
         <div class="entries">
             <table>
                 <tbody>
-                <tr><td><div class="heading">Date</div></td><td><div class="heading">Description</div></td><td><div class="heading">Account</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
+                <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.account')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
@@ -274,11 +275,11 @@
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
-                        <div class="toolbar-icon" on:click="{handleAddClick}" title="Add row"><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
-                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title="Remove row"><Icon icon="mdi:table-row-remove"  width="24"/></div>
+                        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('editMultiple.table.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
+                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('editMultiple.table.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></div>
                     </div></td>
                     <td></td>
-                    <td><div class="total">Totals</div></td>
+                    <td><div class="total">{$_('labels.totals')}</div></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
                 </tbody>
@@ -288,14 +289,14 @@
     <div class="form-button-row">
         <div class="widget2 buttons-left">
             <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={false}>
-            <label for="compound">Compound entry</label>
+            <label for="compound">{$_('editMultiple.form.compoundEntry')}</label>
         </div>
         <div class="widget2 buttons-left">
             <input id="compound" type=checkbox bind:checked={recorded} disabled="disabled">
-            <label for="compound">Recorded</label>
+            <label for="compound">{$_('editMultiple.form.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button on:click={close}>Close</button>
+            <button on:click={close}>{$_('labels.close')}</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
     </div>
@@ -309,14 +310,14 @@
     </div>
 </div>
 <div class="section-heading">
-    <div class="form-heading">Selected Transactions</div>
+    <div class="form-heading">{$_('editMultiple.form.selectedTransactions')}</div>
 </div>
 
 <div class="scroller" id="scroller">
     <table>
         <tbody>
         <tr>
-            <th></th><th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>
+            <th></th><th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>{$_('labels.debit')}</th><th>{$_('labels.credit')}</th>
         </tr>
         {#each transactions as t}
             {@const sortedEntries = sortEntries(t.entries)}
@@ -336,7 +337,6 @@
         </tbody>
     </table>
 </div>
-
 
 <style>
 

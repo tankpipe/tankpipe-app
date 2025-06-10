@@ -1,8 +1,10 @@
+<!-- NetAssets.svelte -->
 <script>
     import {page, modes, views} from "./page"
     import {config} from './config'
     import {accounts} from './accounts'
     import { invoke } from '@tauri-apps/api/core'
+    import { _ } from 'svelte-i18n'
 
     export let curAccount
 
@@ -102,20 +104,20 @@
 
 </script>
 
-<div class="bs-form-heading">Net Assets</div>
-<div class="bs-sub-heading">As at {formatDate(today)}</div>
+<div class="bs-form-heading">{$_('netAssets.title')}</div>
+<div class="bs-sub-heading">{$_('netAssets.asAt')} {formatDate(today)}</div>
 {#await loadEmUp()}
-Loading...
-{:then _}
+{$_('common.loading')}
+{:then _nothin}
 
 <div class="scroller" id="scroller">
     <table>
         <tbody>
             <tr ><th colspan="3" class="justify-left"></th></tr>
-            <tr ><th colspan="3" class="justify-left">Assets</th></tr>
+            <tr ><th colspan="3" class="justify-left">{$_('netAssets.assets')}</th></tr>
 
         {#each assetAccounts as a}
-            <tr id={a.id}><!--{a.id}-->
+            <tr id={a.id}>
                 <td title="{a.name}"><div class="description" onclick={() => selectAccount(a)}>{a.name}</div></td>
                 <td class="money">{formatAmount(bsBalances[a.id])}</td>
                 <td class="money"></td>
@@ -123,17 +125,17 @@ Loading...
         {/each}
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr class="sub-total">
-            <td title="balance"><div class="description indent">Total assets</div></td>
+            <td title="balance"><div class="description indent">{$_('netAssets.totalAssets')}</div></td>
             <td class="money sub-total" >{formatAmount(assetsTotal)}</td>
             <td class="money"></td>
         </tr>
 
 
         <tr ><th colspan="3" class="justify-left"></th></tr>
-        <tr ><th colspan="3" class="justify-left">Liabilities</th></tr>
+        <tr ><th colspan="3" class="justify-left">{$_('netAssets.liabilities')}</th></tr>
 
         {#each liabilityAccounts as a}
-            <tr id={a.id}><!--{a.id}-->
+            <tr id={a.id}>
                 <td title="{a.name}"><div class="description" onclick={() => selectAccount(a)}>{a.name}</div></td>
                 <td class="money"></td>
                 <td class="money">{formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}</td>
@@ -141,16 +143,16 @@ Loading...
         {/each}
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr class="sub-total">
-            <td title="balance"><div class="description indent">Total liabilities</div></td>
+            <td title="balance"><div class="description indent">{$_('netAssets.totalLiabilities')}</div></td>
             <td class="money"></td>
             <td class="money sub-total" >{formatAmount(liabilitiesTotal)}</td>
         </tr>
 
         <tr ><th colspan="3" class="justify-left"></th></tr>
-        <tr ><th colspan="3" class="justify-left">Balance</th></tr>
+        <tr ><th colspan="3" class="justify-left">{$_('netAssets.balance')}</th></tr>
 
         <tr>
-            <td title="balance"><div class="description indent">Net assets</div></td>
+            <td title="balance"><div class="description indent">{$_('netAssets.netAssets')}</div></td>
             <td class="money total">{formatAmount(balance)}</td>
             <td class="money"></td>
         </tr>
@@ -185,15 +187,6 @@ Loading...
         overflow: visible;
         color: #757575;
     }
-
-    .toolbar {
-        float: right;
-        color: #C0C0C0;
-        margin-left: 10px;
-        display: flex;
-        padding-right: 9px;
-    }
-
 
 
     .scroller{
@@ -230,8 +223,6 @@ Loading...
         padding-left: 2em;
     }
 
-
-
     th {
         color:#666666;
         background-color: #444;
@@ -248,10 +239,6 @@ Loading...
         color: #FFF;
     }
 
-    tr:hover td .tiny{
-        cursor: pointer;
-        color: #C0C0C0;
-    }
 
     .money {
         text-align: right !important;
@@ -266,5 +253,4 @@ Loading...
         overflow: hidden;
         text-overflow: ellipsis;
     }
-
 </style>
