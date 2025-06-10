@@ -108,13 +108,14 @@
 {:else if isEditMode($page)}
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
 {:else}
-
-    {#if !isEditMode($page)}
-    <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+    <div>
+        {#if !isEditMode($page)}
+        <div class="toolbar">
+            <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        </div>
+        {/if}
+        <div class="form-heading">{$_('accounts.title')}</div>
     </div>
-    {/if}
-    <div class="form-heading">{$_('accounts.title')}</div>
     <div class="scroller">
     <div class="accounts">
     {#each $accounts as a}
