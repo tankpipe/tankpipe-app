@@ -1,5 +1,7 @@
+// Dialog.svelte
 <script>
     import Icon from '@iconify/svelte'
+    import { _ } from 'svelte-i18n'
     export let dialog
     export let closeButton = false
     export let closeIcon = false
@@ -11,18 +13,17 @@
 <dialog bind:this={dialog} on:close>
     {#if closeIcon}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click={close} title="Close dialog"><Icon icon="mdi:close"  width="24"/></div>
+        <div class="toolbar-icon" on:click={close} title={$_('dialog.close')}><Icon icon="mdi:close"  width="24"/></div>
     </div>
     {/if}
     <slot/>
     {#if closeButton}
     <div class="widget buttons">
-        <button on:click={close} autofocus>Ok</button>
+        <button on:click={close} autofocus>{$_('dialog.ok')}</button>
     </div>
     {/if}
 </dialog>
 <style>
-
     dialog {
         border: 1px solid #333 !important;
         background-color: #444;
@@ -38,7 +39,6 @@
         width: 100%;
     }
 
-
     .buttons {
         float: right;
     }
@@ -46,5 +46,4 @@
     .buttons button {
         min-width: 80px;
     }
-
 </style>

@@ -6,14 +6,15 @@
     import {context} from './context.js';
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'
+    import { _ } from 'svelte-i18n'
 
     let msg = ""
     let errors = new Errors()
     let name
-    let addButtonLabel = "Add"
+    let addButtonLabel = $_('editBooks.buttons.add')
 
     onMount(() => {
-            addButtonLabel = "Add"
+            addButtonLabel = $_('editBooks.buttons.add')
     })
 
     const onCancel = () => {
@@ -33,38 +34,35 @@
     function loadFileFailure(result) {
         console.log(result)
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", $_('editBooks.errors.hit_snag', { result }))
     }
 
     const onAdd = () => {
         msg = ""
         errors = new Errors()
         if (!name || name.length < 1) {
-             errors.addError("name", "Name is required")
+             errors.addError("name", $_('editBooks.errors.name_required'))
         }
 
         const regex = /[^a-z0-9_\- ]/gi
         if (regex.test(name)) {
-            errors.addError("name", "Name must be alphanumeric")
+            errors.addError("name", $_('editBooks.errors.name_alphanumeric'))
         }
 
         if (!errors.hasErrors()) {
             newFile(name)
         }
-
     }
-
-
 </script>
 
 {#if ! context.hasBooks}
-    <div class="message">To get started give your first set of accounts a name. For example, Personal Finances.<p></p></div>
+    <div class="message">{$_('editBooks.messages.get_started')}<p></p></div>
 {/if}
 <div class="form">
-    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Books</div>
+    <div class="form-heading">{$page.mode === modes.EDIT ? $_('editBooks.labels.edit_books') : $_('editBooks.labels.new_books')}</div>
     <div class="form-row">
         <div class="widget">
-            <label for="name">Name</label>
+            <label for="name">{$_('editBooks.labels.name')}</label>
             <input id="name" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
     </div>
@@ -79,7 +77,7 @@
         </div>
         <div class="widget buttons">
             {#if context.hasBooks}
-            <button on:click={onCancel}>Close</button>
+            <button on:click={onCancel}>{$_('editBooks.buttons.close')}</button>
             {/if}
             <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
@@ -87,7 +85,6 @@
 </div>
 
 <style>
-
     :global(.date-time-field input) {
         border: 1px solid #CCC !important;
         border-radius: 2px !important;
@@ -168,5 +165,4 @@
     .description-input {
         width: 400px;
     }
-
 </style>

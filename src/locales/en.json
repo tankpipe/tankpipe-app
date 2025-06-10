@@ -49,5 +49,155 @@
                 "deleted": "Account deleted."
             }
         }
+    },
+    "dialog": {
+        "close": "Close dialog",
+        "ok": "Ok"
+    },
+    "editBooks": {
+        "buttons": {
+            "add": "Add",
+            "close": "Close"
+        },
+        "errors": {
+            "hit_snag": "We hit a snag: {result}",
+            "name_required": "Name is required",
+            "name_alphanumeric": "Name must be alphanumeric"
+        },
+        "labels": {
+            "edit_books": "Edit Books",
+            "new_books": "New Books",
+            "name": "Name"
+        },
+        "messages": {
+            "get_started": "To get started give your first set of accounts a name. For example, Personal Finances."
+        }
+    },
+    "editMultiple": {
+        "form": {
+            "editMultiple": "Edit Multiple Transactions",
+            "date": "Date",
+            "description": "Description",
+            "amount": "Amount",
+            "debit": "Debit",
+            "credit": "Credit",
+            "account": "Account",
+            "totals": "Totals",
+            "close": "Close",
+            "update": "Update",
+            "compoundEntry": "Compound entry",
+            "recorded": "Recorded",
+            "selectedTransactions": "Selected Transactions"
+        },
+        "messages": {
+            "transactionsSaved": "Transactions saved.",
+            "hitSnag": "We hit a snag: {error}"
+        },
+        "table": {
+            "addRow": "Add row",
+            "removeRow": "Remove row"
+        }
+    },
+    "transaction": {
+        "edit": "Edit Transaction",
+        "new": "New Transaction",
+        "schedule": "Schedule",
+        "delete": "Delete account",
+        "date": "Date",
+        "description": "Description",
+        "amount": "Amount",
+        "debit": "Debit",
+        "credit": "Credit",
+        "totals": "Totals",
+        "compound": "Compound entry",
+        "recorded": "Recorded",
+        "close": "Close",
+        "add": "Add",
+        "update": "Update",
+        "addRow": "Add row",
+        "removeRow": "Remove row",
+        "errors": {
+            "descriptionRequired": "Description is required",
+            "dateRequired": "Date is required",
+            "amountRequired": "A valid amount is required",
+            "accountRequired": "Account is required",
+            "totalsBalance": "Totals should balance",
+            "snag": "We hit a snag: {error}",
+            "saved": "Transaction saved.",
+            "deleted": "Transaction deleted."
+        }
+    },
+    "schedule": {
+        "edit_schedule": "Edit Schedule",
+        "new_schedule": "New Schedule",
+        "name": "Name",
+        "transaction": "Transaction",
+        "description": "Description",
+        "account": "Account",
+        "debit": "Debit",
+        "credit": "Credit",
+        "totals": "Totals",
+        "schedule": "Schedule",
+        "every": "Every",
+        "starting_from": "starting from",
+        "end_after": "End after",
+        "no_end_date": "No end date",
+        "close": "Close"
+    },
+    "netAssets": {
+        "title": "Net Assets",
+        "asAt": "As at",
+        "assets": "Assets",
+        "totalAssets": "Total assets",
+        "liabilities": "Liabilities",
+        "totalLiabilities": "Total liabilities",
+        "balance": "Balance",
+        "netAssets": "Net assets"
+    },
+    "common": {
+        "loading": "Loading..."
+    },
+    "schedules": {
+        "title": "Schedules",
+        "noSchedules": "No schedules",
+        "createNew": "Create a new schedule",
+        "scheduleUntil": "Schedule until",
+        "last": "Last"
+    },
+    "transactions": {
+        "noTransactions": "No transactions",
+        "addTransaction": "Add a transaction",
+        "hideFilter": "Hide filter",
+        "showFilter": "Show filter",
+        "hideSelect": "Hide select transactions",
+        "showSelect": "Show select transactions",
+        "editSelected": "Edit selected transactions",
+        "deleteSelected": "Delete selected transactions",
+        "importTransactions": "Import transactions",
+        "transactionsDeleted": "Transactions deleted.",
+        "error": "We hit a snag: {error}",
+        "filter": "Filter",
+        "clearFilter": "Clear filter",
+        "date": "Date",
+        "description": "Description"
+    },
+    "about": {
+        "logo_alt": "Tankpipe logo",
+        "title": "Tankpipe",
+        "subtitle": "Cashflow Manager",
+        "version": "Version {version}",
+        "questions_title": "Got questions?",
+        "github_link": "Raise an issue on Github",
+        "discord_link": "Reach out on Discord",
+        "privacy_title": "Privacy policy",
+        "privacy_text": "Our Privacy Policy is available at <a target=\"_blank\" href=\"https://tankpipe.com/app/privacy\">tankpipe.com/app/privacy</a>.",
+        "license_title": "Tankpipe is available under the MIT License",
+        "mit_license": "The MIT License (MIT)",
+        "copyright": "Copyright © 2025 Tankpipe.com",
+        "license_permission": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+        "license_notice": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
+        "license_warranty": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+        "disclaimer_title": "Advice disclaimer",
+        "disclaimer_text": "Material, content, and functionality available on the Tankpipe app <span class=\"highlight\">does not represent financial, tax, or legal advice</span>. As per the license, the Tankpipe App is provided \"AS IS\" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters. You should consult with a qualified professional for advice on anything relating to these matters. See also the Tankpipe <a target=\"_blank\" href=\"https://tankpipe.com/app/terms\">terms.</a>"
     }
 }

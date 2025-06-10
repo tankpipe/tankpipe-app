@@ -196,26 +196,3 @@
     }
 
 </style>
-
-// In en.json:
-{
-  "accounts": {
-    "title": "Accounts",
-    "accountTypes": {
-      "assets": "Assets",
-      "liabilities": "Liabilities",
-      "revenues": "Revenues",
-      "expenses": "Expenses",
-      "equity": "Equity"
-    },
-    "actions": {
-      "createNew": "Create New Account"
-    },
-    "messages": {
-      "selected": "selected: {name}"
-    },
-    "errors": {
-      "loadFailure": "We hit a snag: {result}"
-    }
-  }
-}

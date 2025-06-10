@@ -1,3 +1,4 @@
+<!-- EditSchedule.svelte -->
 <script>
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from './errors.js'
@@ -8,7 +9,7 @@
     import {generate} from './generate'
     import {settings} from './settings.js'
     import { invoke } from '@tauri-apps/api/core'
-
+    import { _ } from 'svelte-i18n'
 
     export let close
     export let curSchedule
@@ -237,19 +238,19 @@
 </script>
 
 <div class="form">
-    <div class="form-heading">{$page.mode === modes.EDIT?"Edit":"New"} Schedule</div>
+    <div class="form-heading">{$page.mode === modes.EDIT ? $_('schedule.edit_schedule') : $_('schedule.new_schedule')}</div>
     <div class="form-row">
         <div class="top-widget">
-            <label for="desc">Name</label>
+            <label for="desc">{$_('schedule.name')}</label>
             <input id="desc" class="description-input" class:error={errors.isInError("name")} bind:value={name}>
         </div>
     </div>
     <hr/>
-    <div class="panel-title">Transaction</div>
+    <div class="panel-title">{$_('schedule.transaction')}</div>
     <div class="entries">
         <table>
             <tbody>
-            <tr><td><div class="heading">Description</div></td><td><div class="heading">Account</div></td><td><div class="heading">Debit</div></td><td><div class="heading">Credit</div></td></tr>
+            <tr><td><div class="heading">{$_('schedule.description')}</div></td><td><div class="heading">{$_('schedule.account')}</div></td><td><div class="heading">{$_('schedule.debit')}</div></td><td><div class="heading">{$_('schedule.credit')}</div></td></tr>
             {#each entries as e, i}
             <tr>
                 <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
@@ -271,28 +272,28 @@
                         <i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
                     </div>
                 </td>
-                <td><div class="total">Totals</div></td>
+                <td><div class="total">{$_('schedule.totals')}</div></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
                 <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
             </tbody>
         </table>
     </div>
     <hr/>
-    <div class="panel-title">Schedule</div>
+    <div class="panel-title">{$_('schedule.schedule')}</div>
     <div class="form-row2">
         <div class="widget">
-            Every&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
+            {$_('schedule.every')}&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
             &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
-            starting from&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
+            {$_('schedule.starting_from')}&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget2">
             <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-            <div class="widget left"><label for="end">End after&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
+            <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
             <br/>
             <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-            <label for="noEnd">No end date</label>
+            <label for="noEnd">{$_('schedule.no_end_date')}</label>
         </div>
     </div>
     <hr/>
@@ -306,12 +307,11 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>Close</button>
+            <button on:click={onCancel}>{$_('schedule.close')}</button>
             <button on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
-
 
 <style>
 

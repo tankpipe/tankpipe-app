@@ -1,7 +1,8 @@
-x<script>
+<script>
     import Icon from '@iconify/svelte';
     import { invoke } from '@tauri-apps/api/core'
     import { onMount } from 'svelte';
+    import { _ } from 'svelte-i18n'
     let about
 
     onMount(() => {
@@ -15,11 +16,11 @@ x<script>
 </script>
 <div class="header">
     <div class="logo">
-        <img src="/logo.png" alt="Tankpipe logo" width="64px"/>
+        <img src="/logo.png" alt={$_('about.logo_alt')} width="64px"/>
     </div>
     <div class="heading">
-        <h1>Tankpipe</h1>
-        <h5>Cashflow Manager</h5>
+        <h1>{$_('about.title')}</h1>
+        <h5>{$_('about.subtitle')}</h5>
     </div>
 </div>
 <div>
@@ -28,60 +29,45 @@ x<script>
     {#if about}
     <div class="row">
         <div class="widget">
-            <div class="description">Version {about.version}</div>
+            <div class="description">{$_('about.version', { version: about.version })}</div>
         </div>
     </div>
     <hr/>
-    <div class="panel-title">Got questions?</div>
+    <div class="panel-title">{$_('about.questions_title')}</div>
     <div class="about">
             <div class="description">
-                <div class="link"><a target="_blank" href="https://github.com/tankpipe/tankpipe-app/issues"><Icon icon="mdi:github-circle"  width="24"/><div class="link-text"> Raise an issue on Github</div></a><br/></div>
-                <div class="link"><a target="_blank" href="{about.contact}"><Icon icon="mdi:discord"  width="24"/><div class="link-text"> Reach out on Discord</div></a></div>
+                <div class="link"><a target="_blank" href="https://github.com/tankpipe/tankpipe-app/issues"><Icon icon="mdi:github-circle"  width="24"/><div class="link-text"> {$_('about.github_link')}</div></a><br/></div>
+                <div class="link"><a target="_blank" href="{about.contact}"><Icon icon="mdi:discord"  width="24"/><div class="link-text"> {$_('about.discord_link')}</div></a></div>
             </div>
     </div>
     <hr/>
     {/if}
 
-    <div class="panel-title">Privacy policy</div>
+    <div class="panel-title">{$_('about.privacy_title')}</div>
     <div class="about">
             <div class="description">
-                <p>Our Privacy Policy is available at <a target="_blank" href="https://tankpipe.com/app/privacy">tankpipe.com/app/privacy</a>.</p>
+                <p>{@html $_('about.privacy_text')}</p>
             </div>
     </div>
     <hr/>
-    <div class="panel-title">Tankpipe is available under the MIT License</div>
+    <div class="panel-title">{$_('about.license_title')}</div>
         <div class="license">
-            <h2>The MIT License (MIT)</h2>
+            <h2>{$_('about.mit_license')}</h2>
 
-            <p>Copyright © 2025 Tankpipe.com</p>
+            <p>{$_('about.copyright')}</p>
 
-            <p>Permission is hereby granted, free of charge, to any person obtaining a copy
-            of this software and associated documentation files (the “Software”), to deal
-            in the Software without restriction, including without limitation the rights
-            to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-            copies of the Software, and to permit persons to whom the Software is
-            furnished to do so, subject to the following conditions:</p>
+            <p>{$_('about.license_permission')}</p>
 
-            <p>The above copyright notice and this permission notice shall be included in
-            all copies or substantial portions of the Software.</p>
+            <p>{$_('about.license_notice')}</p>
 
-            <p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-            IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-            FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-            AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-            LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-            OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-            THE SOFTWARE.</p>
+            <p>{$_('about.license_warranty')}</p>
 
         </div>
         <hr/>
-        <div class="panel-title">Advice disclaimer</div>
+        <div class="panel-title">{$_('about.disclaimer_title')}</div>
         <div class="about">
                 <div class="description">
-                    <p>Material, content, and functionality available on the Tankpipe app <span class="highlight">does not represent financial, tax, or legal advice</span>.
-                        As per the license, the Tankpipe App is provided "AS IS" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters.
-                        You should consult with a qualified professional for advice on anything relating to these matters.
-                        See also the Tankpipe <a target="_blank" href="https://tankpipe.com/app/terms">terms.</a></p>
+                    <p>{@html $_('about.disclaimer_text')}</p>
                 </div>
         </div>
     </div>
