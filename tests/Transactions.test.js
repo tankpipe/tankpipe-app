@@ -7,7 +7,10 @@ import transaction_data from './data/transaction_data.json'
 import { config } from '../src/config'
 import { vi } from 'vitest'
 import { mockIPC } from "@tauri-apps/api/mocks"
+import { locale } from 'svelte-i18n'
+import '../src/i18n'
 
+locale.set('en')
 Element.prototype.scrollTo = () => {}
 accounts.set(account_data)
 
