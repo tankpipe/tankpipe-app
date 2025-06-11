@@ -14,6 +14,7 @@
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
     import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
+    import { _ } from 'svelte-i18n'
 
     export let curAccount
     export let journalMode = false
@@ -93,7 +94,7 @@
     }
 
     function resolvedDelete(result) {
-      msg = "Transactions deleted."
+       msg = $_('transactions.transactionsDeleted')
       loadTransactions()
     }
 
@@ -248,13 +249,13 @@
 
     function loaded(result) {
         console.log(result)
-        loadTransactions()
+      loadTransactions()
     }
 
     function rejected(result) {
         console.log(result)
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", $_('transactions.error', { error: result }))
     }
     const loadCsv = async (path, account) => {
         console.log(path)
@@ -321,7 +322,6 @@
         toggleSelected(t)
         setCurrentScroll()
     }
-
 </script>
 
 <div class="account-heading">
@@ -330,13 +330,13 @@
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title="Add a transaction"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? 'Hide filter' : 'Show filter'}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? 'Hide select transactions' : 'Show select transactions'}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title="Edit selected transactions"><Icon icon="mdi:edit-box-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title="Delete selected transactions"><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></div>
+        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
+        <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></div>
+        <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
-        <div class="toolbar-icon import-icon" on:click={openFile} title="Import transactions"><Icon icon="mdi:application-import" width="22"/></div>
+        <div class="toolbar-icon import-icon" on:click={openFile} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -363,18 +363,18 @@
 <div class="" id="filter">
     <table>
         <tbody>
-        <tr><th class="justify-left">Filter</th></tr>
+        <tr><th class="justify-left">{$_('transactions.filter')}</th></tr>
         <tr class="form">
             <td class="description">
                 <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
-                <div class="filter-icon" on:click={clearFilter} title="Clear filter"><Icon icon="mdi:eraser"  width="16"/></div>
+                <div class="filter-icon" on:click={clearFilter} title={$_('transactions.clearFilter')}><Icon icon="mdi:eraser"  width="16"/></div>
             </td>
-
         </tr>
         </tbody>
     </table>
 </div>
 {/if}
+
 <div class="scroller" id="scroller">
     <table>
         <tbody>
@@ -382,7 +382,7 @@
             {#if $selector.showMultipleSelect}
             <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">Date</th><th class="justify-left">Description</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
+            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
         </tr>
         {#each transactions as t}
             {@const selected = isSelected(t)}
@@ -426,7 +426,7 @@
         </tbody>
     </table>
     {#if transactions.length < 1}
-    <div class="message">No transactions</div>
+    <div class="message">{$_('transactions.noTransactions')}</div>
     {/if}
 </div>
 {/if}

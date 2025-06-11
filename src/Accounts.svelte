@@ -8,17 +8,18 @@
     import { context } from "./context"
     import EditBooks from "./EditBooks.svelte"
     import { invoke } from '@tauri-apps/api/core'
-    import {onMount} from 'svelte';
+    import {onMount} from 'svelte'
+    import { _ } from 'svelte-i18n'
 
     export let curAccount
     export let loadAccounts
 
     let ACCOUNT_TYPES = {
-        Asset: "Assets",
-        Liability: "Liabilities",
-        Revenue: "Revenues",
-        Expense: "Expenses",
-        Equity: "Equity"
+        Asset: $_('accountTypes.assets'),
+        Liability: $_('accountTypes.liabilities'),
+        Revenue: $_('accountTypes.revenues'),
+        Expense: $_('accountTypes.expenses'),
+        Equity: $_('accountTypes.equity')
     }
     let lastAccountType
 
@@ -48,7 +49,7 @@
     const editAccount = (account) => {
         curAccount = account
         page.set({view: views.ACCOUNTS, mode: modes.EDIT})
-        console.log("selected: " + curAccount.name);
+        console.log($_('accounts.messages.selected', { name: curAccount.name }))
     }
 
     const checkAccountType = (account) => {
@@ -92,7 +93,7 @@
     function loadFileFailure(result) {
         console.log(result)
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", $_('accounts.errors.loadFailure', { result }))
     }
 
     const loadConfig = async () => {
@@ -107,13 +108,14 @@
 {:else if isEditMode($page)}
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
 {:else}
-
-    {#if !isEditMode($page)}
-    <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick}" title="Create a new account"><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+    <div>
+        {#if !isEditMode($page)}
+        <div class="toolbar">
+            <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        </div>
+        {/if}
+        <div class="form-heading">{$_('accounts.title')}</div>
     </div>
-    {/if}
-    <div class="form-heading">Accounts</div>
     <div class="scroller">
     <div class="accounts">
     {#each $accounts as a}

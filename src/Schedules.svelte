@@ -5,6 +5,7 @@
     import {accounts} from './accounts'
     import {generate, getEndDate} from './generate'
     import { invoke } from "@tauri-apps/api/core"
+    import { _ } from 'svelte-i18n'
 
     let curSchedule
     let dateStr
@@ -82,8 +83,8 @@
 
 <div class="account-heading">
     {#if !isEditMode($page)}
-    <div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title="Create a new schedule"><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
-    <div class="form-heading">Schedules</div>
+    <div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
+    <div class="form-heading">{$_('schedules.title')}</div>
     {/if}
 </div>
 {#if isEditMode($page)}
@@ -93,13 +94,13 @@
 <div class="controls">
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Schedule until </div><div class="date-input field"><input type="date" bind:value={dateStr} on:change={updateSchedule}/></div>
+            <div class="label label-column">{$_('schedules.scheduleUntil')} </div><div class="date-input field"><input type="date" bind:value={dateStr} on:change={updateSchedule}/></div>
         </div>
     </div>
 </div>
 <div class="scroller">
     {#if schedules.length < 1}
-    <div class="message">No schedules</div>
+    <div class="message">{$_('schedules.noSchedules')}</div>
     {/if}
         {#each schedules as s}
             <div class="card" on:click={() => selectSchedule(s)}>
@@ -126,7 +127,7 @@
                 </div>
                 <div class="row">
                     <div class="widget">
-                        <div class="label">Last</div>
+                        <div class="label">{$_('schedules.last')}</div>
                         <div class="account">{s.last_date == "null"?"-":s.last_date}</div>
                     </div>
                 </div>
@@ -262,6 +263,5 @@
     .controls input {
         background-color: #aaa;
     }
-
 
 </style>
