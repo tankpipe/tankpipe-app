@@ -296,7 +296,7 @@
             <label for="compound">{$_('editMultiple.form.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button on:click={close}>{$_('labels.close')}</button>
+            <button on:click={close}>{$_('buttons.close')}</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
     </div>
