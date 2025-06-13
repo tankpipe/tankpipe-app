@@ -8,6 +8,7 @@ import '../src/i18n'
 locale.set('en')
 
 it('is displayed correctly', async () => {
+    await new Promise(r => setTimeout(r));
     page.set({view: views.EditBooks, mode: modes.EDIT})
     mockIPC((cmd, args) => {
         switch (cmd) {
