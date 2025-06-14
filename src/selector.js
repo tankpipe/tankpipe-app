@@ -1,9 +1,9 @@
-import { writable } from 'svelte/store'
+import { writable, get } from 'svelte/store'
 import { SvelteMap } from 'svelte/reactivity';
 
 /* Use SvelteMap so that changes applied to the map (like select all) are reflected in the UI. */
 let selectedTransactions = new SvelteMap()
-const selector = writable({showMultiEdit: false, shapeMatch: false, isSelectAll: false, showMultipleSelect: true})
+const selector = writable({ showMultiEdit: false, shapeMatch: false, isSelectAll: false, showMultipleSelect: false })
 
 const shapeOf = (transaction) => {
     return transaction.entries.map(e => e.account_id).join("_")
@@ -23,7 +23,7 @@ const checkShapes = (checkShape = null) => {
         } else if (shape != firstShape) {
             updateSelector({ shapeMatch: false })
             return
-        } else if (selector.shapeMatch && checkShape == shape) {  // short circut - only need to check first
+        } else if (get(selector).shapeMatch && checkShape == shape) {  // short circut - only need to check first
             return
         }
 
@@ -47,37 +47,38 @@ const toggleSelected = (transaction) => {
         }
 
     }
-    selector.showMultiEdit = selector.showMultipleSelect && selectedTransactions.size > 0
+    updateSelector({ showMultiEdit: (get(selector).showMultipleSelect && selectedTransactions.size > 0) })
+
 }
 
 const toggleAllSelected = (transactions) => {
-    if (selector.isSelectAll) {
+    if (get(selector).isSelectAll) {
         selectedTransactions.clear()
     } else {
         transactions.forEach(t => selectedTransactions.set(t.id, shapeOf(t)))
     }
     checkShapes()
-        updateSelector({
-            showMultiEdit: selector.showMultipleSelect && selectedTransactions.size > 0,
-            isSelectAll: !selector.isSelectAll,
-        })
+    updateSelector({
+        showMultiEdit: get(selector).showMultipleSelect && selectedTransactions.size > 0,
+        isSelectAll: !get(selector).isSelectAll,
+    })
 
 }
 
 const toggleMultipleSelect = () => {
-    selector.showMultipleSelect = !selector.showMultipleSelect
-    if (!selector.showMultipleSelect) {
-            updateSelector({
-                isSelectAll: false,
-            })
+    selector.update(value => (Object.assign(value, { showMultipleSelect: !value.showMultipleSelect })))
+
+    if (!get(selector).showMultipleSelect) {
+        updateSelector({
+            isSelectAll: false,
+        })
 
         selectedTransactions.clear()
     }
-        updateSelector({
-            showMultiEdit: selector.showMultipleSelect && selectedTransactions.size > 0
-        })
 
-
+    updateSelector({
+        showMultiEdit: get(selector).showMultipleSelect && selectedTransactions.size > 0
+    })
 }
 
 const clearSelected = () => {
@@ -97,9 +98,7 @@ const getSelected = () => {
 }
 
 const updateSelector = (update) => {
-    selector.set(
-        Object.assign(selector, update)
-    )
+    selector.update(value => (Object.assign(value, update)))
 }
 
 export {
