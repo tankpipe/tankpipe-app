@@ -28,7 +28,6 @@
     let descriptionFilter = ""
 
     $: {
-        console.log("page.view: " + $page.view)
         if (journalMode && !curAccount) {
             curAccount = {}
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
