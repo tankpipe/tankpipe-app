@@ -7,7 +7,7 @@
     export let inError = false
     export let disabled = false
     export let valueField = null
-    export let onChange = {}
+    export let onChange = () => {}
     const cssClass =  label ? "widget" : "widgetNoLabel"
 </script>
 

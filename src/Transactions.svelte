@@ -28,7 +28,6 @@
     let descriptionFilter = ""
 
     $: {
-        console.log("page.view: " + $page.view)
         if (journalMode && !curAccount) {
             curAccount = {}
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
@@ -376,7 +375,7 @@
 {/if}
 
 <div class="scroller" id="scroller">
-    <table>
+    <table class="{journalMode ? 'journal' : ''}">
         <tbody>
         <tr>
             {#if $selector.showMultipleSelect}
@@ -419,8 +418,8 @@
                 <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
             </tr>
-            <tr style="height: 8px;"></tr>
             {/each}
+            <tr style="height: 8px;"></tr>
           {/if}
         {/each}
         </tbody>
@@ -485,6 +484,10 @@
     tr:hover td .tiny{
         cursor: pointer;
         color: #C0C0C0;
+    }
+
+    .journal tr:last-child  {
+        display: none;
     }
 
     .selected td {

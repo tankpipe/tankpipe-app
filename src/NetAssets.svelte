@@ -47,7 +47,7 @@
             balance += Number(bsBalances[accountId])
             assetsTotal += Number(bsBalances[accountId])
         }
-        console.log(balance)
+
         bsTransactions[accountId] = transactions
 
 

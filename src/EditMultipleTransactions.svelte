@@ -4,7 +4,7 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page} from './page.js'
+    import {isSingleEditMode, page} from './page.js'
     import {accounts} from './accounts.js'
     import {config, dateFormat} from './config.js'
     import { invoke } from "@tauri-apps/api/core"
@@ -56,16 +56,24 @@
 
     const applyChanges = (entry, changeEntry, index, errors) => {
 
-        if (changeEntry.description && changeEntry.description.length > 0) {
-            entry.description = changeEntry.description
+        const updateDescription = (changeEntry) => {
+            if (changeEntry.description && changeEntry.description.length > 0) {
+                entry.description = changeEntry.description
+            }
         }
 
-        if (changeEntry.account && changeEntry.account.id) {
-            entry.account_id = changeEntry.account.id
-            entry.entry_type = changeEntry.entry_type
+        if (compoundMode) {
+            updateDescription(entries[index])
+        } else {
+            updateDescription(entries[0])
         }
 
-        console.log(entry, changeEntry)
+        if (entries[index].account && entries[index].account.id) {
+            entry.account_id = entries[index].account.id
+            entry.entry_type = entries[index].entry_type
+        }
+
+        console.log(entry, entries[index])
     }
 
     const needSecondEntry = (transaction) =>  {
@@ -292,11 +300,11 @@
             <label for="compound">{$_('editMultiple.form.compoundEntry')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={recorded} disabled="disabled">
-            <label for="compound">{$_('editMultiple.form.recorded')}</label>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled="disabled">
+            <label for="recorded">{$_('editMultiple.form.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button on:click={close}>{$_('labels.close')}</button>
+            <button on:click={close}>{$_('buttons.close')}</button>
             <button on:click={onSave}>{addButtonLabel}</button>
         </div>
     </div>
