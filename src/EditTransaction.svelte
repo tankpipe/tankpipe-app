@@ -367,8 +367,8 @@
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={recorded}>
-            <label for="compound">{$_('transaction.recorded')}</label>
+            <input id="recorded" type=checkbox bind:checked={recorded}>
+            <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">
             <button on:click={close}>{$_('buttons.close')}</button>

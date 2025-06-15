@@ -300,8 +300,8 @@
             <label for="compound">{$_('editMultiple.form.compoundEntry')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={recorded} disabled="disabled">
-            <label for="compound">{$_('editMultiple.form.recorded')}</label>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled="disabled">
+            <label for="recorded">{$_('editMultiple.form.recorded')}</label>
         </div>
         <div class="widget buttons">
             <button on:click={close}>{$_('buttons.close')}</button>
