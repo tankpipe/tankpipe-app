@@ -15,6 +15,7 @@
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
     import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
     import { _ } from 'svelte-i18n'
+    import Importer from './Importer.svelte';
 
     export let curAccount
     export let journalMode = false
@@ -246,15 +247,46 @@
         }
     }
 
+    const XevaluateFileX = async () => {
+        let appDataDirPath
+        await documentDir()
+                .then(r => appDataDirPath = r)
+                .catch(e => console.log("error : " + e))
+        const selected = await open({
+            directory: false,
+            multiple: false,
+            filters: [{name: '*', extensions: ['csv']}],
+            defaultPath: appDataDirPath,
+        })
+
+        if(selected) {
+            console.log(selected)
+            evaluateCsv(selected, curAccount)
+        }
+    }
+
+    const evaluateCsv = async (path, account) => {
+        console.log(path)
+        errors = new Errors()
+        await invoke('evaluate_csv', {path: path, account: account}).then(evaluationResult, rejected)
+    }
+
+    function evaluationResult(result) {
+        //console.log(result)
+        //loadTransactions()
+        page.set({view: $page.view, mode: modes.LOAD})
+
+    }
+
     function loaded(result) {
         console.log(result)
-      loadTransactions()
+        loadTransactions()
     }
 
     function rejected(result) {
         console.log(result)
         errors = new Errors()
-        errors.addError("all", $_('transactions.error', { error: result }))
+        errors.addError("all", $_('transactions.error', { values: {error: result} }))
     }
     const loadCsv = async (path, account) => {
         console.log(path)
@@ -324,7 +356,7 @@
 </script>
 
 <div class="account-heading">
-    {#if !isEditMode($page)}
+    {#if isListMode($page)}
     <div class="account">
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
@@ -335,7 +367,7 @@
         <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></div>
         <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></div>
         {#if curAccount}
-        <div class="toolbar-icon import-icon" on:click={openFile} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
+        <div class="toolbar-icon import-icon" on:click={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></div>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -348,6 +380,9 @@
 {/if}
 {#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
+{/if}
+{#if $page.mode == modes.LOAD}
+<Importer {curAccount} onClose={onCloseEdit} />
 {/if}
 {#if isListMode($page)}
 <div class="widget errors">

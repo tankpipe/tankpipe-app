@@ -4,7 +4,6 @@ html, body {
 	height: 100%;
 	padding:0;
 	margin:0;
-	bac
 }
 
 body {
@@ -52,9 +51,11 @@ input:disabled {
 }
 
 button {
-	color: #333;
-	background-color: #f4f4f4;
+    color: #333;
 	outline: none;
+	background-color: #aaaaaa !important;
+    height: 1.8em !important;
+    padding: 0 0.2em 0 0.2em !important;
 }
 
 button:disabled {

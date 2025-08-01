@@ -17,6 +17,7 @@ pub mod config;
 pub mod about;
 pub mod money_repo;
 pub mod reader;
+pub mod csv_check;
 mod handlers;
 mod menu;
 
@@ -67,6 +68,8 @@ fn main() {
             repo::config,
             repo::about,
             repo::update_config,
+            repo::evaluate_csv,
+            repo::import_csv,
             repo::load_csv,
             repo::load_file,
             repo::new_file
