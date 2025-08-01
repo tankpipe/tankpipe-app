@@ -1,12 +1,14 @@
 use accounts::books::Settings;
 use accounts::account::Account;
 use std::ffi::OsString;
+use std::str::FromStr;
 use crate::BooksState;
 use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::error_handler;
-use crate::reader::read_transations;
+use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, read_transations_using_header, ColumnType, ColumnTypes};
+use crate::csv_check::CsvCheck;
 
 
 #[tauri::command]
@@ -46,10 +48,49 @@ pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSet
 }
 
 #[tauri::command]
+pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<CsvCheck, String> {
+    println!("evaluate_csv: {:?}, for account:{:?}", path, account.id);
+    let mutex_guard = state.0.lock().unwrap();
+    let result = check_csv_format(&path, &account, &mutex_guard.config.import_date_format);
+    match result {
+        Ok(column_types) => {
+            let header = read_headers(&path).unwrap();
+            let rows = read_rows(&path);
+            match rows {
+                Ok(rows) => Ok(CsvCheck::create_new(column_types, header, rows)),
+                Err(e) => Err(e.error),
+            }
+        }
+
+        Err(e) => Err(e.error)
+    }
+}
+
+#[tauri::command]
+pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>) -> Result<(), String> {
+    println!("import_csv: {:?}, for account:{:?}. columns:{:?}", path, account.id, column_types);
+    let mut mutex_guard = state.0.lock().unwrap();
+    let load_result = read_transations_using_header(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types));
+
+    match load_result {
+        Ok(transactions) => {
+            for t in transactions {
+                let add_result = mutex_guard.books.add_transaction(t);
+                if add_result.is_err() {
+                    return Err(add_result.unwrap_err().error);
+                }
+            }
+            error_handler(mutex_guard.save())
+        },
+        Err(e) => Err(e.error),
+    }
+}
+
+#[tauri::command]
 pub fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<(), String> {
     println!("load_csv: {:?}, for account:{:?}", path, account.id);
     let mut mutex_guard = state.0.lock().unwrap();
-    let load_result = read_transations(path, &account, &mutex_guard.config.import_date_format);
+    let load_result = read_transations(&path, &account, &mutex_guard.config.import_date_format);
 
     match load_result {
         Ok(transactions) => {
