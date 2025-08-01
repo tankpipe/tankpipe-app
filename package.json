@@ -41,7 +41,7 @@
     "@tauri-apps/plugin-shell": "^2.2.1",
     "apexcharts": "^4.7.0",
     "sirv-cli": "^3.0.1",
-    "sv": "^0.8.10",
+    "sv": "^0.8.21",
     "svelte-apexcharts": "^1.0.2",
     "svelte-i18n": "^4.0.1"
   },
