@@ -46,8 +46,8 @@ it('is displayed correctly for Journal view', async () => {
 });
 
 async function checkResults(mockFetchTransactions) {
-    const { findByText, container } = render(Transactions, { curAccount: account_data[0], journalMode: true })
-    const _waitForRenderUpdate = await findByText('Description')
+    const { findAllByText, container } = render(Transactions, { curAccount: account_data[0], journalMode: true })
+    const _waitForRenderUpdate = await findAllByText('A test transaction')
     // Note: Select should show Account 1 as selected but defaults to Account 3
     expect(container.outerHTML).toMatchSnapshot()
 }
