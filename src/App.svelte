@@ -123,10 +123,10 @@
                         <li on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</li>
                         <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</li>
                         <li on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</li>
-
                         {:else}
-                        <li class="disabled">{$_('transactions')}</li>
-                        <li class="disabled">{$_('schedules')}</li>                        {/if}
+                        <li class="disabled">{$_('app.transactions')}</li>
+                        <li class="disabled">{$_('app.schedules')}</li>                        
+                        {/if}
                     </ul>
                 </div>
 

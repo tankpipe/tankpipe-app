@@ -229,53 +229,8 @@
         page.set({view: $page.view, mode: modes.NEW})
     }
 
-    const openFile = async () => {
-        let appDataDirPath
-        await documentDir()
-                .then(r => appDataDirPath = r)
-                .catch(e => console.log("error : " + e))
-        const selected = await open({
-            directory: false,
-            multiple: false,
-            filters: [{name: '*', extensions: ['csv']}],
-            defaultPath: appDataDirPath,
-        })
-
-        if(selected) {
-            console.log(selected)
-            loadCsv(selected, curAccount)
-        }
-    }
-
-    const XevaluateFileX = async () => {
-        let appDataDirPath
-        await documentDir()
-                .then(r => appDataDirPath = r)
-                .catch(e => console.log("error : " + e))
-        const selected = await open({
-            directory: false,
-            multiple: false,
-            filters: [{name: '*', extensions: ['csv']}],
-            defaultPath: appDataDirPath,
-        })
-
-        if(selected) {
-            console.log(selected)
-            evaluateCsv(selected, curAccount)
-        }
-    }
-
-    const evaluateCsv = async (path, account) => {
-        console.log(path)
-        errors = new Errors()
-        await invoke('evaluate_csv', {path: path, account: account}).then(evaluationResult, rejected)
-    }
-
     function evaluationResult(result) {
-        //console.log(result)
-        //loadTransactions()
         page.set({view: $page.view, mode: modes.LOAD})
-
     }
 
     function loaded(result) {
@@ -288,15 +243,9 @@
         errors = new Errors()
         errors.addError("all", $_('transactions.error', { values: {error: result} }))
     }
-    const loadCsv = async (path, account) => {
-        console.log(path)
-        errors = new Errors()
-        await invoke('load_csv', {path: path, account: account}).then(loaded, rejected)
-    }
 
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
-
 
     const toggleShowFilter = () => {
         showFilter = !showFilter
