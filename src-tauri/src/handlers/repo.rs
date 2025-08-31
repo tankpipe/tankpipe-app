@@ -87,26 +87,6 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
 }
 
 #[tauri::command]
-pub fn load_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<(), String> {
-    println!("load_csv: {:?}, for account:{:?}", path, account.id);
-    let mut mutex_guard = state.0.lock().unwrap();
-    let load_result = read_transations(&path, &account, &mutex_guard.config.import_date_format);
-
-    match load_result {
-        Ok(transactions) => {
-            for t in transactions {
-                let add_result = mutex_guard.books.add_transaction(t);
-                if add_result.is_err() {
-                    return Err(add_result.unwrap_err().error);
-                }
-            }
-            error_handler(mutex_guard.save())
-        },
-        Err(e) => Err(e.error),
-    }
-}
-
-#[tauri::command]
 pub fn load_file(state: tauri::State<BooksState>, path: String) -> Result<Vec<Account>, String> {
     println!("load_file: {:?}", path);
     let mut mutex_guard = state.0.lock().unwrap();
