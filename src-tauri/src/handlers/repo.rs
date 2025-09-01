@@ -1,13 +1,12 @@
 use accounts::books::Settings;
 use accounts::account::Account;
 use std::ffi::OsString;
-use std::str::FromStr;
 use crate::BooksState;
 use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::error_handler;
-use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, read_transations_using_header, ColumnType, ColumnTypes};
+use crate::reader::{check_csv_format, read_headers, read_rows, read_transations_using_header, ColumnTypes};
 use crate::csv_check::CsvCheck;
 
 
