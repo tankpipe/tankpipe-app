@@ -185,7 +185,7 @@ pub fn read_transations<P: AsRef<Path>>(path: &P, account: &Account, fmt: &str) 
 
 fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fmt: &str) -> Result<Transaction, BooksError> {
     let date = parse_date_str(get_value(&row, columns, ColumnType::Date)?, fmt)?;
-    let (amount, entry_type) = determine_amount(&row, columns, account)?;
+    let (amount, entry_type) = determine_amount(&row, columns)?;
     let entry = Entry{
         id: Uuid::new_v4(),
         transaction_id: Uuid::new_v4(),
@@ -199,11 +199,11 @@ fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fm
     Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
 }
 
-fn determine_amount(row: &Vec<String>, columns: &ColumnTypes, account: &Account) -> Result<(Decimal, Side), BooksError> {
+fn determine_amount(row: &Vec<String>, columns: &ColumnTypes) -> Result<(Decimal, Side), BooksError> {
 
     if columns.has_column(ColumnType::Amount) {
         let amount = parse_money_str(get_value(&row, columns, ColumnType::Amount)?)?;
-        Ok((amount, balance_impact(amount, account)))
+        Ok((amount, balance_impact(amount)))
     } else {
         let debit = parse_money_str(get_value(&row, columns, ColumnType::Debit)?)?;
         let credit = parse_money_str(get_value(&row, columns, ColumnType::Credit)?)?;
@@ -463,14 +463,14 @@ mod tests {
 
     #[test]
     fn test_balance_impact() {
-        let asset_account = Account::create_new("Savings Account 1", AccountType::Asset);
-        assert_eq!(Side::Debit, balance_impact(dec!(100), &asset_account));
-        assert_eq!(Side::Debit, balance_impact(dec!(0), &asset_account));
-        assert_eq!(Side::Credit, balance_impact(dec!(-100), &asset_account));
+        let _asset_account = Account::create_new("Savings Account 1", AccountType::Asset);
+        assert_eq!(Side::Debit, balance_impact(dec!(100)));
+        assert_eq!(Side::Debit, balance_impact(dec!(0)));
+        assert_eq!(Side::Credit, balance_impact(dec!(-100)));
 
-        let credit_account = Account::create_new("Credit Card", AccountType::Liability);
-        assert_eq!(Side::Debit, balance_impact(dec!(100), &credit_account));
-        assert_eq!(Side::Debit, balance_impact(dec!(0), &credit_account));
-        assert_eq!(Side::Credit, balance_impact(dec!(-100), &credit_account));
+        let _credit_account = Account::create_new("Credit Card", AccountType::Liability);
+        assert_eq!(Side::Debit, balance_impact(dec!(100)));
+        assert_eq!(Side::Debit, balance_impact(dec!(0)));
+        assert_eq!(Side::Credit, balance_impact(dec!(-100)));
     }
 }

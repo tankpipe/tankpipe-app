@@ -45,12 +45,14 @@ export default {
 				// enable run-time checks when not in production
 				dev: !production
 			},
-            onwarn: (warning, handler) => {
+            onwarn: (warning, handler) => {		
                 if (warning.code.startsWith('a11y-')) return
                 if (warning.code.startsWith('a11y_')) return
                 if (warning.code === 'missing-exports-condition') return
                 if (warning.code.startsWith('css-')) return
                 if (warning.code.startsWith('css_')) return
+				if (warning.code === 'CIRCULAR_DEPENDENCY') return
+				console.error(">>>>>>>>>>>>>>>>>>> NOT SUPRESSED: ", warning.code);
                 handler(warning)
             }
 		}),
