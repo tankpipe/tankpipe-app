@@ -92,7 +92,7 @@ impl Index<usize> for ColumnTypes {
     }
 }
 
-pub fn check_csv_format<P: AsRef<Path>>(path: &P, account: &Account, fmt: &str) -> Result<ColumnTypes, BooksError> {
+pub fn check_csv_format<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
     let columns = read_columns(path)?;
     //validate_columns(&columns)?;
     Ok(columns)
@@ -224,7 +224,7 @@ fn get_value(row: &Vec<String>, columns: &ColumnTypes, column: ColumnType) -> Re
 }
 
 
-pub fn balance_impact(amount: Decimal, account: &Account) -> Side {
+pub fn balance_impact(amount: Decimal) -> Side {
     if amount.ge(&dec!(0)) {
         Side::Debit
     } else {
