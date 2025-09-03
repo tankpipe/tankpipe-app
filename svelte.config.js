@@ -8,6 +8,8 @@ const config = {
         if (warning.code === 'missing-exports-condition') return
         if (warning.code.startsWith('css-')) return
         if (warning.code.startsWith('css_')) return
+        if (warning.code === 'CIRCULAR_DEPENDENCY') return
+        console.error(">>>>>>>>>>>>>>>>>>> NOT SUPRESSED: ", warning.code);
         handler(warning)
     },
 	kit: {

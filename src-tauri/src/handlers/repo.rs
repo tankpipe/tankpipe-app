@@ -1,13 +1,12 @@
 use accounts::books::Settings;
 use accounts::account::Account;
 use std::ffi::OsString;
-use std::str::FromStr;
 use crate::BooksState;
 use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::error_handler;
-use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, read_transations_using_header, ColumnType, ColumnTypes};
+use crate::reader::{check_csv_format, read_headers, read_rows, read_transations_using_header, ColumnTypes};
 use crate::csv_check::CsvCheck;
 
 
@@ -50,8 +49,8 @@ pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSet
 #[tauri::command]
 pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<CsvCheck, String> {
     println!("evaluate_csv: {:?}, for account:{:?}", path, account.id);
-    let mutex_guard = state.0.lock().unwrap();
-    let result = check_csv_format(&path, &account, &mutex_guard.config.import_date_format);
+    let _mutex_guard = state.0.lock().unwrap();
+    let result = check_csv_format(&path);
     match result {
         Ok(column_types) => {
             let header = read_headers(&path).unwrap();

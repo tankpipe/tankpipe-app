@@ -117,12 +117,12 @@
             <div class="column left">
                 <div class="menu-left">
                     <ul>
-                        <li on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</li>
+                        <li><button type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
                         {#if $accounts.length > 0 }
-                        <li on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</li>
-                        <li on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</li>
-                        <li on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</li>
-                        <li on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</li>
+                        <li><button type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
+                        <li><button type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
+                        <li><button type="button" on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
+                        <li><button type="button" on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>                        
@@ -201,15 +201,26 @@
     .menu-left li, .menu-left ul {
         list-style-type: none;
         margin-bottom: 1em;
-        font-weight: bold;
-        color: #C0C0C0;
         padding: 0;
         text-align: left;
     }
 
-    .menu-left li:hover, .menu-left ul:hover {
-        color: #F0F0F0;
+    .menu-left button {
+        background: none !important;
+        border: none;
+        font-weight: bold;
+        color: #C0C0C0;
+        padding: 0;
+        text-align: left;
         cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        height: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .menu-left button:hover {
+        color: #F0F0F0;
     }
 
     .menu-selected {
