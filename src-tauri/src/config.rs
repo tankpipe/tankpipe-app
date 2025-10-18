@@ -1,4 +1,4 @@
-use std::{ffi::{OsString, OsStr}, path::PathBuf};
+use std::{collections::HashMap, ffi::{OsStr, OsString}, path::PathBuf};
 use serde::{Deserializer, Serializer, Serialize, Deserialize};
 use uuid::Uuid;
 
@@ -45,7 +45,8 @@ pub struct Config {
     pub last_file: FileDetails,
     pub recent_files: Vec<FileDetails>,
     pub display_date_format: DateFormat,
-    pub import_date_format: String
+    pub import_date_format: String,
+    pub csv_mappings: HashMap<Uuid, Vec<String>>
 }
 
 impl Config {
@@ -83,6 +84,18 @@ impl Config {
         }
         self.last_file = last_file.clone();
         self.recent_files.insert(0, last_file);
+    }
+
+    pub fn set_csv_mapping(&mut self, id: Uuid, mapping: Vec<String>) {
+        self.csv_mappings.insert(id, mapping);
+    }
+
+    pub fn get_csv_mapping(&self, id: Uuid) -> Option<Vec<String>> {
+        self.csv_mappings.get(&id).cloned()
+    }
+    
+    pub fn remove_csv_mapping(&mut self, id: Uuid) {
+        self.csv_mappings.remove(&id);
     }
 
 }

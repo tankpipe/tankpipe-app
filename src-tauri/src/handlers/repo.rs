@@ -66,10 +66,10 @@ pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Acco
 }
 
 #[tauri::command]
-pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>) -> Result<(), String> {
-    println!("import_csv: {:?}, for account:{:?}. columns:{:?}", path, account.id, column_types);
+pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, save_mapping: bool) -> Result<(), String> {
+    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{}", path, account.id, column_types, save_mapping);
     let mut mutex_guard = state.0.lock().unwrap();
-    let load_result = read_transations_using_header(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types));
+    let load_result = read_transations_using_header(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()));
 
     match load_result {
         Ok(transactions) => {
@@ -79,7 +79,12 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
                     return Err(add_result.unwrap_err().error);
                 }
             }
-            error_handler(mutex_guard.save())
+            error_handler(mutex_guard.save())?;
+            if save_mapping {
+                mutex_guard.config.set_csv_mapping(account.id, column_types);
+                return error_handler(mutex_guard.save_config())
+            }
+            error_handler(mutex_guard.save_config())
         },
         Err(e) => Err(e.error),
     }

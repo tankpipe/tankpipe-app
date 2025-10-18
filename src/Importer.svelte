@@ -22,6 +22,7 @@
     let requiredColumnsMatched = false;
     let path = ""
     let fileDialogShown = false
+    let rememberForNextTime = false
 
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
@@ -119,7 +120,7 @@
         errors = new Errors()
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns}).then(importCompleted, rejected)
+        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime}).then(importCompleted, rejected)
     }
 
     const close = () => {
@@ -162,6 +163,11 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">Remember for next time</div><input type="checkbox" bind:checked={rememberForNextTime} />
         </div>
     </div>
 </div>

@@ -7,11 +7,13 @@ import transaction_data from './data/transaction_data.json'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale } from 'svelte-i18n'
 import '../src/i18n'
+import { config, dateFormat } from '../src/config'
 
 locale.set('en')
 accounts.set(account_data)
 const loadTransactions = () => {}
 const onClose = () => {}
+config.set({display_date_format: "US"})
 
 it('is displayed correctly for multiple', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.MULTI_EDIT})

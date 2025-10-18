@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use std::collections::HashMap;
 use std::ffi::{OsString};
 use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
@@ -44,6 +45,7 @@ impl AppDirectories {
             recent_files: Vec::new(),
             display_date_format: DateFormat::Locale,
             import_date_format: "%d/%m/%Y".to_string(),
+            csv_mappings: HashMap::new(),
         }
     }
 }
