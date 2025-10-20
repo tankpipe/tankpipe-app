@@ -29,7 +29,7 @@
     let curTransaction
 
     onMount(() => {
-        console.log($page.mode, curAccount, transactions)
+        //console.log($page.mode, curAccount, transactions)
         resetChanges()
     })
 

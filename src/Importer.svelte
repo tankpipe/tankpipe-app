@@ -20,8 +20,10 @@
     let selectedColumns = []
     let columns = []
     let requiredColumnsMatched = false;
+    let mappingExists = false;
     let path = ""
     let fileDialogShown = false
+    let rememberForNextTime = false
 
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
@@ -84,7 +86,8 @@
         columns = result.column_types.columns.map(c => columns.push({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
-
+        mappingExists = result.mapping_exists
+        rememberForNextTime = mappingExists
         requiredColumnsMatched =
                 columnTypes.includes("Date") && columnTypes.includes("Description") &&
                 (columnTypes.includes("Amount") ||
@@ -119,7 +122,7 @@
         errors = new Errors()
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns}).then(importCompleted, rejected)
+        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime}).then(importCompleted, rejected)
     }
 
     const close = () => {
@@ -137,7 +140,7 @@
     <div class="toolbar">
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></div>
-        <div class="toolbar-icon import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
+        <div class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
         <div class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></div>
         {/if}
     </div>
@@ -162,6 +165,11 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">Remember for next time</div><input type="checkbox" bind:checked={rememberForNextTime} />
         </div>
     </div>
 </div>
@@ -312,6 +320,16 @@
 
     .import-icon {
         margin-top: 1px
+    }
+    
+    .toolbar-icon-on {
+        margin-left: 5px;
+        color: #43bd6e; /*#55e688*/
+    }
+
+    .toolbar-icon-on:hover{
+        color: #55e688;
+        cursor: pointer;
     }
 
     .message {
