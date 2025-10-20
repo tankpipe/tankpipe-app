@@ -63,7 +63,11 @@ pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Acco
     match mapping {
         Some(mapping) => {
             let column_types = ColumnTypes::from_vec(mapping);
-            process_csv_with_column_types(&path, column_types)
+            let csv_check = process_csv_with_column_types(&path, column_types);
+            match csv_check {
+                Ok(csv_check) => Ok(csv_check.set_mapping_exists(true)),
+                Err(e) => Err(e),
+            }
         }
         None => {
             let result = check_csv_format(&path);
@@ -91,10 +95,13 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
             }
             error_handler(mutex_guard.save())?;
             if save_mapping {
-                mutex_guard.config.set_csv_mapping(account.id, column_types);
-                return error_handler(mutex_guard.save_config())
+                let current_mapping = mutex_guard.config.get_csv_mapping(account.id);
+                if current_mapping.is_none() || current_mapping.unwrap() != column_types {
+                    mutex_guard.config.set_csv_mapping(account.id, column_types);
+                    error_handler(mutex_guard.save_config())?;
+                }               
             }
-            error_handler(mutex_guard.save_config())
+            Ok(())
         },
         Err(e) => Err(e.error),
     }

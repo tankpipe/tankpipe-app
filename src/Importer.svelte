@@ -20,6 +20,7 @@
     let selectedColumns = []
     let columns = []
     let requiredColumnsMatched = false;
+    let mappingExists = false;
     let path = ""
     let fileDialogShown = false
     let rememberForNextTime = false
@@ -85,7 +86,8 @@
         columns = result.column_types.columns.map(c => columns.push({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
-
+        mappingExists = result.mapping_exists
+        rememberForNextTime = mappingExists
         requiredColumnsMatched =
                 columnTypes.includes("Date") && columnTypes.includes("Description") &&
                 (columnTypes.includes("Amount") ||
@@ -138,7 +140,7 @@
     <div class="toolbar">
         {#if curAccount}
         <div class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></div>
-        <div class="toolbar-icon import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
+        <div class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
         <div class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></div>
         {/if}
     </div>
@@ -318,6 +320,16 @@
 
     .import-icon {
         margin-top: 1px
+    }
+    
+    .toolbar-icon-on {
+        margin-left: 5px;
+        color: #43bd6e; /*#55e688*/
+    }
+
+    .toolbar-icon-on:hover{
+        color: #55e688;
+        cursor: pointer;
     }
 
     .message {
