@@ -359,8 +359,8 @@ mod tests {
 
     #[test]
     fn test_parse_date_str() {
-        assert_eq!(NaiveDate::from_ymd(2023, 10, 20), parse_date_str("20/10/2023".to_string(), "%d/%m/%Y").unwrap());
-        assert_eq!(NaiveDate::from_ymd(2023, 10, 20), parse_date_str("2023-10-20".to_string(), "%Y-%m-%d").unwrap());
+        assert_eq!(NaiveDate::from_ymd_opt(2023, 10, 20).unwrap(), parse_date_str("20/10/2023".to_string(), "%d/%m/%Y").unwrap());
+        assert_eq!(NaiveDate::from_ymd_opt(2023, 10, 20).unwrap(), parse_date_str("2023-10-20".to_string(), "%Y-%m-%d").unwrap());
         assert_eq!("Unable to parse date '20231020' using format '%Y-%m-%d': input contains invalid characters", parse_date_str("20231020".to_string(), "%Y-%m-%d").unwrap_err().error.as_str());
         assert_eq!("Unable to parse date '2023-13-20' using format '%Y-%m-%d': input is out of range", parse_date_str("2023-13-20".to_string(), "%Y-%m-%d").unwrap_err().error.as_str());
     }
