@@ -298,12 +298,12 @@
         </div>
         {#if mode === "COMPOUND" && canBeSimple(entries) || mode === "SIMPLE" && simpleAllowed}
         <div class="buttons-left">
-            <button on:click={toggleMode}>{modeButtonLabel}</button>
+            <button class="og-button" on:click={toggleMode}>{modeButtonLabel}</button>
         </div>
         {/if}
         <div class="widget buttons">
-            <button on:click={onCancel}>Close</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" on:click={onCancel}>Close</button>
+            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>

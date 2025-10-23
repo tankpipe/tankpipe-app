@@ -371,8 +371,8 @@
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button on:click={close}>{$_('buttons.close')}</button>
-            <button on:click={onSave}>{addButtonLabel}</button>
+            <button class="og-button" on:click={close}>{$_('buttons.close')}</button>
+            <button class="og-button" on:click={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}

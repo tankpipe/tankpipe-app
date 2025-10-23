@@ -158,9 +158,6 @@
         margin: 10px 10px;
     }
 
-    .description .highlight {
-        color: #f0f0f0;
-    }
 
     .link-text {
         vertical-align: super;

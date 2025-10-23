@@ -18,7 +18,7 @@
     <slot/>
     {#if closeButton}
     <div class="widget buttons">
-        <button on:click={close} autofocus>{$_('buttons.ok')}</button>
+        <button class="og-button" on:click={close} autofocus>{$_('buttons.ok')}</button>
     </div>
     {/if}
 </dialog>

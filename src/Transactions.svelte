@@ -310,13 +310,13 @@
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        <button type="button" class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
+        <button type="button" class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {#if curAccount}
-        <div class="toolbar-icon import-icon" on:click={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></div>
+        <button type="button" class="toolbar-icon import-icon" on:click={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -527,9 +527,16 @@
         display: flex;
         padding-right: 9px;
     }
+    .toolbar button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0px;
+    }
 
     .toolbar-icon {
         margin-left: 5px;
+        color: #c0c0c0;
     }
 
     .toolbar-icon:hover{
