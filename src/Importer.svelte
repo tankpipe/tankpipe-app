@@ -139,9 +139,9 @@
     </div>
     <div class="toolbar">
         {#if curAccount}
-        <div class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></div>
-        <div class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></div>
-        <div class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></div>
+        <button class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
+        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></button>
+        <button class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></button>
         {/if}
     </div>
 </div>
@@ -294,42 +294,6 @@
 
     .matched {
         background-color: rgb(0, 71, 0);
-    }
-
-    .toolbar {
-        float: left;
-        color: #c0c0c0;
-        margin-left: 10px;
-        display: flex;
-        padding-right: 9px;
-    }
-
-    .toolbar-icon {
-        margin-left: 5px;
-    }
-
-    .toolbar-icon:hover{
-        color: #F0F0F0;
-        cursor: pointer;
-    }
-
-    .toolbar-icon-disabled {
-        margin-left: 5px;
-        color: #303030;
-    }
-
-    .import-icon {
-        margin-top: 1px
-    }
-    
-    .toolbar-icon-on {
-        margin-left: 5px;
-        color: #43bd6e; /*#55e688*/
-    }
-
-    .toolbar-icon-on:hover{
-        color: #55e688;
-        cursor: pointer;
     }
 
     .message {

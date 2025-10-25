@@ -520,60 +520,60 @@
         width: 105px;
     }
 
-    .toolbar {
+    :global(.toolbar) {
         float: left;
         color: #c0c0c0;
         margin-left: 10px;
         display: flex;
         padding-right: 9px;
     }
-    .toolbar button {
+    :global(.toolbar button) {
         background: none;
         border: none;
         cursor: pointer;
         padding: 0px;
     }
 
-    .toolbar-icon {
+    :global(.toolbar-icon) {
         margin-left: 5px;
         color: #c0c0c0;
     }
 
-    .toolbar-icon:hover{
+    :global(.toolbar-icon:hover) {
         color: #F0F0F0;
         cursor: pointer;
     }
 
-    .toolbar-icon-disabled {
+    :global(.toolbar-icon-disabled) {
         margin-left: 5px;
         color: #303030;
     }
 
-    .toolbar-icon-on {
+    :global(.toolbar-icon-on) {
         margin-left: 5px;
         color: #43bd6e; /*#55e688*/
     }
 
-    .toolbar-icon-on:hover{
+    :global(.toolbar-icon-on:hover) {
         color: #55e688;
         cursor: pointer;
     }
 
-    .warning:hover {
+    :global(.warning:hover) {
         color: #e68843;
     }
 
-    .import-icon {
+    :global(.import-icon) {
         margin-top: 1px
     }
 
-    .filter-icon {
+    :global(.filter-icon) {
         display: inline-flex;
         vertical-align: top;
         margin-left: 0;
     }
 
-    .filter-icon:hover {
+    :global(.filter-icon:hover) {
         cursor: pointer;
         color: #F0F0F0;
     }
