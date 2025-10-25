@@ -297,9 +297,9 @@
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
     {#if curTransaction && curTransaction.entries}
-    <div class="toolbar">
-        <div class="toolbar-icon" on:click="{schedule(curTransaction)}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></div>
-        <div class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" on:click="{schedule(curTransaction)}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+        <button class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -350,8 +350,8 @@
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
-                        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
-                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></div>
+                        <button class="toolbar-icon" on:click="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
+                        <button class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></button>
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
@@ -538,26 +538,9 @@
         padding: 5px 5px 10px 10px;
     }
 
-    .toolbar {
-        color: #9b9b9b;
-        display: flex;
-        -webkit-user-select: none; /* Chrome/Safari */
-        -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* IE10+ */
-
-        /* The rule below is not implemented in browsers yet */
-        -o-user-select: none;
-
-        /* The rule below is implemented in most browsers by now */
-        user-select: none;
-    }
-
     .bottom-toolbar {
         float: left;
     }
 
-    .bottom-toolbar div {
-        margin: 6px 0 0 0 !important;
-    }
 
 </style>

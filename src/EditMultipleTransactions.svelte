@@ -283,8 +283,8 @@
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
-                        <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('editMultiple.table.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></div>
-                        <div class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('editMultiple.table.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></div>
+                        <button class="toolbar-icon" on:click="{handleAddClick}" title={$_('editMultiple.table.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
+                        <button class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('editMultiple.table.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></button>
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
@@ -493,19 +493,6 @@
         clear: left;
     }
 
-    .toolbar {
-        color: #9b9b9b;
-        display: flex;
-        -webkit-user-select: none; /* Chrome/Safari */
-        -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* IE10+ */
-
-        /* The rule below is not implemented in browsers yet */
-        -o-user-select: none;
-
-        /* The rule below is implemented in most browsers by now */
-        user-select: none;
-    }
 
     .bottom-toolbar {
         float: left;

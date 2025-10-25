@@ -262,7 +262,7 @@
     }
 
 
-    :global(.form input, .form select, .form button) {
+    :global(.form input, .form select) {
         background-color: #aaa;
 
     }
@@ -288,21 +288,7 @@
         color: #757575;
         float: left;
     }
-
-    :global(.toolbar) {
-        float: right;
-        color: #C0C0C0;
-    }
-
-    :global(.toolbar-icon) {
-        margin-left: 5px;
-    }
-
-    :global(.toolbar-icon:hover) {
-        color: #F0F0F0;
-        cursor: pointer;
-    }
-
+   
 
     @media (min-width: 640px) {
         main {

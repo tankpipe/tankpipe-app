@@ -12,7 +12,7 @@
 <dialog bind:this={dialog} on:close>
     {#if closeIcon}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click={close} title={$_('dialog.close')}><Icon icon="mdi:close"  width="24"/></div>
+        <button class="toolbar-icon" on:click={close} title={$_('dialog.close')}><Icon icon="mdi:close"  width="24"/></button>
     </div>
     {/if}
     <slot/>

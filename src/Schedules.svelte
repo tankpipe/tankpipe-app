@@ -83,7 +83,7 @@
 
 <div class="account-heading">
     {#if !isEditMode($page)}
-    <div class="toolbar"><div class="toolbar-icon" on:click={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div></div>
+    <div class="toolbar toolbar-right"><button class="toolbar-icon" on:click={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button></div>
     <div class="form-heading">{$_('schedules.title')}</div>
     {/if}
 </div>
@@ -213,17 +213,6 @@
         background-color: #303030;
         padding:10px;
         border-radius: 10px;
-    }
-
-    .toolbar {
-        float: right;
-        color: #C0C0C0;
-        margin-bottom: 10px;
-    }
-
-    .toolbar-icon:hover{
-        color: #F0F0F0;
-        cursor: pointer;
     }
 
     .controls {

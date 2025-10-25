@@ -527,6 +527,10 @@
         display: flex;
         padding-right: 9px;
     }
+
+    :global(.toolbar-right) {
+        float: right;
+    }
     :global(.toolbar button) {
         background: none;
         border: none;

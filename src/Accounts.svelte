@@ -110,8 +110,8 @@
 {:else}
     <div>
         {#if !isEditMode($page)}
-        <div class="toolbar">
-            <div class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
+        <div class="toolbar toolbar-right">
+            <button class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
         </div>
         {/if}
         <div class="form-heading">{$_('accounts.title')}</div>
@@ -177,22 +177,5 @@
         cursor: pointer;
         color: #FFF;
     }
-
-    .toolbar {
-        float: right;
-        color: #C0C0C0;
-        margin-left: 10px;
-        display: flex;
-        padding-right: 9px;
-    }
-
-    .toolbar-icon {
-        margin-left: 5px;
-    }
-
-    .toolbar-icon:hover{
-        color: #F0F0F0;
-        cursor: pointer;
-    }
-
+    
 </style>
