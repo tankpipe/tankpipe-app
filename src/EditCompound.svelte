@@ -298,12 +298,12 @@
         </div>
         {#if mode === "COMPOUND" && canBeSimple(entries) || mode === "SIMPLE" && simpleAllowed}
         <div class="buttons-left">
-            <button on:click={toggleMode}>{modeButtonLabel}</button>
+            <button class="og-button" on:click={toggleMode}>{modeButtonLabel}</button>
         </div>
         {/if}
         <div class="widget buttons">
-            <button on:click={onCancel}>Close</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" on:click={onCancel}>Close</button>
+            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
@@ -464,30 +464,6 @@
 
     .entries {
         padding: 5px 5px 10px 10px;
-    }
-
-    .toolbar {
-        color: #7b7b7b;
-        display: flex;
-        -webkit-user-select: none; /* Chrome/Safari */
-        -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* IE10+ */
-
-        /* The rule below is not implemented in browsers yet */
-        -o-user-select: none;
-
-        /* The rule below is implemented in most browsers by now */
-        user-select: none;
-    }
-
-    .toolbar i:hover{
-        color: #666;
-        border-color: #666;
-        cursor: pointer;
-    }
-
-    .toolbar i {
-        margin-right: 5px;
     }
 
     .gg-add-r {

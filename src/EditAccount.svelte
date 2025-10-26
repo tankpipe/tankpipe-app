@@ -134,9 +134,9 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('account.form.title.edit') : $_('account.form.title.new')}</div>
-    <div class="toolbar">
+    <div class="toolbar toolbar-right">
         {#if transactions.length < 1}
-        <div class="toolbar-icon" on:click="{deleteAccount(curAccount)}" title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        <button class="toolbar-icon" on:click="{deleteAccount(curAccount)}" title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {/if}
     </div>
     <div class="form-row">
@@ -162,8 +162,8 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>{$_('buttons.close')}</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>

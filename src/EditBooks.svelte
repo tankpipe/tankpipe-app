@@ -77,9 +77,9 @@
         </div>
         <div class="widget buttons">
             {#if context.hasBooks}
-            <button on:click={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
             {/if}
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>

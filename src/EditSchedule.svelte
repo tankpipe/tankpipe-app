@@ -306,8 +306,8 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button on:click={onCancel}>{$_('buttons.close')}</button>
-            <button on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
@@ -444,30 +444,6 @@
 
     .entry-buttons {
         float: left;
-    }
-
-    .toolbar {
-        color: #C0C0C0;
-        display: flex;
-        -webkit-user-select: none; /* Chrome/Safari */
-        -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* IE10+ */
-
-        /* The rule below is not implemented in browsers yet */
-        -o-user-select: none;
-
-        /* The rule below is implemented in most browsers by now */
-        user-select: none;
-    }
-
-    .toolbar i:hover{
-        color: #F0F0F0;
-        border-color: #F0F0F0;
-        cursor: pointer;
-    }
-
-    .toolbar i {
-        margin-right: 5px;
     }
 
     .greyed {

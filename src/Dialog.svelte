@@ -12,13 +12,13 @@
 <dialog bind:this={dialog} on:close>
     {#if closeIcon}
     <div class="toolbar">
-        <div class="toolbar-icon" on:click={close} title={$_('dialog.close')}><Icon icon="mdi:close"  width="24"/></div>
+        <button class="toolbar-icon" on:click={close} title={$_('dialog.close')}><Icon icon="mdi:close"  width="24"/></button>
     </div>
     {/if}
     <slot/>
     {#if closeButton}
     <div class="widget buttons">
-        <button on:click={close} autofocus>{$_('buttons.ok')}</button>
+        <button class="og-button" on:click={close} autofocus>{$_('buttons.ok')}</button>
     </div>
     {/if}
 </dialog>

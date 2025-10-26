@@ -310,13 +310,13 @@
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
-        <div class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></div>
-        <div class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></div>
-        <div class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></div>
-        <div class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></div>
+        <button type="button" class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
+        <button type="button" class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {#if curAccount}
-        <div class="toolbar-icon import-icon" on:click={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></div>
+        <button type="button" class="toolbar-icon import-icon" on:click={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -520,7 +520,7 @@
         width: 105px;
     }
 
-    .toolbar {
+    :global(.toolbar) {
         float: left;
         color: #c0c0c0;
         margin-left: 10px;
@@ -528,45 +528,56 @@
         padding-right: 9px;
     }
 
-    .toolbar-icon {
-        margin-left: 5px;
+    :global(.toolbar-right) {
+        float: right;
+    }
+    :global(.toolbar button) {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0px;
     }
 
-    .toolbar-icon:hover{
+    :global(.toolbar-icon) {
+        margin-left: 5px;
+        color: #c0c0c0;
+    }
+
+    :global(.toolbar-icon:hover) {
         color: #F0F0F0;
         cursor: pointer;
     }
 
-    .toolbar-icon-disabled {
+    :global(.toolbar-icon-disabled) {
         margin-left: 5px;
         color: #303030;
     }
 
-    .toolbar-icon-on {
+    :global(.toolbar-icon-on) {
         margin-left: 5px;
         color: #43bd6e; /*#55e688*/
     }
 
-    .toolbar-icon-on:hover{
+    :global(.toolbar-icon-on:hover) {
         color: #55e688;
         cursor: pointer;
     }
 
-    .warning:hover {
+    :global(.warning:hover) {
         color: #e68843;
     }
 
-    .import-icon {
+    :global(.import-icon) {
         margin-top: 1px
     }
 
-    .filter-icon {
+    :global(.filter-icon) {
         display: inline-flex;
         vertical-align: top;
         margin-left: 0;
     }
 
-    .filter-icon:hover {
+    :global(.filter-icon:hover) {
         cursor: pointer;
         color: #F0F0F0;
     }

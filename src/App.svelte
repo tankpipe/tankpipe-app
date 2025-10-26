@@ -117,12 +117,12 @@
             <div class="column left">
                 <div class="menu-left">
                     <ul>
-                        <li><button type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
+                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
                         {#if $accounts.length > 0 }
-                        <li><button type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
-                        <li><button type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
-                        <li><button type="button" on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
-                        <li><button type="button" on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
+                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
+                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
+                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
+                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>                        
@@ -262,7 +262,7 @@
     }
 
 
-    :global(.form input, .form select, .form button) {
+    :global(.form input, .form select) {
         background-color: #aaa;
 
     }
@@ -288,21 +288,7 @@
         color: #757575;
         float: left;
     }
-
-    :global(.toolbar) {
-        float: right;
-        color: #C0C0C0;
-    }
-
-    :global(.toolbar-icon) {
-        margin-left: 5px;
-    }
-
-    :global(.toolbar-icon:hover) {
-        color: #F0F0F0;
-        cursor: pointer;
-    }
-
+   
 
     @media (min-width: 640px) {
         main {
