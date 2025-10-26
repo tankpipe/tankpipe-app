@@ -350,7 +350,7 @@
         <tr class="form">
             <td class="description">
                 <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
-                <div class="filter-icon" on:click={clearFilter} title={$_('transactions.clearFilter')}><Icon icon="mdi:eraser"  width="16"/></div>
+                <button class="single-button" on:click={clearFilter} title={$_('transactions.clearFilter')}><Icon icon="mdi:eraser"  width="16"/></button>
             </td>
         </tr>
         </tbody>
@@ -531,7 +531,7 @@
     :global(.toolbar-right) {
         float: right;
     }
-    :global(.toolbar button) {
+    :global(.toolbar button, .single-button) {
         background: none;
         border: none;
         cursor: pointer;
@@ -571,13 +571,18 @@
         margin-top: 1px
     }
 
-    :global(.filter-icon) {
+    :global(.single-button) {
         display: inline-flex;
         vertical-align: top;
         margin-left: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0px;
+        color: #c0c0c0;
     }
 
-    :global(.filter-icon:hover) {
+    :global(.single-button:hover) {
         cursor: pointer;
         color: #F0F0F0;
     }
