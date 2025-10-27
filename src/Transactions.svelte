@@ -2,18 +2,14 @@
     import EditTransaction from './EditTransaction.svelte'
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
-    import { open } from '@tauri-apps/plugin-dialog'
-    import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
     import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { settings } from './settings'
     import { config } from './config.js'
     import { accounts } from './accounts'
-    import { afterUpdate } from 'svelte'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte';
-    //import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, isSelected, clearSelected, getSelected } from './selector.js'
     import { _ } from 'svelte-i18n'
     import Importer from './Importer.svelte';
 
@@ -22,7 +18,7 @@
     import { SvelteMap } from 'svelte/reactivity';
 
     /* Use SvelteMap so that changes applied to the map (like select all) are reflected in the UI. */
-    let selectedTransactions = new SvelteMap()
+    let selectedTransactions = $state(new SvelteMap())
     const selector = writable({ showMultiEdit: false, shapeMatch: false, isSelectAll: false, showMultipleSelect: false })
 
     const shapeOf = (transaction) => {
@@ -82,7 +78,7 @@
             showMultiEdit: get(selector).showMultipleSelect && selectedTransactions.size > 0,
             isSelectAll: !get(selector).isSelectAll,
         })
-
+        selectedTransactions = new SvelteMap(selectedTransactions)
     }
 
     const toggleMultipleSelect = () => {
@@ -122,30 +118,21 @@
     }
 
 
-
-
-
-
-
-
     // end selector
 
 
 
+    let { curAccount, journalMode = false } = $props()
 
-
-    export let curAccount
-    export let journalMode = false
-
-    let curEntry
-    let errors = new Errors()
-    let msg = ""
+    let curEntry = $state({})
+    let errors = $state(new Errors())
+    let msg = $state("")
     let previousAccount
     let topScroll
-    let showFilter = false
-    let descriptionFilter = ""
+    let showFilter = $state(false)
+    let descriptionFilter = $state("")
 
-    $: {
+    $effect(() => {
         if (journalMode && !curAccount) {
             curAccount = {}
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
@@ -159,9 +146,7 @@
             loadTransactions()
             previousAccount = curAccount
         }
-    }
-
-    afterUpdate(() => {
+   
         if (!$page.isEditMode) {
             if (!topScroll) {
                 const closest = findClosestTransaction()
@@ -251,7 +236,7 @@
     }
 
     let allTransactions = []
-    let transactions = []
+    let transactions = $derived([])
     let chartValues = []
 
     export const loadTransactions = async () => {
@@ -275,10 +260,13 @@
     }
 
     const filterList = () => {
+        console.log("filterList")
         transactions = allTransactions.filter(
             t => descriptionFilter == "" ||
             (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||
             (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase())))
+
+        console.log("filterList: " + transactions.length)
     }
 
     const chartBalance = (balance) => {
