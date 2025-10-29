@@ -124,7 +124,7 @@
 
     let { curAccount, journalMode = false } = $props()
 
-    let curEntry = $state({})
+    let curEntry = {}
     let errors = $state(new Errors())
     let msg = $state("")
     let previousAccount
@@ -369,9 +369,6 @@
             }
         }
 
-        if (selected.length > 0) {
-            curEntry = getEntry(selected[0])
-        }
         return selected;
     }
 
