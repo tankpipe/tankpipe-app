@@ -13,6 +13,7 @@
     import { _ } from 'svelte-i18n'
     import Importer from './Importer.svelte'
     import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
+    import { chartOptions } from './chart-options'
 
     let { curAccount, journalMode = false } = $props()
 
@@ -23,6 +24,9 @@
     let topScroll
     let showFilter = $state(false)
     let descriptionFilter = $state("")
+    let allTransactions = []
+    let transactions = $derived([])
+    let chartValues = []
 
     $effect(() => {
         if (journalMode && !curAccount) {
@@ -92,45 +96,6 @@
       loadTransactions()
     }
 
-    let chartOptions = {
-        series: [
-            {
-                name: "foo",
-                data: [],
-            },
-        ],
-        chart: {
-            type: "area",
-            height: 50,
-            width: 100,
-            sparkline: {
-                enabled: true,
-            },
-        },
-        stroke: {
-            curve: "stepline",
-            width: 2,
-            colors:["#efefef"],
-        },
-        fill: {
-            opacity: 0.6,
-            colors: ["#efefef"],
-        },
-        xaxis: {
-            crosshairs: {
-                width: 1,
-            },
-            type: "datetime",
-        },
-        tooltip: {
-            enabled: false
-        },
-    }
-
-    let allTransactions = []
-    let transactions = $derived([])
-    let chartValues = []
-
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount)
 
@@ -185,7 +150,6 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })
-
 
     const getDebitAmount = (transaction, curAccount) => {
         return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
