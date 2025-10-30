@@ -9,128 +9,24 @@
     import { accounts } from './accounts'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
-    import EditMultipleTransactions from './EditMultipleTransactions.svelte';
+    import EditMultipleTransactions from './EditMultipleTransactions.svelte'
     import { _ } from 'svelte-i18n'
-    import Importer from './Importer.svelte';
-
-    // selector
-    import { writable, get } from 'svelte/store'
-    import { SvelteMap } from 'svelte/reactivity';
-
-    /* Use SvelteMap so that changes applied to the map (like select all) are reflected in the UI. */
-    let selectedTransactions = $state(new SvelteMap())
-    const selector = writable({ showMultiEdit: false, shapeMatch: false, isSelectAll: false, showMultipleSelect: false })
-
-    const shapeOf = (transaction) => {
-        return transaction.entries.map(e => e.account_id).join("_")
-    }
-
-    const checkShapes = (checkShape = null) => {
-        if (selectedTransactions.size == 0) {
-            updateSelector({ shapeMatch: false })
-            return
-        }
-
-        let firstShape = checkShape
-        for (const shape of selectedTransactions.values()) {
-
-            if (firstShape == null) {
-                firstShape = shape
-            } else if (shape != firstShape) {
-                updateSelector({ shapeMatch: false })
-                return
-            } else if (get(selector).shapeMatch && checkShape == shape) {  // short circut - only need to check first
-                return
-            }
-
-        }
-
-        updateSelector({ shapeMatch: true })
-    }
-
-    const toggleSelected = (transaction) => {
-
-        if (selectedTransactions.has(transaction.id)) {
-            selectedTransactions.delete(transaction.id)
-            checkShapes()
-        } else {
-            const shape = shapeOf(transaction)
-            selectedTransactions.set(transaction.id, shape)
-            if (selectedTransactions.size == 1) {
-                updateSelector({ shapeMatch: true })
-            } else {
-                checkShapes(shape)
-            }
-
-        }
-        updateSelector({ showMultiEdit: (get(selector).showMultipleSelect && selectedTransactions.size > 0) })
-
-    }
-
-    const toggleAllSelected = (transactions) => {
-        if (get(selector).isSelectAll) {
-            selectedTransactions.clear()
-        } else {
-            transactions.forEach(t => selectedTransactions.set(t.id, shapeOf(t)))
-        }
-        checkShapes()
-        updateSelector({
-            showMultiEdit: get(selector).showMultipleSelect && selectedTransactions.size > 0,
-            isSelectAll: !get(selector).isSelectAll,
-        })
-        selectedTransactions = new SvelteMap(selectedTransactions)
-    }
-
-    const toggleMultipleSelect = () => {
-        selector.update(value => (Object.assign(value, { showMultipleSelect: !value.showMultipleSelect })))
-
-        if (!get(selector).showMultipleSelect) {
-            updateSelector({
-                isSelectAll: false,
-            })
-
-            selectedTransactions.clear()
-        }
-
-        updateSelector({
-            showMultiEdit: get(selector).showMultipleSelect && selectedTransactions.size > 0
-        })
-    }
-
-    const clearSelected = () => {
-        selectedTransactions.clear()
-        updateSelector({
-            showMultiEdit: false,
-            isSelectAll: false,
-        })
-    }
-
-    const isSelected = (transaction) => {
-        return selectedTransactions.has(transaction.id)
-    }
-
-    const getSelected = () => {
-        return Array.from(selectedTransactions.keys())
-    }
-
-    const updateSelector = (update) => {
-        selector.update(value => (Object.assign(value, update)))
-    }
-
-
-    // end selector
-
-
+    import Importer from './Importer.svelte'
+    import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
+    import { chartOptions } from './chart-options'
 
     let { curAccount, journalMode = false } = $props()
 
-    let curEntry = {}
+    let curEntry = $state({})
     let errors = $state(new Errors())
     let msg = $state("")
     let previousAccount
     let topScroll
     let showFilter = $state(false)
     let descriptionFilter = $state("")
+    let allTransactions = []
+    let transactions = $derived([])
+    let chartValues = []
 
     $effect(() => {
         if (journalMode && !curAccount) {
@@ -146,7 +42,7 @@
             loadTransactions()
             previousAccount = curAccount
         }
-   
+
         if (!$page.isEditMode) {
             if (!topScroll) {
                 const closest = findClosestTransaction()
@@ -199,45 +95,6 @@
        msg = $_('transactions.transactionsDeleted')
       loadTransactions()
     }
-
-    let chartOptions = {
-        series: [
-            {
-                name: "foo",
-                data: [],
-            },
-        ],
-        chart: {
-            type: "area",
-            height: 50,
-            width: 100,
-            sparkline: {
-                enabled: true,
-            },
-        },
-        stroke: {
-            curve: "stepline",
-            width: 2,
-            colors:["#efefef"],
-        },
-        fill: {
-            opacity: 0.6,
-            colors: ["#efefef"],
-        },
-        xaxis: {
-            crosshairs: {
-                width: 1,
-            },
-            type: "datetime",
-        },
-        tooltip: {
-            enabled: false
-        },
-    }
-
-    let allTransactions = []
-    let transactions = $derived([])
-    let chartValues = []
 
     export const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount)
@@ -294,7 +151,6 @@
         maximumFractionDigits: 2,
     })
 
-
     const getDebitAmount = (transaction, curAccount) => {
         return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
     }
@@ -336,11 +192,6 @@
 
     function evaluationResult(result) {
         page.set({view: $page.view, mode: modes.LOAD})
-    }
-
-    function loaded(result) {
-        console.log(result)
-        loadTransactions()
     }
 
     function rejected(result) {
@@ -404,6 +255,12 @@
         toggleSelected(t)
         setCurrentScroll()
     }
+
+    const stopPropagationHandler = (event, handler) => {
+        event.stopPropagation()
+        handler()
+    }
+
 </script>
 
 <div class="account-heading">
@@ -412,13 +269,13 @@
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
     </div>
     <div class="toolbar">
-        <button type="button" class="toolbar-icon" on:click="{handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
-        <button type="button" class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></button>
-        <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" on:click="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
-        <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" on:click="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
-        <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" on:click="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
+        <button type="button" class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" onclick="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
+        <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" onclick="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {#if curAccount}
-        <button type="button" class="toolbar-icon import-icon" on:click={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
+        <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -451,8 +308,8 @@
         <tr><th class="justify-left">{$_('transactions.filter')}</th></tr>
         <tr class="form">
             <td class="description">
-                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} on:input={() => {filterList()} }>
-                <button class="single-button" on:click={clearFilter} title={$_('transactions.clearFilter')}><Icon icon="mdi:eraser"  width="16"/></button>
+                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} oninput={() => {filterList()} }>
+                <button class="single-button" onclick={clearFilter} title={$_('transactions.clearFilter')}><Icon icon="mdi:eraser"  width="16"/></button>
             </td>
         </tr>
         </tbody>
@@ -465,7 +322,7 @@
         <tbody>
         <tr>
             {#if $selector.showMultipleSelect}
-            <th on:click|stopPropagation={() => toggleAllSelected(transactions)}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
+            <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
             <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
         </tr>
@@ -474,8 +331,8 @@
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
-                {#if $selector.showMultipleSelect}<td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  onclick={(event) => stopPropagationHandler(event, () => selectTransaction(e))} id={t.id}><!--{t.id}-->
+                {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
@@ -493,9 +350,9 @@
           {#if journalMode}
             {@const sortedEntries = sortEntries(t.entries)}
             {#each sortedEntries as e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" on:click={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" onclick={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}
-                <td on:click|stopPropagation={() => handleToggleSelected(t)}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
+                <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
                 {/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
