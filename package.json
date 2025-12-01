@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@aptabase/tauri": "github:aptabase/tauri-plugin-aptabase#1.0.0",
-    "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-dialog": "^2.4.2",
     "@tauri-apps/plugin-shell": "^2.3.3",
     "apexcharts": "^5.3.6",
