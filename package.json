@@ -31,7 +31,7 @@
     "rollup-plugin-svelte": "^7.2.3",
     "svelte": "^5.45.2",
     "svelte-jester": "^5.0.0",
-    "vite": "^7.2.4",
+    "vite": "^7.2.6",
     "vitest": "^4.0.13"
   },
   "dependencies": {
