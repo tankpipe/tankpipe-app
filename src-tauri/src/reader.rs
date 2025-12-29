@@ -100,7 +100,7 @@ pub fn check_csv_format<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksEr
 
 pub fn read_rows<P: AsRef<Path>>(path: &P) -> Result<Vec<Vec<String>>, BooksError> {
     let columns = read_columns(path)?;
-    validate_columns(&columns)?;
+    let _ = validate_columns(&columns);
     let rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_path(path);

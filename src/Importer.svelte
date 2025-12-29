@@ -24,6 +24,7 @@
     let path = ""
     let fileDialogShown = false
     let rememberForNextTime = false
+    let hasHeaderRow = false;
 
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
@@ -92,6 +93,7 @@
                 columnTypes.includes("Date") && columnTypes.includes("Description") &&
                 (columnTypes.includes("Amount") ||
                  columnTypes.includes("Debit") && columnTypes.includes("Credit"))
+        hasHeaderRow = !(columnTypes.length > 0 && columnTypes.every(e => e == "Unknown"))
     }
 
     function importCompleted(result) {
@@ -159,7 +161,7 @@
     <div class="form-heading"></div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Has header row</div><input type="checkbox" checked={columnTypes.length > 0} disabled={true}/>
+            <div class="label label-column">Has header row</div><input type="checkbox" checked={hasHeaderRow} disabled={true}/>
         </div>
     </div>
     <div class="form-row2">
@@ -183,7 +185,7 @@
 <div class="scroller" id="scroller">
     <table class="csv-table">
         <tbody>
-            <tr><th colspan="{columnTypes.length}">Matched columns</th></tr>
+            <tr><th colspan="{columnTypes.length}">Columns</th></tr>
             <tr class="shrink-font">
             {#each columnTypes as c, i}
                 <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} none={true} flat={true}/></td>
