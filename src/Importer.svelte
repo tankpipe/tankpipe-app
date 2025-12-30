@@ -124,7 +124,7 @@
         errors = new Errors()
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime}).then(importCompleted, rejected)
+        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
     }
 
     const close = () => {
@@ -161,7 +161,7 @@
     <div class="form-heading"></div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Has header row</div><input type="checkbox" checked={hasHeaderRow} disabled={true}/>
+            <div class="label label-column">Has header row</div><input type="checkbox" bind:checked={hasHeaderRow} />
         </div>
     </div>
     <div class="form-row2">

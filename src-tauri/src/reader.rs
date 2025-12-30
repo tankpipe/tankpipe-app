@@ -123,41 +123,11 @@ pub fn read_rows<P: AsRef<Path>>(path: &P) -> Result<Vec<Vec<String>>, BooksErro
      }
 }
 
-pub fn read_transations_using_header <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str, columns: &ColumnTypes) -> Result<Vec<Transaction>, BooksError> {
-    println!("read_transations_using_header : {:?}", columns);
+pub fn read_transations <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str, columns: &ColumnTypes, has_headers: bool) -> Result<Vec<Transaction>, BooksError> {
+    println!("read_transations : {:?}", columns);
     validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
-        .has_headers(true)
-        .from_path(path);
-
-    match rdr {
-        Ok(mut reader) => {
-            let mut transactions: Vec<Transaction> = Vec::new();
-
-            for result in reader.deserialize() {
-                match result {
-                    Ok(item) => {
-                        transactions.push(to_transaction(&columns, item, account, fmt)?);
-
-                    },
-                    Err(e) => {
-                        println!("Skipping row as unabled to process. Error: {:?}", e)
-                    },
-                }
-            }
-            Ok(transactions)
-        },
-        Err(e) => {
-            return Err(BooksError{ error: format!("Unable to read csv file. {}", e).to_string() })
-        }
-     }
-}
-
-pub fn read_transations<P: AsRef<Path>>(path: &P, account: &Account, fmt: &str) -> Result<Vec<Transaction>, BooksError> {
-    let columns = read_columns(path)?;
-    validate_columns(&columns)?;
-    let rdr = csv::ReaderBuilder::new()
-        .has_headers(true)
+        .has_headers(has_headers)
         .from_path(path);
 
     match rdr {
@@ -270,7 +240,7 @@ pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError>
 fn detect_columns(headers: &StringRecord, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
     let mut columns: Vec<ColumnType> = Vec::new();
     for header in headers {
-        match header.to_lowercase().as_str() {
+        match header.trim().to_lowercase().as_str() {
             "date" => columns.push(ColumnType::Date),
             "description" => columns.push(ColumnType::Description),
             "debit" => if reverse_dr_cr {columns.push(ColumnType::Credit)} else {columns.push(ColumnType::Debit)},
@@ -352,9 +322,9 @@ mod tests {
     use chrono::NaiveDate;
     use csv::StringRecord;
     use rust_decimal_macros::dec;
-    use crate::reader::{balance_impact, read_columns, read_transations_using_header, ColumnType};
+    use crate::reader::{balance_impact, read_columns, read_transations, ColumnType};
 
-    use super::{parse_date_str, read_transations, detect_columns};
+    use super::{parse_date_str, detect_columns};
 
 
     #[test]
@@ -368,7 +338,8 @@ mod tests {
     #[test]
     fn test_reader_file_not_found() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let result = read_transations(&String::from("no_such_file.csv"), &account, "%d/%m/%Y");
+        let columns = read_columns(&"test.csv").unwrap();
+        let result = read_transations(&String::from("no_such_file.csv"), &account, "%d/%m/%Y", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to read csv file. No such file or directory (os error 2)", result.unwrap_err().error);
     }
@@ -405,7 +376,8 @@ mod tests {
     #[test]
     fn test_reader() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let transactions = read_transations(&String::from("test.csv"), &account, "%d/%m/%Y").unwrap();
+        let columns = read_columns(&"test.csv").unwrap();
+        let transactions = read_transations(&String::from("test.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
@@ -418,7 +390,8 @@ mod tests {
     #[test]
     fn test_invalid_date() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let result = read_transations(&String::from("test.csv"), &account, "%Y-%M-%D");
+        let columns = read_columns(&"test.csv").unwrap();
+        let result = read_transations(&String::from("test.csv"), &account, "%Y-%M-%D", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
 
@@ -427,7 +400,8 @@ mod tests {
     #[test]
     fn test_reader_dr_cr() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let transactions = read_transations(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y").unwrap();
+        let columns = read_columns(&"test.csv").unwrap();
+        let transactions = read_transations(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
@@ -445,20 +419,6 @@ mod tests {
         assert_eq!(ColumnType::Description, columns[1]);
         assert_eq!(ColumnType::Amount, columns[2]);
         assert_eq!(ColumnType::Balance, columns[3]);
-    }
-
-    #[test]
-    fn test_read_transactions_with_provided_columns() {
-        let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
-        let transactions = read_transations_using_header(&String::from("test.csv"), &account, "%d/%m/%Y", &columns).unwrap();
-        assert_eq!(4, transactions.len());
-        assert_eq!("Rent received", transactions[0].entries[0].description);
-        assert_eq!(dec!(1200), transactions[0].entries[0].amount);
-        assert_eq!(Side::Debit, transactions[0].entries[0].entry_type);
-        assert_eq!(account.id, transactions[0].entries[0].account_id);
-        assert_eq!(dec!(500), transactions[1].entries[0].amount);
-        assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
     }
 
     #[test]
