@@ -4,7 +4,7 @@
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from './errors'
-    import { page, isListMode, modes } from './page'
+    import { page } from './page'
     import { config } from './config.js'
     import { accounts } from './accounts'
     import { invoke } from "@tauri-apps/api/core"
@@ -59,6 +59,10 @@
             evaluateFile()
         }
 
+        requiredColumnsMatched =
+                selectedColumns.includes(COLUMN_TYPES_MAP["Date"]) && selectedColumns.includes(COLUMN_TYPES_MAP["Description"]) &&
+                (selectedColumns.includes(COLUMN_TYPES_MAP["Amount"]) ||
+                 selectedColumns.includes(COLUMN_TYPES_MAP["Debit"]) && selectedColumns.includes(COLUMN_TYPES_MAP["Credit"]))
     }
 
     const evaluateFile = async () => {
@@ -161,38 +165,38 @@
     <div class="form-heading"></div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Has header row</div><input type="checkbox" bind:checked={hasHeaderRow} />
+            <div class="label label-column">{$_('importer.has_header')}</div><input type="checkbox" bind:checked={hasHeaderRow} />
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
+            <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Remember for next time</div><input type="checkbox" bind:checked={rememberForNextTime} />
+            <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
         </div>
     </div>
 </div>
 <div class="form-row2">
     <div class="widget">
         {#if requiredColumnsMatched}
-        <div class="label label-column"><div class="success-msg">Required columns matched&nbsp;&check;</div></div>
+        <div class="label label-column"><div class="success-msg">{$_('importer.required_columns_mapped')}&nbsp;&check;</div></div>
         {/if}
     </div>
     </div>
 <div class="scroller" id="scroller">
     <table class="csv-table">
         <tbody>
-            <tr><th colspan="{columnTypes.length}">Columns</th></tr>
+            <tr><th colspan="{columnTypes.length}">{$_('importer.columns')}</th></tr>
             <tr class="shrink-font">
             {#each columnTypes as c, i}
                 <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} none={true} flat={true}/></td>
             {/each}
             </tr>
             <tr class="spacer"></tr>
-            <tr><th colspan="{columnTypes.length}">CSV Data</th></tr>
+            <tr><th colspan="{columnTypes.length}">{$_('importer.sample_data')}</th></tr>
         {#each rows as r}
             <tr class="csv-row">
             {#each r as c}
@@ -203,7 +207,7 @@
         </tbody>
     </table>
     {#if rows.length < 1}
-    <div class="message">{$_('importer.noData')}</div>
+    <div class="message">{$_('importer.no_data')}</div>
     {/if}
 </div>
 
