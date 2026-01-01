@@ -536,6 +536,7 @@
 
     .entries {
         padding: 5px 5px 10px 10px;
+        clear: both;
     }
 
     .bottom-toolbar {
