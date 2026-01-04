@@ -113,7 +113,8 @@
             "descriptionRequired": "Description is required",
             "saved": "Transaction saved.",
             "snag": "We hit a snag: {error}",
-            "totalsBalance": "Totals should balance"
+            "totalsBalance": "Totals should balance",
+            "debitOrCredit": "Can not enter both a Debit and a Credit amount"
         }
     },
     "schedule": {
