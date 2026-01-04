@@ -244,10 +244,9 @@
       close()
     }
 
-    const deleteTransaction = async (transaction) => {
-        console.log(transaction)
-        if (transaction && transaction.id) {
-               await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
+    const deleteTransaction = async () => {
+        if (curTransaction && curTransaction.id) {
+            await invoke('delete_transaction', {id: curTransaction.id}).then(resolvedDelete, rejected)
         } else {
             close()
         }
@@ -287,8 +286,8 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
-        <button class="toolbar-icon" onclick="{schedule(curTransaction)}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" onclick="{deleteTransaction(curTransaction)}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
