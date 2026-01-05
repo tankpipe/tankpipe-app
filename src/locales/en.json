@@ -113,7 +113,8 @@
             "descriptionRequired": "Description is required",
             "saved": "Transaction saved.",
             "snag": "We hit a snag: {error}",
-            "totalsBalance": "Totals should balance"
+            "totalsBalance": "Totals should balance",
+            "debitOrCredit": "Can not enter both a Debit and a Credit amount"
         }
     },
     "schedule": {
@@ -176,6 +177,12 @@
         "disclaimer_text": "Material, content, and functionality available on the Tankpipe app <span class=\"highlight\">does not represent financial, tax, or legal advice</span>. As per the license, the Tankpipe App is provided \"AS IS\" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters. You should consult with a qualified professional for advice on anything relating to these matters. See also the Tankpipe <a target=\"_blank\" href=\"https://tankpipe.com/app/terms\">terms.</a>"
     },
     "importer": {
-        "noData": "No data was read"
+        "no_data": "No data was read",
+        "has_header": "Has header row",
+        "import_date_format": "Import date format",
+        "save_mappings": "Remember for next time",
+        "required_columns_mapped": "Required columns mapped",
+        "columns": "Columns",
+        "sample_data": "CSV data"
     }
 }

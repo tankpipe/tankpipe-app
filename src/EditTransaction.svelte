@@ -1,7 +1,6 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from './errors.js'
-    import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
     import {page, modes, views} from './page.js'
@@ -11,28 +10,26 @@
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
-    export let loadTransactions
-    export let curEntry
-    export let onClose
+    let { loadTransactions, curEntry, onClose } = $props()
 
-    let curTransaction
+    let curTransaction = $state({})
 
     const zeros = '00000000-0000-0000-0000-000000000000'
-    let msg = ""
-    let errors = new Errors()
+    let msg = $state("")
+    let errors = $state(new Errors())
     let format = dateFormat($config)
-    let addButtonLabel = $_('buttons.add')
-    let drTotal = 0
-    let crTotal = 0
-    let simpleAllowed = false
-    let compoundMode = false
-    let recorded = false
-    let entries = []
+    let addButtonLabel = $state($_('buttons.add'))
+    let drTotal = $state(0)
+    let crTotal = $state(0)
+    let simpleAllowed = $state(false)
+    let compoundMode =  $state(false)
+    let recorded = $state(false)
+    let entries =  $state([])
+    $inspect(entries)
 
-    onMount(() => {
-        console.log($page.mode, curEntry)
+    $effect(() => {
+
         if ($page.mode === modes.EDIT) {
-            console.log(curEntry)
             fetchTransaction(curEntry.transaction_id)
         } else {
             curTransaction = {id: zeros, status:"Recorded"}
@@ -48,7 +45,7 @@
     })
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
+        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}}]
     }
 
     const handleRemoveClick = () => {
@@ -59,6 +56,10 @@
 
     const close = () => {
         onClose()
+    }
+
+    const isValidAmount = (amount) => {
+        return amount && amount.length > 0 && ! isNaN(amount) && Number(amount) > 0
     }
 
     const validateEntry = (entry, index, errors) => {
@@ -75,14 +76,13 @@
             if (!entry.amount || entry.amount.length < 1 || isNaN(entry.amount)) {
                 errors.addError("amount", $_('transaction.errors.amountRequired'))
             }
-        } else if (entry.entry_type === "Credit") {
-            if (!entry.crAmount || entry.crAmount.length < 1 || isNaN(entry.crAmount)) {
-                errors.addError(prefix + "crAmount", $_('transaction.errors.amountRequired'))
-            }
         } else {
-            if (!entry.drAmount || entry.drAmount.length < 1 || isNaN(entry.drAmount)) {
+            if ( ! (isValidAmount(entry.crAmount) || isValidAmount(entry.drAmount))) {
+                errors.addError(prefix + "crAmount", $_('transaction.errors.amountRequired'))
                 errors.addError(prefix + "drAmount", $_('transaction.errors.amountRequired'))
-                console.log(entry.drAmount)
+            } else if ( (isValidAmount(entry.crAmount) && isValidAmount(entry.drAmount))) {
+                errors.addError(prefix + "crAmount", $_('transaction.errors.debitOrCredit'))
+                errors.addError(prefix + "drAmount", $_('transaction.errors.debitOrCredit'))
             }
         }
 
@@ -90,10 +90,6 @@
             if (settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", $_('transaction.errors.accountRequired'))
             }
-        }
-
-        if (compoundMode && (drTotal != crTotal)) {
-            errors.addError("totals", $_('transaction.errors.totalsBalance'))
         }
 
         return errors
@@ -104,10 +100,16 @@
     }
 
     const onSave = () => {
+        console.log("onSave")
         msg = ""
         errors = new Errors()
         if (!compoundMode) syncSecondEntry(entries)
+        calculateTotals()
         entries.forEach((e, i) => validateEntry(e, i, errors))
+
+        if (compoundMode && (drTotal != crTotal)) {
+            errors.addError("totals", $_('transaction.errors.totalsBalance'))
+        }
 
         if (!errors.hasErrors()) {
             const transaction = {
@@ -125,7 +127,14 @@
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
                     if (compoundMode) {
-                        e["amount"] = (e["entry_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
+                        //console.log(e)
+                        if (isValidAmount(e.crAmount)) {
+                            e["entry_type"] = "Credit"
+                            e["amount"] =  e["crAmount"]
+                        } else if (isValidAmount(e.drAmount)) {
+                            e["entry_type"] = "Debit"
+                            e["amount"] =  e["drAmount"]
+                        }
                     }
                 }
             )
@@ -186,13 +195,14 @@
     }
 
     function fetched(result) {
-        curTransaction = result
+        console.log("fetched ", result)
+        Object.assign(curTransaction, result)
         addButtonLabel = $_('buttons.update')
-        console.log(result)
-        entries = curTransaction.entries
+        entries.splice(0)
+        entries.push(...curTransaction.entries)
 
         entries.forEach(e => {
-            e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
+            e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
         })
@@ -210,8 +220,7 @@
         }
 
         recorded = curTransaction.status != "Projected"
-
-        console.log(entries)
+        calculateTotals()
     }
 
     function rejected(result) {
@@ -235,38 +244,22 @@
       close()
     }
 
-    const deleteTransaction = async (transaction) => {
-        console.log(transaction)
-        if (transaction && transaction.id) {
-               await invoke('delete_transaction', {id: transaction.id}).then(resolvedDelete, rejected)
+    const deleteTransaction = async () => {
+        if (curTransaction && curTransaction.id) {
+            await invoke('delete_transaction', {id: curTransaction.id}).then(resolvedDelete, rejected)
         } else {
             close()
         }
     }
 
-
     const fetchTransaction = async (transactionId) => {
-        console.log(transactionId)
         await invoke('transaction', {transactionId: transactionId}).then(fetched, rejected)
-    }
-
-    const showAmount = (entry, type) => {
-        if (entry["drAmount"] > 0) {
-            entry["entry_type"] = "Debit"
-            return type === "Debit"
-        }
-
-        if (entry["crAmount"] > 0) {
-            entry["entry_type"] = "Credit"
-            return type === "Credit"
-        }
-
-        return true
     }
 
     const total = (type) => {
         let total = 0
-        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
+        const amountField = type === "Credit" ? "crAmount" : "drAmount"
+        entries.filter(e => isValidAmount(e[amountField])).forEach(e => total += Number(e[amountField]))
         return total
     }
 
@@ -275,13 +268,8 @@
         crTotal = total("Credit")
     }
 
-
     const afterToggle = () => {
         if (compoundMode) syncSecondEntry()
-    }
-
-    $: {
-        calculateTotals()
     }
 
     const schedule = () => {
@@ -298,8 +286,8 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
-        <button class="toolbar-icon" on:click="{schedule(curTransaction)}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" on:click="{deleteTransaction(curTransaction)}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -339,19 +327,17 @@
                     <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
                     <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
                     <td class="money">
-                        {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
-                        {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
+                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>
                     </td>
                     <td class="money">
-                        {#if showAmount(e, "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>{/if}
-                        {#if !showAmount(e, "Credit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
+                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>
                     </td>
                 </tr>
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
-                        <button class="toolbar-icon" on:click="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
-                        <button class="toolbar-icon" class:greyed={entries.length <= 2} on:click="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></button>
+                        <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
+                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></button>
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
@@ -363,7 +349,7 @@
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
+            <input id="compound" type=checkbox bind:checked={compoundMode} onchange={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
@@ -371,8 +357,8 @@
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">
-            <button class="og-button" on:click={close}>{$_('buttons.close')}</button>
-            <button class="og-button" on:click={onSave}>{addButtonLabel}</button>
+            <button class="og-button" onclick={close}>{$_('buttons.close')}</button>
+            <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
         </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}
@@ -536,6 +522,7 @@
 
     .entries {
         padding: 5px 5px 10px 10px;
+        clear: both;
     }
 
     .bottom-toolbar {

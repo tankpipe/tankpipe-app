@@ -6,7 +6,7 @@ use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::error_handler;
-use crate::reader::{check_csv_format, read_headers, read_rows, read_transations_using_header, ColumnTypes};
+use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, ColumnTypes};
 use crate::csv_check::CsvCheck;
 
 
@@ -80,10 +80,10 @@ pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Acco
 }
 
 #[tauri::command]
-pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, save_mapping: bool) -> Result<(), String> {
-    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{}", path, account.id, column_types, save_mapping);
+pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, save_mapping: bool, has_headers: bool) -> Result<(), String> {
+    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{}", path, account.id, column_types, save_mapping, has_headers);
     let mut mutex_guard = state.0.lock().unwrap();
-    let load_result = read_transations_using_header(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()));
+    let load_result = read_transations(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
 
     match load_result {
         Ok(transactions) => {
@@ -99,7 +99,7 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
                 if current_mapping.is_none() || current_mapping.unwrap() != column_types {
                     mutex_guard.config.set_csv_mapping(account.id, column_types);
                     error_handler(mutex_guard.save_config())?;
-                }               
+                }
             }
             Ok(())
         },
