@@ -10,40 +10,74 @@
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
 
-    export let close
-    export let curSchedule
-    export let loadSchedules
+    let { close, curSchedule, loadSchedules } = $props()
 
     const zeros = '00000000-0000-0000-0000-000000000000'
-    const minEntries = $settings.require_double_entry ? 2 : 1
-    let hasEnd = false
-    let msg = ""
-    let errors = new Errors()
-    let date = new Date(), name, description, amount, frequency = 1
-    let endDate
-    let max = new Date(), min = new Date()
-    max.setFullYear(date.getFullYear() + 20)
-    min.setFullYear(date.getFullYear() - 10)
-    let format="yyyy-MM-dd"
-    let addButtonLabel = "Add"
-    let period = {value:"Months", name:"Months"}
-    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
-    let drAccount
-    let crAccount
-    let drTotal = 0
-    let crTotal = 0
-    let entries = []
+    let minEntries = $derived($settings.require_double_entry ? 2 : 1)
+    let hasEnd = $state(false)
+    let msg = $state("")
+    let errors = $state(new Errors())
+    let date = $state(new Date())
+    let name = $state()
+    let description = $state()
+    let amount = $state()
+    let frequency = $state(1)
+    let endDate = $state()
+    let max = $state(new Date())
+    let min = $state(new Date())
+    let format = "yyyy-MM-dd"
+    let addButtonLabel = $state("Add")
+    let period = $state({value:"Months", name:"Months"})
+    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
+    let drAccount = $state()
+    let crAccount = $state()
+    let entries = $state([])
+    
+    const getEntryType = (entry) => {
+        if (entry.drAmount > 0) {
+            return "Debit"
+        }
+        if (entry.crAmount > 0) {
+            return "Credit"
+        }
+        return entry.entry_type || "Debit"
+    }
+    
+    // Derived totals that update automatically when entries change
+    let drTotal = $derived.by(() => {
+        let total = 0
+        entries.forEach(e => {
+            const eType = getEntryType(e)
+            if (eType === "Debit") {
+                total += Number(e.drAmount || 0)
+            }
+        })
+        return total
+    })
+    
+    let crTotal = $derived.by(() => {
+        let total = 0
+        entries.forEach(e => {
+            const eType = getEntryType(e)
+            if (eType === "Credit") {
+                total += Number(e.crAmount || 0)
+            }
+        })
+        return total
+    })
 
     onMount(() => {
         if ($page.mode === modes.EDIT) {
             name = curSchedule.name
             description = curSchedule.description
             amount = curSchedule.amount
-            entries = curSchedule.entries
-            entries.forEach(e => {
-                e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
-                e.realDate = new Date(e.date)
-                e.account = matchAccount(e.account_id)
+            // Create deep copies of entries to avoid mutation issues
+            entries = curSchedule.entries.map(e => {
+                const entryCopy = {...e}
+                entryCopy.entry_type === "Credit" ? entryCopy.crAmount = e.amount : entryCopy.drAmount = e.amount
+                entryCopy.realDate = new Date(e.date)
+                entryCopy.account = matchAccount(e.account_id)
+                return entryCopy
             })
             addButtonLabel = "Update"
             drAccount = matchAccount(curSchedule.dr_account_id)
@@ -53,6 +87,8 @@
             endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
             hasEnd = endDate != null
             date = new Date(curSchedule.start_date)
+            max.setFullYear(date.getFullYear() + 20)
+            min.setFullYear(date.getFullYear() - 10)
 
         } else {
             drAccount = null
@@ -61,8 +97,8 @@
 
             if ($page.payload && $page.payload.entries) {
                 console.log($page.payload)
-                entries = $page.payload.entries
-                entries.forEach((e, i) => e.schedule_id = zeros)
+                // Create deep copies of entries
+                entries = $page.payload.entries.map(e => ({...e, schedule_id: zeros}))
                 name = $page.payload.entries[0].description
             } else {
                 for (var i = 0; i < minEntries; i++) {
@@ -107,6 +143,9 @@
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
         if (!errors.hasErrors()) {
+            // Update entry types before processing for saving
+            updateEntryTypes()
+            
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
             let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
             entries.forEach (
@@ -208,30 +247,16 @@
     }
 
     const showAmount = (entry, type) => {
-        if (entry["drAmount"] > 0) {
-            entry["entry_type"] = "Debit"
-            calculateTotals(entries)
-            return type === "Debit"
-        }
-
-        if (entry["crAmount"] > 0) {
-            entry["entry_type"] = "Credit"
-            calculateTotals(entries)
-            return type === "Credit"
-        }
-
-        return true
+        // Compute entry type on the fly without mutating
+        const entryType = getEntryType(entry)
+        return type === entryType
     }
-
-    const total = (type) => {
-        let total = 0
-        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
-        return total
-    }
-
-    const calculateTotals = () => {
-        drTotal = total("Debit")
-        crTotal = total("Credit")
+    
+    // Update entry_type before saving (called only when needed, not during render)
+    const updateEntryTypes = () => {
+        entries.forEach(entry => {
+            entry.entry_type = getEntryType(entry)
+        })
     }
 
 </script>
@@ -267,8 +292,8 @@
             <tr>
                 <td>
                     <div class="toolbar entry-buttons">
-                        <i class="gg-add-r" on:click={addEntry}></i>
-                        <i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
+                        <i class="gg-add-r" onclick={addEntry}></i>
+                        <i class="gg-remove-r" onclick={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
                     </div>
                 </td>
                 <td><div class="total">{$_('labels.totals')}</div></td>
@@ -306,8 +331,8 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
-            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>

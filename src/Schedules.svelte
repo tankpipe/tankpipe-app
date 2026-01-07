@@ -6,13 +6,35 @@
     import {generate, getEndDate} from './generate'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
+    import { onMount, untrack } from 'svelte'
 
-    let curSchedule
-    let dateStr
+    let curSchedule = $state()
+    let dateStr = $state()
+    let schedules = $state([])
 
-    $: {
+    // Reactively check for load mode when schedules are loaded
+    $effect(() => {
+        if (schedules.length > 0 && $page.mode === modes.LOAD) {
+            if ($page.payload && $page.payload.schedule_id) {
+                let match = schedules.filter(s => s.id === $page.payload.schedule_id)
+                if (match.length > 0) {
+                    untrack(() => {
+                        curSchedule = {...match[0]}
+                        if (match[0].entries) {
+                            curSchedule.entries = [...match[0].entries]
+                        }
+                        console.log(curSchedule)
+                        page.set({view: views.SCHEDULES, mode: modes.EDIT})
+                    })
+                }
+            }
+        }
+    })
+
+    onMount(() => {
         loadSchedules()
-    }
+        getDate()
+    })
 
     const updateSchedule = async () => {
         console.log("updateSchedule")
@@ -27,31 +49,18 @@
     }
 
     const selectSchedule = (schedule) => {
-        curSchedule = schedule
+        curSchedule = {...schedule}
+        if (schedule.entries) {
+            curSchedule.entries = [...schedule.entries]
+        }
         page.set({view: views.SCHEDULES, mode: modes.EDIT})
     }
 
-    let schedules = []
     const loadSchedules = async () => {
         console.log("loadSchedules")
-        schedules = await invoke('schedules')
-        checkForLoadMode()
-    }
-
-    const checkForLoadMode = () => {
-        if ($page.mode === modes.LOAD) {
-            if ($page.payload && $page.payload.schedule_id) {
-                let match = schedules.filter(s => s.id === $page.payload.schedule_id)
-                if (match.length > 0) {
-                    curSchedule = match[0]
-                    console.log(curSchedule)
-                    page.set({view: views.SCHEDULES, mode: modes.EDIT})
-                }
-            } else { // Should never happen
-                console.log("Couldn't find schedule " + $page.payload)
-                page.set({view: views.SCHEDULES, mode: modes.LIST})
-            }
-        }
+        const result = await invoke('schedules')
+        const schedulesList = Array.isArray(result) ? [...result] : []
+        schedules = schedulesList
     }
 
     const formatter = new Intl.NumberFormat('en-AU', {
@@ -77,13 +86,12 @@
     const getDate = async () => {
         dateStr = await getEndDate()
     }
-    getDate()
 
 </script>
 
 <div class="account-heading">
     {#if !isEditMode($page)}
-    <div class="toolbar toolbar-right"><button class="toolbar-icon" on:click={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button></div>
+    <div class="toolbar toolbar-right"><button class="toolbar-icon" onclick={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button></div>
     <div class="form-heading">{$_('schedules.title')}</div>
     {/if}
 </div>
@@ -94,7 +102,7 @@
 <div class="controls">
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">{$_('schedules.scheduleUntil')} </div><div class="date-input field"><input type="date" bind:value={dateStr} on:change={updateSchedule}/></div>
+            <div class="label label-column">{$_('schedules.scheduleUntil')} </div><div class="date-input field"><input type="date" bind:value={dateStr} onchange={updateSchedule}/></div>
         </div>
     </div>
 </div>
@@ -103,7 +111,7 @@
     <div class="message">{$_('schedules.noSchedules')}</div>
     {/if}
         {#each schedules as s}
-            <div class="card" on:click={() => selectSchedule(s)}>
+            <div class="card" onclick={() => selectSchedule(s)}>
                 <div class="row">
                     <div class="widget">
                         <div class="description">{s.name}</div>
