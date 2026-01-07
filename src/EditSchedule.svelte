@@ -16,6 +16,7 @@
     let minEntries = $derived($settings.require_double_entry ? 2 : 1)
     let hasEnd = $state(false)
     let msg = $state("")
+    let successMsg = $state("")
     let errors = $state(new Errors())
     let date = $state(new Date())
     let name = $state()
@@ -32,7 +33,7 @@
     let drAccount = $state()
     let crAccount = $state()
     let entries = $state([])
-    
+
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
             return "Debit"
@@ -42,7 +43,7 @@
         }
         return entry.entry_type || "Debit"
     }
-    
+
     // Derived totals that update automatically when entries change
     let drTotal = $derived.by(() => {
         let total = 0
@@ -54,7 +55,7 @@
         })
         return total
     })
-    
+
     let crTotal = $derived.by(() => {
         let total = 0
         entries.forEach(e => {
@@ -79,7 +80,8 @@
                 entryCopy.account = matchAccount(e.account_id)
                 return entryCopy
             })
-            addButtonLabel = "Update"
+            addButtonLabel = $_('buttons.update')
+            successMsg = $_('schedule.updated')
             drAccount = matchAccount(curSchedule.dr_account_id)
             crAccount = matchAccount(curSchedule.cr_account_id)
             period = matchPeriod(curSchedule.period)
@@ -89,11 +91,11 @@
             date = new Date(curSchedule.start_date)
             max.setFullYear(date.getFullYear() + 20)
             min.setFullYear(date.getFullYear() - 10)
-
         } else {
             drAccount = null
             crAccount = null
-            addButtonLabel = "Add"
+            addButtonLabel = $_('buttons.add')
+            successMsg = $_('schedule.created')
 
             if ($page.payload && $page.payload.entries) {
                 console.log($page.payload)
@@ -145,7 +147,7 @@
         if (!errors.hasErrors()) {
             // Update entry types before processing for saving
             updateEntryTypes()
-            
+
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
             let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
             entries.forEach (
@@ -177,7 +179,7 @@
     }
 
     const resolved = async (result) => {
-      msg = "Schedule added."
+      msg = successMsg
       await generate()
       loadSchedules()
     }
@@ -251,7 +253,7 @@
         const entryType = getEntryType(entry)
         return type === entryType
     }
-    
+
     // Update entry_type before saving (called only when needed, not during render)
     const updateEntryTypes = () => {
         entries.forEach(entry => {

@@ -124,7 +124,17 @@
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
         "schedule": "Schedule",
-        "starting_from": "starting from"    },
+        "created": "New schedule created",
+        "updated": "Schedule updated",
+        "starting_from": "starting from"
+    },
+    "schedules": {
+        "createNew": "Create a new schedule",
+        "noSchedules": "No schedules",
+        "scheduleUntil": "Schedule until",
+        "last": "Last",
+        "title": "Schedules"
+    },
     "netAssets": {
         "asAt": "As at",
         "assets": "Assets",
@@ -133,13 +143,6 @@
         "title": "Net Assets",
         "totalAssets": "Total assets",
         "totalLiabilities": "Total liabilities"
-    },
-    "schedules": {
-        "createNew": "Create a new schedule",
-        "noSchedules": "No schedules",
-        "scheduleUntil": "Schedule until",
-        "last": "Last",
-        "title": "Schedules"
     },
     "transactions": {
         "addTransaction": "Add a transaction",
