@@ -31,6 +31,14 @@ pub fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule) -> R
 }
 
 #[tauri::command]
+pub fn delete_schedule(state: tauri::State<BooksState>, schedule_id: Uuid) -> Result<(), String> {
+    println!("Deleting schedule {}", schedule_id);
+    let mut mutex_guard = state.0.lock().unwrap();
+    error_handler(mutex_guard.books.delete_schedule(&schedule_id))?;
+    error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
 pub fn end_date(state: tauri::State<BooksState>) -> Option<DateParam> {
     let mutext_guard = state.0.lock().unwrap();
 
