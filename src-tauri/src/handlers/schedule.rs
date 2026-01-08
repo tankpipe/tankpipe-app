@@ -1,4 +1,4 @@
-use accounts::account::Schedule;
+use accounts::account::{Schedule, Transaction, TransactionStatus};
 use uuid::Uuid;
 use crate::{BooksState, handlers::error_handler};
 use crate::account_display::DateParam;
@@ -31,11 +31,22 @@ pub fn update_schedule(state: tauri::State<BooksState>, schedule: Schedule) -> R
 }
 
 #[tauri::command]
-pub fn delete_schedule(state: tauri::State<BooksState>, schedule_id: Uuid) -> Result<(), String> {
-    println!("Deleting schedule {}", schedule_id);
+pub fn delete_schedule(state: tauri::State<BooksState>, id: Uuid) -> Result<(), String> {
+    println!("Deleting schedule {}", id);
     let mut mutex_guard = state.0.lock().unwrap();
-    error_handler(mutex_guard.books.delete_schedule(&schedule_id))?;
+    error_handler(mutex_guard.books.delete_schedule(&id))?;
     error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+pub fn schedule_transactions(
+    state: tauri::State<BooksState>,
+    schedule_id: Uuid,
+    status: Option<TransactionStatus>,
+) -> Vec<Transaction> {
+    println!("Fetching transactions for schedule {} with status filter: {:?}", schedule_id, status);
+    let mutex_guard = state.0.lock().unwrap();
+    mutex_guard.books.schedule_transactions(schedule_id, status)
 }
 
 #[tauri::command]

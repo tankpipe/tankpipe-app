@@ -4,6 +4,7 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import {page, modes} from './page.js'
+    import Icon from '@iconify/svelte'
     import {accounts} from './accounts'
     import {generate} from './generate'
     import {settings} from './settings.js'
@@ -178,6 +179,19 @@
 
     }
 
+    function resolvedSchedule(result) {
+      msg = "Schedule deleted."
+      close()
+    }
+
+    const deleteSchedule = async () => {
+        if (curSchedule && curSchedule.id) {
+            await invoke('delete_schedule', {id: curSchedule.id}).then(resolvedSchedule, rejected)
+        } else {
+            close()
+        }
+    }
+
     const resolved = async (result) => {
       msg = successMsg
       await generate()
@@ -265,6 +279,9 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('schedule.edit_schedule') : $_('schedule.new_schedule')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick="{deleteSchedule}" title={$_('schedule.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+    </div>
     <div class="form-row">
         <div class="top-widget">
             <label for="desc">{$_('labels.name')}</label>

@@ -100,7 +100,7 @@
     },
     "transaction": {
         "compound": "Compound entry",
-        "delete": "Delete account",
+        "delete": "Delete transaction",
         "edit": "Edit Transaction",
         "new": "New Transaction",
         "recorded": "Recorded",
@@ -126,7 +126,8 @@
         "schedule": "Schedule",
         "created": "New schedule created",
         "updated": "Schedule updated",
-        "starting_from": "starting from"
+        "starting_from": "starting from",
+        "delete": "Delete schedule"
     },
     "schedules": {
         "createNew": "Create a new schedule",
