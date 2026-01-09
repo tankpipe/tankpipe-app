@@ -5,15 +5,15 @@
     import { Errors } from './errors'
     import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { settings } from './settings'
-    import { config } from './config.js'
     import { accounts } from './accounts'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte'
     import { _ } from 'svelte-i18n'
     import Importer from './Importer.svelte'
-    import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
+    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
     import { chartOptions } from './chart-options'
+    import TransactionList from './TransactionList.svelte';
 
     let { curAccount, journalMode = false } = $props()
 
@@ -74,7 +74,6 @@
     }
 
     const selectTransaction = (entry) => {
-        setCurrentScroll()
         curEntry = entry
         page.set({view: $page.view, mode: modes.EDIT})
     }
@@ -146,40 +145,6 @@
         return null
     }
 
-    const formatter = new Intl.NumberFormat('en-AU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })
-
-    const getDebitAmount = (transaction, curAccount) => {
-        return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
-    }
-
-    const getCreditAmount = (transaction, curAccount) => {
-        return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
-    }
-
-    const getBalance = (transaction) => {
-        return formatter.format(transaction.balance)
-    }
-
-    const getDate = (transaction) => {
-        const date = new Date(transaction.date)
-
-        switch ($config.display_date_format) {
-            case "Regular": return date.toLocaleDateString("en-GB")
-            case "US": return date.toLocaleDateString("en-US")
-            case "ISO": return transaction.date
-            default: return date.toLocaleDateString()
-        }
-    }
-
-    const date_style = () => {
-        switch ($config.display_date_format) {
-            case "ISO": return ""
-            default: return "align_right"
-        }
-    }
 
     const getEntry = (transaction) => {
         return transaction.entries.find(e => e.account_id == curAccount.id)
@@ -199,9 +164,6 @@
         errors = new Errors()
         errors.addError("all", $_('transactions.error', { values: {error: result} }))
     }
-
-    const projected = (t) => t.status == 'Projected' ? 'projected' : ''
-    const date_class = date_style()
 
     const toggleShowFilter = () => {
         showFilter = !showFilter
@@ -241,24 +203,6 @@
     const onCloseEdit = () => {
         loadTransactions()
         page.set({view: $page.view, mode: modes.LIST})
-    }
-
-    const sortEntries = (entries) => {
-        return entries.sort((a, b) => {
-            if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
-            if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
-            return 0
-        })
-    }
-
-    const handleToggleSelected = (t) => {
-        toggleSelected(t)
-        setCurrentScroll()
-    }
-
-    const stopPropagationHandler = (event, handler) => {
-        event.stopPropagation()
-        handler()
     }
 
 </script>
@@ -316,74 +260,10 @@
     </table>
 </div>
 {/if}
-
-<div class="scroller" id="scroller">
-    <table class="{journalMode ? 'journal' : ''}">
-        <tbody>
-        <tr>
-            {#if $selector.showMultipleSelect}
-            <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
-            {/if}
-            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
-        </tr>
-        {#each transactions as t}
-            {@const selected = isSelected(t)}
-          {#if !journalMode}
-            {@const e =  getEntry(t)}
-            {#if e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  onclick={(event) => stopPropagationHandler(event, () => selectTransaction(e))} id={t.id}><!--{t.id}-->
-                {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
-                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
-                    {#each t.entries as en}
-                        {#if en.account_id != curAccount.id}
-                        <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
-                        {/if}
-                    {/each}
-                </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
-                <td class="{projected(t)} money">{getBalance(e)}</td>
-            </tr>
-            {/if}
-          {/if}
-          {#if journalMode}
-            {@const sortedEntries = sortEntries(t.entries)}
-            {#each sortedEntries as e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" onclick={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
-                {#if $selector.showMultipleSelect}
-                <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
-                {/if}
-                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
-                    <div class="description tiny">{e.description}</div>
-                </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
-            </tr>
-            {/each}
-            <tr style="height: 8px;"></tr>
-          {/if}
-        {/each}
-        </tbody>
-    </table>
-    {#if transactions.length < 1}
-    <div class="message">{$_('transactions.noTransactions')}</div>
-    {/if}
-</div>
+<TransactionList {curAccount} {journalMode} transactions={transactions} onSelect={selectTransaction} />
 {/if}
 
 <style>
-    .filter {
-        width: 100%;
-    }
-
-    .scroller{
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
-    }
-
     table {
         padding-right: 10px;
         width: 100%;
@@ -400,14 +280,6 @@
         font-size: 0.9em;
     }
 
-    .align_right {
-        text-align: right;
-    }
-
-    .projected {
-        color: #878787;
-    }
-
     th {
         color:#666666;
         background-color: #444;
@@ -419,38 +291,8 @@
         padding-left: 10px;
     }
 
-    .scroller tr:hover td {
-        cursor: pointer;
-        color: #FFF;
-    }
-
-    tr:hover td .tiny{
-        cursor: pointer;
-        color: #C0C0C0;
-    }
-
-    .journal tr:last-child  {
-        display: none;
-    }
-
-    .selected td {
-        background-color: #1a3924;
-        color: #e3e3e3;
-    }
-
-    .single-entry td {
-        background-color: #34391a;
-    }
-
     .form input {
         margin: 0px;
-    }
-
-    .money {
-        text-align: right !important;
-        min-width: 92px;
-        font-family: 'Courier New', Courier, monospace;
-        font-weight: bold;
     }
 
     .description {
@@ -458,12 +300,6 @@
         max-width: 33vw;
         overflow: hidden;
         text-overflow: ellipsis;
-    }
-
-    .tiny {
-        font-size: 0.5em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
     }
 
     .account {
@@ -544,14 +380,6 @@
     :global(.single-button:hover) {
         cursor: pointer;
         color: #F0F0F0;
-    }
-    .message {
-        color: #EFEFEF;
-        margin: 5px 0 20px 0;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
     }
 
     .error-msg {
