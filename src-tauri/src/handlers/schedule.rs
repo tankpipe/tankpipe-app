@@ -46,7 +46,7 @@ pub fn schedule_transactions(
 ) -> Vec<Transaction> {
     println!("Fetching transactions for schedule {} with status filter: {:?}", schedule_id, status);
     let mutex_guard = state.0.lock().unwrap();
-    mutex_guard.books.schedule_transactions(schedule_id, status)
+    mutex_guard.books.transactions_by_schedule(schedule_id, status)
 }
 
 #[tauri::command]

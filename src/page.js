@@ -18,7 +18,7 @@ const modes = {
     LOAD: "LOAD"
 }
 
-const page = writable({view: views.ACCOUNTS, mode:modes.LIST, payload:{}})
+const page = writable({view: views.SCHEDULES, mode:modes.LIST, payload:{}})
 
 const isEditMode = (page) => {
     return page.mode === modes.EDIT || page.mode === modes.NEW || page.mode === modes.MULTI_EDIT
