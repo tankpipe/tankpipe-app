@@ -13,7 +13,7 @@
     import Importer from './Importer.svelte'
     import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
     import { chartOptions } from './chart-options'
-    import TransactionList from './TransactionList.svelte';
+    import TransactionList from './TransactionList.svelte'
 
     let { curAccount, journalMode = false } = $props()
 

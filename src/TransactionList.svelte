@@ -39,9 +39,8 @@
 
     const selectTransaction = (entry) => {
         setCurrentScroll()
-        onSelect(entry)        
+        onSelect(entry)
     }
-    
 
     const findClosestTransaction = () => {
         const today = new Date().setUTCHours(0,0,0,0)
@@ -64,11 +63,11 @@
         maximumFractionDigits: 2,
     })
 
-    const getDebitAmount = (transaction, curAccount) => {
+    const getDebitAmount = (transaction) => {
         return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
     }
 
-    const getCreditAmount = (transaction, curAccount) => {
+    const getCreditAmount = (transaction) => {
         return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
     }
 
@@ -102,7 +101,7 @@
     const date_class = date_style()
 
     const sortEntries = (entries) => {
-        return entries.sort((a, b) => {
+        return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
             if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
             return 0
@@ -145,8 +144,8 @@
                         {/if}
                     {/each}
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
             </tr>
             {/if}
@@ -162,8 +161,8 @@
                 <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
                     <div class="description tiny">{e.description}</div>
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e, curAccount)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e)}</td>
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>

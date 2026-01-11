@@ -7,6 +7,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
+    import { selector } from './selector';
 
     let curSchedule = $state()
     let dateStr = $state()
@@ -29,6 +30,7 @@
                 }
             }
         }
+        selector.set({ showMultiEdit: false, }) // hack to hide multiple select in schedules
     })
 
     onMount(() => {

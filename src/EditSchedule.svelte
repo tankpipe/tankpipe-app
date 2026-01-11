@@ -10,6 +10,7 @@
     import {settings} from './settings.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
+    import TransactionList from './TransactionList.svelte'
 
     let { close, curSchedule, loadSchedules } = $props()
 
@@ -34,6 +35,7 @@
     let drAccount = $state()
     let crAccount = $state()
     let entries = $state([])
+    let transactions = $state([])
 
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
@@ -109,7 +111,19 @@
                 }
             }
         }
+
     })
+
+    $effect(() => {
+        if (curSchedule && curSchedule.id) {
+            loadTransactions()
+        }
+    })
+
+    const loadTransactions = async () => {
+        console.log("loadScheduleTransactions")
+        transactions = await invoke("schedule_transactions", { scheduleId: curSchedule.id, status: "Projected" })
+    }
 
     const matchAccount = (accountId) =>  {
         if (!accountId) return null
@@ -332,11 +346,10 @@
     </div>
     <div class="form-row2">
         <div class="widget2">
+            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
+            <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
             <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
             <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
-            <br/>
-            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-            <label for="noEnd">{$_('schedule.no_end_date')}</label>
         </div>
     </div>
     <hr/>
@@ -353,9 +366,10 @@
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
-    </div>
+    </div>      
 </div>
-
+<hr class="fat-hr"/>
+<TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
 <style>
 
     :root {
@@ -376,7 +390,7 @@
 
 
     .buttons {
-        float: left;
+        float: right;
         margin: 10px 12px 0 0;
     }
 
@@ -480,10 +494,13 @@
 
     hr {
         border-style: none;
-        border: 3px solid #363636;
+        border: 1px solid #363636;
         margin-left: -20px;
         width: 100vw;
+    }
 
+    .fat-hr {
+        border: 3px solid #363636;
     }
 
     .entry-buttons {
