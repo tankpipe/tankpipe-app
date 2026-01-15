@@ -26,6 +26,7 @@
     let amount = $state()
     let frequency = $state(1)
     let endDate = $state()
+    let lastDate = $state()
     let max = $state(new Date())
     let min = $state(new Date())
     let format = "yyyy-MM-dd"
@@ -36,6 +37,7 @@
     let crAccount = $state()
     let entries = $state([])
     let transactions = $state([])
+    $inspect(curSchedule)
 
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
@@ -90,6 +92,7 @@
             period = matchPeriod(curSchedule.period)
             frequency = curSchedule.frequency
             endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
+            lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
             hasEnd = endDate != null
             date = new Date(curSchedule.start_date)
             max.setFullYear(date.getFullYear() + 20)
@@ -358,7 +361,7 @@
             {#each errors.getErrorMessages() as e}
             <p class="error-msg">{e}</p>
             {/each}
-            {#if msg}
+            {#if msg} 
             <p class="success-msg">{msg}</p>
             {/if}
         </div>
@@ -366,9 +369,17 @@
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
-    </div>      
+    </div>
 </div>
 <hr class="fat-hr"/>
+<div class="panel-title">{$_('schedule.projected_transactions')}</div>
+<div class="form">
+    <div class="form-row2">
+        <div class="widget2">
+            <div class="widget left"><label for="end">{$_('schedule.last_date')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={lastDate} {format} placeholder="" {min} {max} /></div></div>
+        </div>
+    </div>
+</div>
 <TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
 <style>
 

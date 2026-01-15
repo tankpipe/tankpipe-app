@@ -120,6 +120,7 @@
     "schedule": {
         "edit_schedule": "Edit Schedule",
         "end_after": "End after",
+        "last_date": "Scheduled to",
         "every": "Every",
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
@@ -127,7 +128,8 @@
         "created": "New schedule created",
         "updated": "Schedule updated",
         "starting_from": "starting from",
-        "delete": "Delete schedule"
+        "delete": "Delete schedule",
+        "projected_transactions": "Projected transactions"
     },
     "schedules": {
         "createNew": "Create a new schedule",
