@@ -64,6 +64,7 @@ fn main() {
             schedule::delete_schedule,
             schedule::schedule_transactions,
             schedule::generate,
+            schedule::generate_by_schedule,
             schedule::end_date,
             repo::update_settings,
             repo::settings,

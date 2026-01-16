@@ -69,6 +69,15 @@ pub fn generate(state: tauri::State<BooksState>, date: DateParam) -> Result<(), 
     error_handler(mutex_guard.save())
 }
 
+#[tauri::command]
+pub fn generate_by_schedule(state: tauri::State<BooksState>, date: DateParam, schedule_id: Uuid) -> Result<Vec<Transaction>, String> {
+    println!("Generating transactions for schedule {} to {}", schedule_id, date.date);
+    let mut mutex_guard = state.0.lock().unwrap();
+    let transactions = mutex_guard.books.generate_by_schedule(date.date, schedule_id);
+    error_handler(mutex_guard.save())?;
+    Ok(transactions)
+}
+
 
 #[cfg(test)]
 mod tests {

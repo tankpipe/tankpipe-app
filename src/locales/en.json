@@ -129,7 +129,10 @@
         "updated": "Schedule updated",
         "starting_from": "starting from",
         "delete": "Delete schedule",
-        "projected_transactions": "Projected transactions"
+        "projected_transactions": "Projected transactions",
+        "generate": "Generate",
+        "generation_complete": "Generation complete."
+
     },
     "schedules": {
         "createNew": "Create a new schedule",
