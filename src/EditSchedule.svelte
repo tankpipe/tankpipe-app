@@ -98,7 +98,7 @@
             date = new Date(curSchedule.start_date)
             max.setFullYear(date.getFullYear() + 20)
             min.setFullYear(date.getFullYear() - 10)
-        } else {
+        } else if ($page.mode === modes.NEW) {
             drAccount = null
             crAccount = null
             addButtonLabel = $_('buttons.add')
@@ -232,19 +232,6 @@
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
-    const generateSchedule = async () => {        
-        const isoDateString = lastDate ? lastDate.toISOString().split('T')[0] : null
-        await invoke('generate_by_schedule', { 
-            date: {date: isoDateString}, 
-            scheduleId: curSchedule.id 
-        }).then(resolvedGenerateSchedule, rejected)
-    }
-    
-    function resolvedGenerateSchedule(result) {
-        loadTransactions()
-        msg = $_('schedule.generation_complete')
-    }
-
     const addEntry = () => {
         entries = [...entries, {
             id: zeros,
@@ -262,7 +249,6 @@
             entries = [...entries.slice(0, entries.length - 1)]
         }
     }
-
 
     const validateEntry = (entry, index, errors) => {
         console.log("validate " + entry)
@@ -387,20 +373,6 @@
 </div>
 <hr class="fat-hr"/>
 <div class="panel-title">{$_('schedule.projected_transactions')}</div>
-<div class="form">
-    <div class="form-row2">
-        <div class="widget2">
-            <div class="widget left">
-                <label for="lastDate">{$_('schedule.last_date')}&nbsp;</label>
-                <div class="inline-button"><button class="og-button" onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-                <div id="lastDate" class="date-input raise"><DateInput bind:value={lastDate} {format} placeholder="" {min} {max} /></div>
-                
-                
-            </div>
-            
-        </div>
-    </div>
-</div>
 <TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
 <style>
 
@@ -537,11 +509,6 @@
 
     .entry-buttons {
         float: left;
-    }
-
-    .inline-button {
-        float: right;
-        margin: -5px 0px 0px 8px;
     }
 
     .greyed {

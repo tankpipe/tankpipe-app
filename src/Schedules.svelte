@@ -1,7 +1,8 @@
 <script>
     import EditSchedule from './EditSchedule.svelte'
+    import Schedule from './Schedule.svelte'
     import Icon from '@iconify/svelte'
-    import { page, isEditMode, views, modes } from './page'
+    import { page, isEditMode, isViewMode, views, modes, isListMode } from './page'
     import {accounts} from './accounts'
     import {generate, getEndDate} from './generate'
     import { invoke } from "@tauri-apps/api/core"
@@ -35,7 +36,7 @@
 
     onMount(() => {
         loadSchedules()
-        getDate()
+        getDate()        
     })
 
     const updateSchedule = async () => {
@@ -50,12 +51,18 @@
         loadSchedules()
     }
 
+    const edit = () => {
+        console.log("edit")
+        page.set({view: views.SCHEDULES, mode: modes.EDIT})
+    }
+
+
     const selectSchedule = (schedule) => {
         curSchedule = {...schedule}
         if (schedule.entries) {
             curSchedule.entries = [...schedule.entries]
         }
-        page.set({view: views.SCHEDULES, mode: modes.EDIT})
+        page.set({view: views.SCHEDULES, mode: modes.VIEW})
     }
 
     const loadSchedules = async () => {
@@ -90,17 +97,19 @@
     }
 
 </script>
-
+{#if isListMode($page)}
 <div class="account-heading">
-    {#if !isEditMode($page)}
     <div class="toolbar toolbar-right"><button class="toolbar-icon" onclick={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button></div>
     <div class="form-heading">{$_('schedules.title')}</div>
-    {/if}
 </div>
+{/if}
 {#if isEditMode($page)}
 <EditSchedule {close} {curSchedule} {loadSchedules}/>
 {/if}
-{#if !isEditMode($page)}
+{#if isViewMode($page)}
+<Schedule {close} {edit} {curSchedule}/>
+{/if}
+{#if isListMode($page)}
 <div class="controls">
     <div class="form-row2">
         <div class="widget">

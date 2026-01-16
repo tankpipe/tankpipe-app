@@ -121,6 +121,7 @@
         "edit_schedule": "Edit Schedule",
         "end_after": "End after",
         "last_date": "Scheduled to",
+        "schedule_until": "Schedule to",
         "every": "Every",
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
@@ -130,9 +131,9 @@
         "starting_from": "starting from",
         "delete": "Delete schedule",
         "projected_transactions": "Projected transactions",
-        "generate": "Generate",
+        "delete_projected_transactions": "Delete projected transactions",
+        "generate": "Schedule transactions",
         "generation_complete": "Generation complete."
-
     },
     "schedules": {
         "createNew": "Create a new schedule",
