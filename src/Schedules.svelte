@@ -187,13 +187,13 @@
     .bottom-widget {
         display: inline-block;
         text-align: left;
-        margin: 10px 10px 0 10px;
+        margin: 0px 10px 0 10px;
         color: #F0F0F0;
         vertical-align: top;
     }
 
     .schedule-entries {
-        font-size: .9em;
+        font-size: .8em;
         color: #C0C0C0;
     }
 
@@ -205,7 +205,7 @@
     .label {
         font-size: .8em;
         color: #aaa !important;
-        margin-bottom: 5px;
+        margin: 0 !important;
     }
 
     .scroller {
@@ -255,6 +255,7 @@
         min-width: 200px;
         white-space: nowrap;
         display: inline-block;
+        font-size: .9em;
     }
 
     hr {
