@@ -132,7 +132,7 @@
     <div class="message">{$_('schedules.noSchedules')}</div>
     {/if}
         {#each schedules as s}
-            <div class="card" onclick={() => selectSchedule(s)}>
+            <div class="card" onclick={() => selectSchedule(s)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSchedule(s); } }} tabindex="0" role="button">
                 <div class="row">
                     <div class="widget">
                         <div class="description">{s.name}</div>
@@ -158,7 +158,7 @@
                 </div>
                 </div>
                 <div class="row">
-                    <div class="widget">
+                    <div class="bottom-widget">
                         <div class="label">{$_('schedules.last')}</div>
                         <div class="account">{s.last_date == "null"?"-":s.last_date}</div>
                     </div>
@@ -180,6 +180,14 @@
         display: inline-block;
         text-align: left;
         margin: 10px 10px;
+        color: #F0F0F0;
+        vertical-align: top;
+    }
+
+    .bottom-widget {
+        display: inline-block;
+        text-align: left;
+        margin: 10px 10px 0 10px;
         color: #F0F0F0;
         vertical-align: top;
     }
@@ -246,6 +254,7 @@
     .account {
         min-width: 200px;
         white-space: nowrap;
+        display: inline-block;
     }
 
     hr {
