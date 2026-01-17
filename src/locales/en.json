@@ -120,9 +120,9 @@
     "schedule": {
         "edit_schedule": "Edit Schedule",
         "end_after": "End after",
-        "last_date": "Scheduled to",
+        "last_date": "The last scheduled transaction was for",
         "schedule_until": "Schedule to",
-        "every": "Every",
+        "every": "Scheduled every",
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
         "schedule": "Schedule",

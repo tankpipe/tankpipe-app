@@ -11,6 +11,16 @@ pub fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 }
 
 #[tauri::command]
+pub fn get_schedule(state: tauri::State<BooksState>, schedule_id: Uuid) -> Result<Schedule, String> {
+    println!("Fetching schedule {}", schedule_id);
+    let mutex_guard = state.0.lock().unwrap();
+    match mutex_guard.books.get_schedule(schedule_id) {
+        Ok(schedule) => Ok(schedule),
+        Err(e) => Err(format!("Schedule {} not found: {}", schedule_id, e.error)),
+    }
+}
+
+#[tauri::command]
 pub fn add_schedule(state: tauri::State<BooksState>, mut schedule: Schedule) -> Result<(), String> {
     println!("Adding schedule: {}", schedule.name);
     schedule.id = Uuid::new_v4();
@@ -76,6 +86,15 @@ pub fn generate_by_schedule(state: tauri::State<BooksState>, date: DateParam, sc
     let transactions = mutex_guard.books.generate_by_schedule(date.date, schedule_id);
     error_handler(mutex_guard.save())?;
     Ok(transactions)
+}
+
+#[tauri::command]
+pub fn reset_schedule_last_date(state: tauri::State<BooksState>, schedule_id: Uuid) -> Result<Option<DateParam>, String> {
+    println!("Resetting last date for schedule {}", schedule_id);
+    let mut mutex_guard = state.0.lock().unwrap();
+    let result = mutex_guard.books.reset_schedule_last_date(schedule_id);
+    error_handler(mutex_guard.save())?;
+    Ok(result.map(|date| DateParam { date }))
 }
 
 

@@ -57,11 +57,12 @@ describe('Page Mode Tests', () => {
     })
 
     it('modes object contains all expected mode types', () => {
-        expect(Object.keys(modes).length).toBe(5)
+        expect(Object.keys(modes).length).toBe(6)
         expect(modes.NEW).toBe('NEW')
         expect(modes.EDIT).toBe('EDIT')
         expect(modes.MULTI_EDIT).toBe('MULTI_EDIT')
         expect(modes.LIST).toBe('LIST')
         expect(modes.LOAD).toBe('LOAD')
+        expect(modes.VIEW).toBe('VIEW')
     })
 })

@@ -112,12 +112,8 @@
         }
 
         if (!errors.hasErrors()) {
-            const transaction = {
-                    date: toDateStr(new Date()),
-                    description: "",
-                    entries: [...entries]
-            }
-
+            const transaction = Object.assign(curTransaction, {entries: [...entries]})
+            
             if (!compoundMode && !settings.require_double_entry) {
                  transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
             }
@@ -144,7 +140,6 @@
             }
 
             if ($page.mode === modes.NEW) {
-                transaction["id"] = zeros
                 transaction.entries.forEach (
                     e => {
                         e["id"] = zeros
@@ -153,7 +148,6 @@
                 )
                 addTransaction(transaction)
             } else if ($page.mode === modes.EDIT) {
-                transaction["id"] = curTransaction.id
                 saveTransaction(transaction)
             }
         }

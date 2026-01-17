@@ -19,6 +19,7 @@
     let name = $state()
     let frequency = $state(1)
     let endDate = $state()
+    let scheduleToDate = $state()
     let lastDate = $state()
     let max = $state(new Date())
     let min = $state(new Date())
@@ -35,6 +36,7 @@
         frequency = curSchedule.frequency
         endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
         lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
+        scheduleToDate = lastDate
         hasEnd = endDate != null
         console.log("hasEnd: ",(endDate != null))
         date = new Date(curSchedule.start_date)
@@ -86,7 +88,7 @@
     }
 
     const generateSchedule = async () => {        
-        const isoDateString = lastDate ? lastDate.toISOString().split('T')[0] : null
+        const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
         await invoke('generate_by_schedule', { 
             date: {date: isoDateString}, 
             scheduleId: curSchedule.id 
@@ -101,13 +103,20 @@
     const deleteTransactions = async () => {
         const transactionIds = transactions.map(t => t.id)
         if (transactionIds.length > 0) {
-            await invoke('delete_transactions', {ids: transactionIds}).then(resolvedDelete, rejected)
+            await invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)
         }
+        loadSchedule()
     }
 
-    function resolvedDelete(result) {
+    const resolvedDeleteTransactions = async (result) => {
        msg = $_('transactions.transactionsDeleted')
       loadTransactions()
+      await invoke('reset_schedule_last_date', {scheduleId: curSchedule.id}).then(loadSchedule, rejected)
+    }
+
+    const loadSchedule = async () => {
+        console.log("loadSchedule")
+        curSchedule = await invoke("get_schedule", { scheduleId: curSchedule.id })
     }
 
 </script>
@@ -139,7 +148,7 @@
     {#if lastDate}
     <div class="form-row">
         <div class="small-text">
-            {$_('schedule.last_date')}&nbsp;&nbsp;&nbsp;&nbsp;{lastDate}
+            {$_('schedule.last_date')}&nbsp;{formatDate(lastDate)}
         </div>
     </div>
     {/if} 
@@ -147,9 +156,11 @@
     <div class="form-row">
         <div class="schedule-row">
             <div class="widget left">
-                <label for="lastDate">{$_('schedule.schedule_until')}&nbsp;</label>
+                <label for="scheduleToDate">{$_('schedule.schedule_until')}&nbsp;</label>
                 <div class="inline-button"><button class="og-button" onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-                <div id="lastDate" class="date-input raise"><DateInput bind:value={lastDate} {format} placeholder="" {min} {max} /></div>
+                <div id="lastscheduleToDateDate" class="date-input raise">
+                    <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
+                </div>
             </div>
             <div>
             {#each errors.getErrorMessages() as e}
