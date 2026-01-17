@@ -175,9 +175,9 @@
 </div>
 <hr/>
 <div>
-<div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
-<div class="toolbar toolbar-right">
-    <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+    <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
 </div>
 </div>
 <TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />

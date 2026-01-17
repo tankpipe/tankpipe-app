@@ -12,7 +12,7 @@
     import { _ } from 'svelte-i18n'
     import TransactionList from './TransactionList.svelte'
 
-    let { close, curSchedule, loadSchedules } = $props()
+    let { close, curSchedule, loadSchedules, view } = $props()
 
     const zeros = '00000000-0000-0000-0000-000000000000'
     let minEntries = $derived($settings.require_double_entry ? 2 : 1)
@@ -372,7 +372,12 @@
     </div>
 </div>
 <hr class="fat-hr"/>
-<div class="panel-title">{$_('schedule.projected_transactions')}</div>
+<div>
+    <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+    </div>
+</div>
 <TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
 <style>
 
@@ -477,6 +482,10 @@
 
     .left {
         padding-left: 0px;
+    }
+
+    .float-left {
+        float: left;
     }
 
     .money-input {

@@ -46,14 +46,16 @@
     }
 
     const close = () => {
-        console.log("close")
         page.set({view: views.SCHEDULES, mode: modes.LIST})
         loadSchedules()
     }
 
     const edit = () => {
-        console.log("edit")
         page.set({view: views.SCHEDULES, mode: modes.EDIT})
+    }
+
+    const view = () => {
+        page.set({view: views.SCHEDULES, mode: modes.VIEW})
     }
 
 
@@ -112,7 +114,7 @@
 </div>
 {/if}
 {#if isEditMode($page)}
-<EditSchedule {close} {curSchedule} {loadSchedules}/>
+<EditSchedule {close} {curSchedule} {loadSchedules} {view}/>
 {/if}
 {#if isViewMode($page)}
 <Schedule {close} {edit} {curSchedule}/>
