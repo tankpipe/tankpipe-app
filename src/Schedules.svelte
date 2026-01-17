@@ -135,7 +135,7 @@
             <div class="card" onclick={() => selectSchedule(s)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSchedule(s); } }} tabindex="0" role="button">
                 <div class="row">
                     <div class="widget">
-                        <div class="description">{s.name}</div>
+                        <div class="card-title">{s.name}</div>
                         <div class="toolbar toolbar-right">
                             <button class="edit-icon" onclick={(e) => { e.stopPropagation(); editSchedule(s); }} title={$_('buttons.edit')}><Icon icon="mdi:pencil" /></button>
                         </div>
@@ -148,7 +148,10 @@
                         <tbody>
                         {#each s.entries as e}
                         <tr>
-                            <td>{getAccountName(e.account_id)}</td>
+                            <td>
+                                <div class="description">{getAccountName(e.account_id)}</div>
+                                <div class="description tiny">{e.description}</div>
+                            </td>
                             <td>{#if e.entry_type == "Debit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
                             <td>{#if e.entry_type == "Credit"} <div class="money">{formatter.format(e.amount)}</div>{/if}</td>
                         </tr>
@@ -244,18 +247,30 @@
         min-width: 100px;
     }
 
-    .description {
+    .card-title {
         min-width: 500px;
         white-space: nowrap;
         font-weight: bold;
         float: left;
     }
 
+    .description {
+        min-width: 316px;
+        max-width: 33vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tiny {
+        font-size: 0.5em;
+        color: #878787;
+    }
+
     .account {
         min-width: 200px;
         white-space: nowrap;
         display: inline-block;
-        font-size: .9em;
+        font-size: .8em;
     }
 
     hr {

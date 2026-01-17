@@ -158,7 +158,8 @@
                 <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
                 {/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
+                    <div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
                     <div class="description tiny">{e.description}</div>
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
