@@ -158,7 +158,7 @@
             <div class="widget left">
                 <label for="scheduleToDate">{$_('schedule.schedule_until')}&nbsp;</label>
                 <div class="inline-button"><button class="og-button" onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-                <div id="lastscheduleToDateDate" class="date-input raise">
+                <div id="scheduleToDate" class="date-input raise">
                     <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
                 </div>
             </div>

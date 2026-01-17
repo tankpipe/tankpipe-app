@@ -9,10 +9,17 @@
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
     import { selector } from './selector';
+    import { Errors } from './errors';
+    import DateInput from 'date-picker-svelte/DateInput.svelte';
 
     let curSchedule = $state()
-    let dateStr = $state()
     let schedules = $state([])
+    let msg = $state("")
+    let errors = $state(new Errors())
+    let max = $state(new Date())
+    let min = $state(new Date())
+    let format = "yyyy-MM-dd"
+    let scheduleToDate = $state()
 
     // Reactively check for load mode when schedules are loaded
     $effect(() => {
@@ -36,13 +43,29 @@
 
     onMount(() => {
         loadSchedules()
-        getDate()        
+        getDate()
+        const date = new Date()        
+        max.setFullYear(date.getFullYear() + 20)
+        min.setFullYear(date.getFullYear() - 10)        
     })
 
-    const updateSchedule = async () => {
-        console.log("updateSchedule")
-        await generate(dateStr)
+    const generateSchedule = async () => {
+        console.log("generateSchedule")
+        if (scheduleToDate) {
+            const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
+            console.log("generating to " + isoDateString)
+            await invoke('generate', {date: {date: isoDateString}}).then(resolved, rejected)
+        }
+    }
+
+    const resolved = async (result) => {
+        msg = $_('schedule.generation_complete')
         loadSchedules()
+    }
+
+    function rejected(result) {
+        errors = new Errors()
+        errors.addError("all", "We hit a snag: " + result)
     }
 
     const close = () => {
@@ -103,7 +126,7 @@
     }
 
     const getDate = async () => {
-        dateStr = await getEndDate()
+        scheduleToDate = await getEndDate()
     }
 
 </script>
@@ -121,12 +144,22 @@
 {/if}
 {#if isListMode($page)}
 <div class="controls">
-    <div class="form-row2">
+    <div class="form-row">
         <div class="widget">
-            <div class="label label-column">{$_('schedules.scheduleUntil')} </div><div class="date-input field"><input type="date" bind:value={dateStr} onchange={updateSchedule}/></div>
+            <div class="label label-column">{$_('schedules.scheduleUntil')} </div>
+            <div class="inline-button"><button class="og-button" onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
+            <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>
         </div>
     </div>
-</div>
+     <div class="form-row2">
+            {#each errors.getErrorMessages() as e}
+                <p class="error-msg">{e}</p>
+            {/each}
+            {#if msg} 
+                <p class="success-msg">{msg}</p>
+            {/if}                
+            </div>  
+    </div>
 <div class="scroller">
     {#if schedules.length < 1}
     <div class="message">{$_('schedules.noSchedules')}</div>
@@ -172,6 +205,29 @@
 {/if}
 
 <style>
+    .inline-button {
+        float: right;
+        margin: 0px 0px 0px 3px;
+    }
+
+    .inline-button button {
+        height: 33px !important;
+    }
+
+    .error-msg {
+        color: #FBC969;
+        font-size: .8em;
+    }
+
+    .success-msg {
+        color: green;
+        font-size: .8em;
+    }
+
+    .error {
+        border: 1px solid #FBC969 !important;
+    }
+
     .scroller{
         height: 100%;
         width: 100%;
@@ -291,11 +347,18 @@
         text-align: center;
     }
 
-    .form-row2 {
+    .form-row {
         display: block;
         float: left;
         clear: both;
         margin-top: -10px;
+    }
+
+    .form-row2 {
+        display: block;
+        float: left;
+        clear: both;
+        margin: -10px 0px 0px 10px;        
     }
 
     .date-input {
