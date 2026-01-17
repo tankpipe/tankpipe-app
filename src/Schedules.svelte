@@ -65,6 +65,14 @@
         page.set({view: views.SCHEDULES, mode: modes.VIEW})
     }
 
+    const editSchedule = (schedule) => {
+        curSchedule = {...schedule}
+        if (schedule.entries) {
+            curSchedule.entries = [...schedule.entries]
+        }
+        page.set({view: views.SCHEDULES, mode: modes.EDIT})
+    }
+
     const loadSchedules = async () => {
         console.log("loadSchedules")
         const result = await invoke('schedules')
@@ -126,6 +134,9 @@
                 <div class="row">
                     <div class="widget">
                         <div class="description">{s.name}</div>
+                        <div class="toolbar toolbar-right">
+                            <button class="edit-icon" onclick={(e) => { e.stopPropagation(); editSchedule(s); }} title={$_('buttons.edit')}><Icon icon="mdi:pencil" /></button>
+                        </div>
                     </div>
                 </div>
                 <hr/>
@@ -204,6 +215,20 @@
         cursor: pointer;
     }
 
+     .edit-icon {
+        float: right;
+        color: #524e4e;
+    }
+
+    .card:hover .edit-icon {
+        color: #666;
+    }
+
+    .edit-icon:hover {
+        color: #C0C0C0 !important;
+        cursor: pointer;
+    }
+
     .money {
         text-align: right !important;
         min-width: 100px;
@@ -213,6 +238,7 @@
         min-width: 500px;
         white-space: nowrap;
         font-weight: bold;
+        float: left;
     }
 
     .account {
