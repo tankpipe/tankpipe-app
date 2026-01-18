@@ -195,8 +195,8 @@
                 </div>
                 <div class="row">
                     <div class="bottom-widget">
-                        <div class="label">{$_('schedules.last')}</div>
-                        <div class="account">{s.last_date == "null"?"-":s.last_date}</div>
+                        <div class="label card-label">{$_('schedules.last')}</div>
+                        <div class="last-date">{s.last_date == "null"?"-":s.last_date}</div>
                     </div>
                 </div>
             </div>
@@ -246,7 +246,7 @@
     .bottom-widget {
         display: inline-block;
         text-align: left;
-        margin: 0px 10px 0 10px;
+        margin: 0px 10px 5px 15px;
         color: #F0F0F0;
         vertical-align: top;
     }
@@ -265,6 +265,12 @@
         font-size: .8em;
         color: #aaa !important;
         margin: 0 !important;
+    }
+    
+    .card-label {
+        padding: 0 !important;
+        font-size: .7em !important;
+        line-height: 1em !important;
     }
 
     .scroller {
@@ -322,11 +328,11 @@
         color: #878787;
     }
 
-    .account {
+    .last-date {
         min-width: 200px;
         white-space: nowrap;
         display: inline-block;
-        font-size: .8em;
+        font-size: .7em;
     }
 
     hr {

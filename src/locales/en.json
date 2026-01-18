@@ -139,7 +139,7 @@
         "createNew": "Create a new schedule",
         "noSchedules": "No schedules",
         "scheduleUntil": "Schedule until",
-        "last": "Last",
+        "last": "Last scheduled",
         "title": "Schedules"
     },
     "netAssets": {
