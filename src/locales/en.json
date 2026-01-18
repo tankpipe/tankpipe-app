@@ -100,7 +100,7 @@
     },
     "transaction": {
         "compound": "Compound entry",
-        "delete": "Delete account",
+        "delete": "Delete transaction",
         "edit": "Edit Transaction",
         "new": "New Transaction",
         "recorded": "Recorded",
@@ -120,11 +120,28 @@
     "schedule": {
         "edit_schedule": "Edit Schedule",
         "end_after": "End after",
-        "every": "Every",
+        "last_date": "The last scheduled transaction was for",
+        "schedule_until": "Schedule to",
+        "every": "Scheduled every",
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
         "schedule": "Schedule",
-        "starting_from": "starting from"    },
+        "created": "New schedule created",
+        "updated": "Schedule updated",
+        "starting_from": "starting from",
+        "delete": "Delete schedule",
+        "projected_transactions": "Projected transactions",
+        "delete_projected_transactions": "Delete projected transactions",
+        "generate": "Schedule transactions",
+        "generation_complete": "Generation complete."
+    },
+    "schedules": {
+        "createNew": "Create a new schedule",
+        "noSchedules": "No schedules",
+        "scheduleUntil": "Schedule until",
+        "last": "Last scheduled",
+        "title": "Schedules"
+    },
     "netAssets": {
         "asAt": "As at",
         "assets": "Assets",
@@ -133,13 +150,6 @@
         "title": "Net Assets",
         "totalAssets": "Total assets",
         "totalLiabilities": "Total liabilities"
-    },
-    "schedules": {
-        "createNew": "Create a new schedule",
-        "noSchedules": "No schedules",
-        "scheduleUntil": "Schedule until",
-        "last": "Last",
-        "title": "Schedules"
     },
     "transactions": {
         "addTransaction": "Add a transaction",

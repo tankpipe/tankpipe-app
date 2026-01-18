@@ -1,14 +1,14 @@
 import { render } from '@testing-library/svelte'
-import Transactions from '../src/Transactions.svelte'
 import {accounts} from '../src/accounts.js'
-import {page, views, modes} from '../src/page'
+import {page, views, modes} from '../src/page.js'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
-import { config } from '../src/config'
+import { config } from '../src/config.js'
 import { vi } from 'vitest'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale } from 'svelte-i18n'
-import '../src/i18n'
+import '../src/i18n.js'
+import TransactionList from '../src/TransactionList.svelte'
 
 locale.set('en')
 Element.prototype.scrollTo = () => {}
@@ -21,22 +21,33 @@ vi.mock("svelte-apexcharts", () => {
     };
 });
 
-
-it('is displayed correctly for Transactions mode', async () => {
+it('is displayed correctly for Regular date', async () => {
     const mockFetchTransactions = loadTransactions()
     config.set({display_date_format: "Regular"})
-    await checkResults(mockFetchTransactions, false)
+    await checkResults(mockFetchTransactions)
 });
 
+it('is displayed correctly for US date', async () => {
+    const mockFetchTransactions = loadTransactions()
+    config.set({display_date_format: "US"})
+    await checkResults(mockFetchTransactions)
+});
 
-it('is displayed correctly for Journal mode', async () => {
+it('is displayed correctly for ISO date', async () => {
+    const mockFetchTransactions = loadTransactions()
+    config.set({display_date_format: "ISO"})
+    await checkResults(mockFetchTransactions)
+});
+
+it('is displayed correctly for Journal view', async () => {
     const mockFetchTransactions = loadTransactions()
     config.set({display_date_format: "Regular"})
-    await checkResults(mockFetchTransactions, true)
+    await checkResults(mockFetchTransactions)
 });
 
-async function checkResults(mockFetchTransactions, jornalMode) {
-    const { findAllByText, container } = render(Transactions, { curAccount: account_data[0], journalMode: jornalMode })
+async function checkResults(mockFetchTransactions) {
+    let transactions = [transaction_data[0], transaction_data[1]]
+    const { findAllByText, container } = render(TransactionList, { curAccount: account_data[0], journalMode: true, transactions: transactions })
     const _waitForRenderUpdate = await findAllByText('A test transaction')
     // Note: Select should show Account 1 as selected but defaults to Account 3
     expect(container.outerHTML).toMatchSnapshot()
