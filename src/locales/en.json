@@ -100,7 +100,7 @@
     },
     "transaction": {
         "compound": "Compound entry",
-        "delete": "Delete account",
+        "delete": "Delete transaction",
         "edit": "Edit Transaction",
         "new": "New Transaction",
         "recorded": "Recorded",
@@ -113,17 +113,35 @@
             "descriptionRequired": "Description is required",
             "saved": "Transaction saved.",
             "snag": "We hit a snag: {error}",
-            "totalsBalance": "Totals should balance"
+            "totalsBalance": "Totals should balance",
+            "debitOrCredit": "Can not enter both a Debit and a Credit amount"
         }
     },
     "schedule": {
         "edit_schedule": "Edit Schedule",
         "end_after": "End after",
-        "every": "Every",
+        "last_date": "The last scheduled transaction was for",
+        "schedule_until": "Schedule to",
+        "every": "Scheduled every",
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
         "schedule": "Schedule",
-        "starting_from": "starting from"    },
+        "created": "New schedule created",
+        "updated": "Schedule updated",
+        "starting_from": "starting from",
+        "delete": "Delete schedule",
+        "projected_transactions": "Projected transactions",
+        "delete_projected_transactions": "Delete projected transactions",
+        "generate": "Schedule transactions",
+        "generation_complete": "Generation complete."
+    },
+    "schedules": {
+        "createNew": "Create a new schedule",
+        "noSchedules": "No schedules",
+        "scheduleUntil": "Schedule until",
+        "last": "Last scheduled",
+        "title": "Schedules"
+    },
     "netAssets": {
         "asAt": "As at",
         "assets": "Assets",
@@ -132,13 +150,6 @@
         "title": "Net Assets",
         "totalAssets": "Total assets",
         "totalLiabilities": "Total liabilities"
-    },
-    "schedules": {
-        "createNew": "Create a new schedule",
-        "noSchedules": "No schedules",
-        "scheduleUntil": "Schedule until",
-        "last": "Last",
-        "title": "Schedules"
     },
     "transactions": {
         "addTransaction": "Add a transaction",
@@ -176,6 +187,12 @@
         "disclaimer_text": "Material, content, and functionality available on the Tankpipe app <span class=\"highlight\">does not represent financial, tax, or legal advice</span>. As per the license, the Tankpipe App is provided \"AS IS\" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters. You should consult with a qualified professional for advice on anything relating to these matters. See also the Tankpipe <a target=\"_blank\" href=\"https://tankpipe.com/app/terms\">terms.</a>"
     },
     "importer": {
-        "noData": "No data was read"
+        "no_data": "No data was read",
+        "has_header": "Has header row",
+        "import_date_format": "Import date format",
+        "save_mappings": "Remember for next time",
+        "required_columns_mapped": "Required columns mapped",
+        "columns": "Columns",
+        "sample_data": "CSV data"
     }
 }

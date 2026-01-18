@@ -4,65 +4,110 @@
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import {page, modes} from './page.js'
+    import Icon from '@iconify/svelte'
     import {accounts} from './accounts'
     import {generate} from './generate'
     import {settings} from './settings.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
+    import TransactionList from './TransactionList.svelte'
 
-    export let close
-    export let curSchedule
-    export let loadSchedules
+    let { close, curSchedule, loadSchedules, view } = $props()
 
     const zeros = '00000000-0000-0000-0000-000000000000'
-    const minEntries = $settings.require_double_entry ? 2 : 1
-    let hasEnd = false
-    let msg = ""
-    let errors = new Errors()
-    let date = new Date(), name, description, amount, frequency = 1
-    let endDate
-    let max = new Date(), min = new Date()
-    max.setFullYear(date.getFullYear() + 20)
-    min.setFullYear(date.getFullYear() - 10)
-    let format="yyyy-MM-dd"
-    let addButtonLabel = "Add"
-    let period = {value:"Months", name:"Months"}
-    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, period, {value:"Years", name:"Years"}]
-    let drAccount
-    let crAccount
-    let drTotal = 0
-    let crTotal = 0
-    let entries = []
+    let minEntries = $derived($settings.require_double_entry ? 2 : 1)
+    let hasEnd = $state(false)
+    let msg = $state("")
+    let successMsg = $state("")
+    let errors = $state(new Errors())
+    let date = $state(new Date())
+    let name = $state()
+    let description = $state()
+    let amount = $state()
+    let frequency = $state(1)
+    let endDate = $state()
+    let lastDate = $state()
+    let max = $state(new Date())
+    let min = $state(new Date())
+    let format = "yyyy-MM-dd"
+    let addButtonLabel = $state("Add")
+    let period = $state({value:"Months", name:"Months"})
+    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
+    let drAccount = $state()
+    let crAccount = $state()
+    let entries = $state([])
+    let transactions = $state([])
+    $inspect(curSchedule)
+    $inspect(lastDate)
+
+    const getEntryType = (entry) => {
+        if (entry.drAmount > 0) {
+            return "Debit"
+        }
+        if (entry.crAmount > 0) {
+            return "Credit"
+        }
+        return entry.entry_type || "Debit"
+    }
+
+    // Derived totals that update automatically when entries change
+    let drTotal = $derived.by(() => {
+        let total = 0
+        entries.forEach(e => {
+            const eType = getEntryType(e)
+            if (eType === "Debit") {
+                total += Number(e.drAmount || 0)
+            }
+        })
+        return total
+    })
+
+    let crTotal = $derived.by(() => {
+        let total = 0
+        entries.forEach(e => {
+            const eType = getEntryType(e)
+            if (eType === "Credit") {
+                total += Number(e.crAmount || 0)
+            }
+        })
+        return total
+    })
 
     onMount(() => {
         if ($page.mode === modes.EDIT) {
             name = curSchedule.name
             description = curSchedule.description
             amount = curSchedule.amount
-            entries = curSchedule.entries
-            entries.forEach(e => {
-                e.entry_type === "Credit" ? e.crAmount = e.amount : e.drAmount = e.amount
-                e.realDate = new Date(e.date)
-                e.account = matchAccount(e.account_id)
+            // Create deep copies of entries to avoid mutation issues
+            entries = curSchedule.entries.map(e => {
+                const entryCopy = {...e}
+                entryCopy.entry_type === "Credit" ? entryCopy.crAmount = e.amount : entryCopy.drAmount = e.amount
+                entryCopy.realDate = new Date(e.date)
+                entryCopy.account = matchAccount(e.account_id)
+                return entryCopy
             })
-            addButtonLabel = "Update"
+            addButtonLabel = $_('buttons.update')
+            successMsg = $_('schedule.updated')
             drAccount = matchAccount(curSchedule.dr_account_id)
             crAccount = matchAccount(curSchedule.cr_account_id)
             period = matchPeriod(curSchedule.period)
             frequency = curSchedule.frequency
             endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
+            lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
             hasEnd = endDate != null
             date = new Date(curSchedule.start_date)
-
-        } else {
+            max.setFullYear(date.getFullYear() + 20)
+            min.setFullYear(date.getFullYear() - 10)
+        } else if ($page.mode === modes.NEW) {
             drAccount = null
             crAccount = null
-            addButtonLabel = "Add"
+            addButtonLabel = $_('buttons.add')
+            successMsg = $_('schedule.created')
 
             if ($page.payload && $page.payload.entries) {
                 console.log($page.payload)
-                entries = $page.payload.entries
-                entries.forEach((e, i) => e.schedule_id = zeros)
+                // Create deep copies of entries
+                entries = $page.payload.entries.map(e => ({...e, schedule_id: zeros}))
                 name = $page.payload.entries[0].description
             } else {
                 for (var i = 0; i < minEntries; i++) {
@@ -70,7 +115,19 @@
                 }
             }
         }
+
     })
+
+    $effect(() => {
+        if (curSchedule && curSchedule.id) {
+            loadTransactions()
+        }
+    })
+
+    const loadTransactions = async () => {
+        console.log("loadScheduleTransactions")
+        transactions = await invoke("schedule_transactions", { scheduleId: curSchedule.id, status: "Projected" })
+    }
 
     const matchAccount = (accountId) =>  {
         if (!accountId) return null
@@ -107,6 +164,9 @@
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
         if (!errors.hasErrors()) {
+            // Update entry types before processing for saving
+            updateEntryTypes()
+
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
             let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
             entries.forEach (
@@ -137,8 +197,21 @@
 
     }
 
+    function resolvedSchedule(result) {
+      msg = "Schedule deleted."
+      close()
+    }
+
+    const deleteSchedule = async () => {
+        if (curSchedule && curSchedule.id) {
+            await invoke('delete_schedule', {id: curSchedule.id}).then(resolvedSchedule, rejected)
+        } else {
+            close()
+        }
+    }
+
     const resolved = async (result) => {
-      msg = "Schedule added."
+      msg = successMsg
       await generate()
       loadSchedules()
     }
@@ -177,7 +250,6 @@
         }
     }
 
-
     const validateEntry = (entry, index, errors) => {
         console.log("validate " + entry)
         const prefix =  index + "_"
@@ -208,36 +280,25 @@
     }
 
     const showAmount = (entry, type) => {
-        if (entry["drAmount"] > 0) {
-            entry["entry_type"] = "Debit"
-            calculateTotals(entries)
-            return type === "Debit"
-        }
-
-        if (entry["crAmount"] > 0) {
-            entry["entry_type"] = "Credit"
-            calculateTotals(entries)
-            return type === "Credit"
-        }
-
-        return true
+        // Compute entry type on the fly without mutating
+        const entryType = getEntryType(entry)
+        return type === entryType
     }
 
-    const total = (type) => {
-        let total = 0
-        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
-        return total
-    }
-
-    const calculateTotals = () => {
-        drTotal = total("Debit")
-        crTotal = total("Credit")
+    // Update entry_type before saving (called only when needed, not during render)
+    const updateEntryTypes = () => {
+        entries.forEach(entry => {
+            entry.entry_type = getEntryType(entry)
+        })
     }
 
 </script>
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('schedule.edit_schedule') : $_('schedule.new_schedule')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick="{deleteSchedule}" title={$_('schedule.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+    </div>
     <div class="form-row">
         <div class="top-widget">
             <label for="desc">{$_('labels.name')}</label>
@@ -267,8 +328,8 @@
             <tr>
                 <td>
                     <div class="toolbar entry-buttons">
-                        <i class="gg-add-r" on:click={addEntry}></i>
-                        <i class="gg-remove-r" on:click={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
+                        <i class="gg-add-r" onclick={addEntry}></i>
+                        <i class="gg-remove-r" onclick={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
                     </div>
                 </td>
                 <td><div class="total">{$_('labels.totals')}</div></td>
@@ -288,11 +349,10 @@
     </div>
     <div class="form-row2">
         <div class="widget2">
+            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
+            <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
             <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
             <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
-            <br/>
-            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-            <label for="noEnd">{$_('schedule.no_end_date')}</label>
         </div>
     </div>
     <hr/>
@@ -301,17 +361,24 @@
             {#each errors.getErrorMessages() as e}
             <p class="error-msg">{e}</p>
             {/each}
-            {#if msg}
+            {#if msg} 
             <p class="success-msg">{msg}</p>
             {/if}
         </div>
         <div class="widget buttons">
-            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
-            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
-
+<hr class="fat-hr"/>
+<div>
+    <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+    </div>
+</div>
+<TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
 <style>
 
     :root {
@@ -332,7 +399,7 @@
 
 
     .buttons {
-        float: left;
+        float: right;
         margin: 10px 12px 0 0;
     }
 
@@ -417,6 +484,10 @@
         padding-left: 0px;
     }
 
+    .float-left {
+        float: left;
+    }
+
     .money-input {
         text-align: right;
     }
@@ -436,10 +507,13 @@
 
     hr {
         border-style: none;
-        border: 3px solid #363636;
+        border: 1px solid #363636;
         margin-left: -20px;
         width: 100vw;
+    }
 
+    .fat-hr {
+        border: 3px solid #363636;
     }
 
     .entry-buttons {
