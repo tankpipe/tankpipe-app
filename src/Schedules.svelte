@@ -161,7 +161,7 @@
             <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
         </div>        
     </div>
-     <div class="form-row2">
+     <div class="msg-row">
             {#each errors.getErrorMessages() as e}
                 <p class="error-msg">{e}</p>
             {/each}
@@ -371,7 +371,7 @@
         margin-top: -10px;
     }
 
-    .form-row2 {
+    .msg-row {
         display: block;
         float: left;
         clear: both;
@@ -380,10 +380,6 @@
 
     .date-input {
         float: right;
-    }
-
-    .date-input input {
-        border: none;
     }
 
     .label {
@@ -399,10 +395,6 @@
     .field {
         text-align: left;
         display: inline-block;
-    }
-
-    .controls input {
-        background-color: #aaa;
     }
 
     .heading-spinner {

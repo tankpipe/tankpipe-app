@@ -8,6 +8,7 @@
     import { _ } from 'svelte-i18n'
     import TransactionList from './TransactionList.svelte'
     import { onMount } from 'svelte';
+    import Spinner from './Spinner.svelte';
 
     let { close, edit, curSchedule } = $props()
 
@@ -15,6 +16,7 @@
     let msg = $state("")
     let successMsg = $state("")
     let errors = $state(new Errors())
+    let loading = $state(false)
     let date = $state(new Date())
     let name = $state()
     let frequency = $state(1)
@@ -79,6 +81,7 @@
     function rejected(result) {
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
+        loading = false
     }
 
 
@@ -87,7 +90,10 @@
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
-    const generateSchedule = async () => {        
+    const generateSchedule = async () => {
+        loading = true
+        msg = $_('schedule.generating')
+        
         const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
         await invoke('generate_by_schedule', { 
             date: {date: isoDateString}, 
@@ -98,6 +104,7 @@
     function resolvedGenerateSchedule(result) {
         loadTransactions()
         msg = $_('schedule.generation_complete')
+        loading = false
     }
 
     const deleteTransactions = async () => {
@@ -123,6 +130,7 @@
 
 <div class="form">
     <div class="form-heading">{$_('schedule.schedule')}</div>
+    <div class="heading-spinner"><Spinner show={loading}/></div>
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{edit}" title={$_('schedule.edit')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button class="toolbar-icon" onclick="{close}" title={$_('buttons.close')}><Icon icon="mdi:close-box-outline"  width="24"/></button>
@@ -155,14 +163,14 @@
     <hr/>
     <div class="form-row">
         <div class="schedule-row">
-            <div class="widget left">
+            <div class="widget left float-left">
                 <label for="scheduleToDate">{$_('schedule.schedule_until')}&nbsp;</label>
-                <div class="inline-button"><button class="og-button" onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
+                <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
                 <div id="scheduleToDate" class="date-input raise">
                     <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
                 </div>
             </div>
-            <div>
+            <div class="msg-row">
             {#each errors.getErrorMessages() as e}
                 <p class="error-msg">{e}</p>
             {/each}
@@ -187,12 +195,21 @@
         --date-input-width: 110px;
     }
 
+    .msg-row {
+        display: block;
+        float: left;
+        clear: both;
+        margin: -20px 0px 0px 5px;        
+    }
+
     .error-msg {
         color: #FBC969;
+        font-size: .8em;
     }
 
     .success-msg {
         color: green;
+        font-size: .8em;
     }
 
     .error {
@@ -272,71 +289,9 @@
         min-height: 27px;
     }
 
-    .greyed {
-        color: #666;
-        border-color: #666;
-    }
-
-    .greyed:hover {
-        color: #666 !important;
-        border-color: #666 !important;
-        cursor: default !important;
-    }
-
-    .gg-add-r {
-        box-sizing: border-box;
-        position: relative;
-        display: block;
-        width: 22px;
-        height: 22px;
-        border: 2px solid currentColor;
-        transform: scale(var(--ggs,1));
-        border-radius: 4px
-    }
-
-    .gg-add-r::after,
-    .gg-add-r::before {
-        content: "";
-        display: block;
-        box-sizing: border-box;
-        position: absolute;
-        width: 10px;
-        height: 2px;
-        background: currentColor;
-        border-radius: 5px;
-        top: 8px;
-        left: 4px
-    }
-
-    .gg-add-r::after {
-        width: 2px;
-        height: 10px;
-        top: 4px;
-        left: 8px
-    }
-
-    .gg-remove-r {
-        box-sizing: border-box;
-        position: relative;
-        display: block;
-        transform: scale(var(--ggs,1));
-        width: 22px;
-        height: 22px;
-        border: 2px solid ;
-        border-radius: 4px
-    }
-
-    .gg-remove-r::before {
-        content: "";
-        display: block;
-        box-sizing: border-box;
-        position: absolute;
-        width: 10px;
-        height: 2px;
-        background: currentColor;
-        border-radius: 5px;
-        top: 8px;
-        left: 4px
+    .heading-spinner {
+        margin: 3px 0 0 10px;
+        float: left;
     }
 
 </style>
