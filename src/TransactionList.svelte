@@ -265,73 +265,7 @@
     .account {
         float: left;
     }
-
-    :global(.toolbar) {
-        float: left;
-        color: #c0c0c0;
-        margin-left: 10px;
-        display: flex;
-        padding-right: 9px;
-    }
-
-    :global(.toolbar-right) {
-        float: right;
-    }
-    :global(.toolbar button, .single-button) {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0px;
-    }
-
-    :global(.toolbar-icon) {
-        margin-left: 5px;
-        color: #c0c0c0;
-    }
-
-    :global(.toolbar-icon:hover) {
-        color: #F0F0F0;
-        cursor: pointer;
-    }
-
-    :global(.toolbar-icon-disabled) {
-        margin-left: 5px;
-        color: #303030;
-    }
-
-    :global(.toolbar-icon-on) {
-        margin-left: 5px;
-        color: #43bd6e; /*#55e688*/
-    }
-
-    :global(.toolbar-icon-on:hover) {
-        color: #55e688;
-        cursor: pointer;
-    }
-
-    :global(.warning:hover) {
-        color: #e68843;
-    }
-
-    :global(.import-icon) {
-        margin-top: 1px
-    }
-
-    :global(.single-button) {
-        display: inline-flex;
-        vertical-align: top;
-        margin-left: 0;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0px;
-        color: #c0c0c0;
-    }
-
-    :global(.single-button:hover) {
-        cursor: pointer;
-        color: #F0F0F0;
-    }
+    
     .message {
         color: #EFEFEF;
         margin: 5px 0 20px 0;

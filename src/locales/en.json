@@ -134,7 +134,8 @@
         "delete_projected_transactions": "Delete projected transactions",
         "generate": "Schedule transactions",
         "generating": "Scheduling...",
-        "generation_complete": "Scheduling complete."
+        "generation_complete": "Scheduling complete.",
+        "deleting_transactions": "Deleting transactions..."
     },
     "schedules": {
         "createNew": "Create a new schedule",

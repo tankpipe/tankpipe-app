@@ -84,5 +84,5 @@ input:disabled {
 }
 
 .og-button:disabled:hover {
-	cursor: not-allowed;
+	cursor: default;
 }

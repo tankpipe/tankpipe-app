@@ -82,20 +82,25 @@
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
         loading = false
+        msg = ""
     }
 
-
+    const showLoading = (loadingMsg) => {
+        loading = true
+        errors = new Errors()
+        msg = loadingMsg
+    }
+    
     const saveSchedule = async (schedule) => {
         console.log(schedule)
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
     const generateSchedule = async () => {
-        loading = true
-        msg = $_('schedule.generating')
+        showLoading($_('schedule.generating'))        
         
         const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
-        await invoke('generate_by_schedule', { 
+        invoke('generate_by_schedule', { 
             date: {date: isoDateString}, 
             scheduleId: curSchedule.id 
         }).then(resolvedGenerateSchedule, rejected)
@@ -108,17 +113,17 @@
     }
 
     const deleteTransactions = async () => {
+        showLoading($_('schedule.deleting_transactions'))        
         const transactionIds = transactions.map(t => t.id)
-        if (transactionIds.length > 0) {
-            await invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)
-        }
-        loadSchedule()
+        invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)        
     }
 
-    const resolvedDeleteTransactions = async (result) => {
-       msg = $_('transactions.transactionsDeleted')
+    const resolvedDeleteTransactions = async (result) => {      
       loadTransactions()
+      await loadSchedule()
       await invoke('reset_schedule_last_date', {scheduleId: curSchedule.id}).then(loadSchedule, rejected)
+      msg = $_('transactions.transactionsDeleted')
+      loading = false
     }
 
     const loadSchedule = async () => {
@@ -185,7 +190,9 @@
 <div>
     <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
     <div class="toolbar toolbar-right">
-        <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')} disabled={loading || transactions.length == 0}>
+            <Icon icon="mdi:trash-can-outline"  width="24"/>
+        </button>
 </div>
 </div>
 <TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
@@ -199,17 +206,19 @@
         display: block;
         float: left;
         clear: both;
-        margin: -20px 0px 0px 5px;        
+        margin: -10px 0px 0px 5px;        
     }
 
     .error-msg {
         color: #FBC969;
         font-size: .8em;
+        float: left;
     }
 
     .success-msg {
         color: green;
         font-size: .8em;
+        float: left;
     }
 
     .error {
