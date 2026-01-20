@@ -4,13 +4,14 @@
     import Icon from '@iconify/svelte'
     import { page, isEditMode, isViewMode, views, modes, isListMode } from './page'
     import {accounts} from './accounts'
-    import {generate, getEndDate} from './generate'
+    import { getEndDate} from './generate'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
     import { selector } from './selector';
-    import { Errors } from './errors';
+    import { Errors  } from './errors';
     import DateInput from 'date-picker-svelte/DateInput.svelte';
+    import Spinner from './Spinner.svelte';
 
     let curSchedule = $state()
     let schedules = $state([])
@@ -20,6 +21,7 @@
     let min = $state(new Date())
     let format = "yyyy-MM-dd"
     let scheduleToDate = $state()
+    let loading = $state(false)
 
     // Reactively check for load mode when schedules are loaded
     $effect(() => {
@@ -50,22 +52,27 @@
     })
 
     const generateSchedule = async () => {
-        console.log("generateSchedule")
+        loading = true
+        console.log("generateSchedule")         
+        msg = $_('schedule.generating')
+        
         if (scheduleToDate) {
             const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
             console.log("generating to " + isoDateString)
-            await invoke('generate', {date: {date: isoDateString}}).then(resolved, rejected)
+            invoke('generate', {date: {date: isoDateString}}).then(resolved, rejected)
         }
     }
 
     const resolved = async (result) => {
         msg = $_('schedule.generation_complete')
         loadSchedules()
+        loading = false
     }
 
     function rejected(result) {
         errors = new Errors()
         errors.addError("all", "We hit a snag: " + result)
+        loading = false
     }
 
     const close = () => {
@@ -83,6 +90,7 @@
 
 
     const selectSchedule = (schedule) => {
+        msg = ''
         curSchedule = {...schedule}
         if (schedule.entries) {
             curSchedule.entries = [...schedule.entries]
@@ -91,6 +99,7 @@
     }
 
     const editSchedule = (schedule) => {
+        msg = ''
         curSchedule = {...schedule}
         if (schedule.entries) {
             curSchedule.entries = [...schedule.entries]
@@ -134,6 +143,7 @@
 <div class="account-heading">
     <div class="toolbar toolbar-right"><button class="toolbar-icon" onclick={handleAddClick} title={$_('schedules.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button></div>
     <div class="form-heading">{$_('schedules.title')}</div>
+    <div class="heading-spinner"><Spinner show={loading}/></div>
 </div>
 {/if}
 {#if isEditMode($page)}
@@ -146,12 +156,12 @@
 <div class="controls">
     <div class="form-row">
         <div class="widget">
-            <div class="label label-column">{$_('schedules.scheduleUntil')} </div>
-            <div class="inline-button"><button class="og-button" onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-            <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>
-        </div>
+            <div class="label label-column">{$_('schedules.scheduleUntil')} </div>            
+            <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
+            <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
+        </div>        
     </div>
-     <div class="form-row2">
+     <div class="msg-row">
             {#each errors.getErrorMessages() as e}
                 <p class="error-msg">{e}</p>
             {/each}
@@ -275,6 +285,7 @@
 
     .scroller {
         clear: both;
+        margin-top: 0;
     }
 
     .card {
@@ -360,7 +371,7 @@
         margin-top: -10px;
     }
 
-    .form-row2 {
+    .msg-row {
         display: block;
         float: left;
         clear: both;
@@ -369,10 +380,6 @@
 
     .date-input {
         float: right;
-    }
-
-    .date-input input {
-        border: none;
     }
 
     .label {
@@ -390,8 +397,9 @@
         display: inline-block;
     }
 
-    .controls input {
-        background-color: #aaa;
+    .heading-spinner {
+        margin: 3px 0 0 10px;
+        float: left;
     }
 
 </style>

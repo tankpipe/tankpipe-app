@@ -348,6 +348,12 @@
         color: #303030;
     }
 
+    :global(.toolbar-icon:disabled) {
+        margin-left: 5px;
+        color: #303030;
+        cursor: default;
+    }
+
     :global(.toolbar-icon-on) {
         margin-left: 5px;
         color: #43bd6e; /*#55e688*/

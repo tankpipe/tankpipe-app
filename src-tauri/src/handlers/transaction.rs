@@ -110,7 +110,7 @@ pub fn delete_transaction(state: tauri::State<BooksState>, id: Uuid) -> Result<(
     error_handler(mutex_guard.save())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn delete_transactions(state: tauri::State<BooksState>, ids: Vec<Uuid>) -> Result<(), String> {
     println!("Deleting transaction {:?}", ids);
     let mut mutex_guard = state.0.lock().unwrap();
