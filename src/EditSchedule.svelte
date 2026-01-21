@@ -520,6 +520,10 @@
         float: left;
     }
 
+    .entry-buttons i:not(:first-child) {
+        margin-left: 5px;
+    }
+
     .greyed {
         color: #666;
         border-color: #666;
@@ -553,7 +557,7 @@
         background: currentColor;
         border-radius: 5px;
         top: 8px;
-        left: 4px
+        left: 4px;
     }
 
     .gg-add-r::after {
