@@ -374,7 +374,7 @@
 <hr class="fat-hr"/>
 <div>
     <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
-    <div class="toolbar toolbar-right">
+    <div class="toolbar toolbar-right list-toolbar">
         <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
 </div>
@@ -533,6 +533,10 @@
         color: #666 !important;
         border-color: #666 !important;
         cursor: default !important;
+    }
+
+    :global(.list-toolbar) {
+        margin: -2px 0 3px 0;
     }
 
     .gg-add-r {

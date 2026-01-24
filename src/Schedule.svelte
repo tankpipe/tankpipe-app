@@ -189,7 +189,7 @@
 <hr/>
 <div>
     <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
-    <div class="toolbar toolbar-right">
+    <div class="toolbar toolbar-right list-toolbar" >
         <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')} disabled={loading || transactions.length == 0}>
             <Icon icon="mdi:trash-can-outline"  width="24"/>
         </button>
