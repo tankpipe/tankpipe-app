@@ -11,6 +11,8 @@
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import TransactionList from './TransactionList.svelte'
+    import SchedulePanel from './SchedulePanel.svelte'
+    import { periods } from './dates.js'
 
     let { close, curSchedule, loadSchedules, view } = $props()
 
@@ -26,13 +28,9 @@
     let amount = $state()
     let frequency = $state(1)
     let endDate = $state()
-    let lastDate = $state()
-    let max = $state(new Date())
-    let min = $state(new Date())
-    let format = "yyyy-MM-dd"
+    let lastDate = $state()    
     let addButtonLabel = $state("Add")
     let period = $state({value:"Months", name:"Months"})
-    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
     let drAccount = $state()
     let crAccount = $state()
     let entries = $state([])
@@ -95,9 +93,7 @@
             endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
             lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
             hasEnd = endDate != null
-            date = new Date(curSchedule.start_date)
-            max.setFullYear(date.getFullYear() + 20)
-            min.setFullYear(date.getFullYear() - 10)
+            date = new Date(curSchedule.start_date)            
         } else if ($page.mode === modes.NEW) {
             drAccount = null
             crAccount = null
@@ -168,7 +164,7 @@
             updateEntryTypes()
 
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
-            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
+            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"          
             entries.forEach (
                 e => {
                     e["account_id"] = e["account"]["id"]
@@ -339,22 +335,7 @@
         </table>
     </div>
     <hr/>
-    <div class="panel-title">{$_('schedule.schedule')}</div>
-    <div class="form-row2">
-        <div class="widget">
-            {$_('schedule.every')}&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-            &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
-            {$_('schedule.starting_from')}&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
-        </div>
-    </div>
-    <div class="form-row2">
-        <div class="widget2">
-            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-            <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-            <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
-        </div>
-    </div>
+    <SchedulePanel {frequency} {period} {date} {hasEnd} {endDate} {errors} />
     <hr/>
     <div class="form-button-row">
         <div class="widget">
@@ -414,11 +395,6 @@
         clear:both;
     }
 
-    .form-row2, .form-button-row {
-        display: block;
-        text-align: left;
-    }
-
     .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
@@ -444,20 +420,6 @@
         font-size: 0.9em;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
-
-    .widget2 label {
-        display: inline-block;
-        font-size: 1.0em;
-    }
-
-    .widget2 input {
-        margin: 0px;
-    }
-
     .top-widget {
         display: inline-block;
         padding: 5px 0px 5px 0px;
@@ -470,19 +432,6 @@
     .money-input {
         width: 100px;
     }
-    .frequency-input {
-        width: 40px;
-        text-align: right;
-        background-color: #F0F0F0;
-    }
-
-    .raise {
-        margin-top: -7px;
-    }
-
-    .left {
-        padding-left: 0px;
-    }
 
     .float-left {
         float: left;
@@ -494,10 +443,6 @@
 
     .description-input {
         width: 400px;
-    }
-
-    .date-input {
-        float: right;
     }
 
     .total {
