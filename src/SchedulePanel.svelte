@@ -24,23 +24,24 @@
     })
 
 </script>
-
-<div class="panel-title">{$_('schedule.schedule')}</div>
-<div class="form-row2">
-    <div class="widget">
-        {$_('schedule.every')}&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-        &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
-        {$_('schedule.starting_from')}&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
+<form>
+    <div class="form-row2">
+        <div class="widget">
+            {$_('schedule.every')}&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
+            &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
+            {$_('schedule.starting_from')}&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
+        </div>
     </div>
-</div>
-<div class="form-row2">
-    <div class="widget2">
-        <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-        <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
-        <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-        <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
+    <div class="form-row2">
+        
+        <div class="widget2">
+            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
+            <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
+            <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
+        </div>
     </div>
-</div>
+</form>
 
 <style>
     .form-row2 {
