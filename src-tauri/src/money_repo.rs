@@ -69,14 +69,18 @@ impl Repo {
         println!("config: {:?}", config_result);
         match config_result {
             Ok(config) => {
-                let result = load_books(config.last_file.path.clone());
-                match result {
-                    Ok(b) => {
-                        Ok(Repo{ config: config, books: b })
-                    },
-                    Err(e) => Err(BooksError{ error: e.to_string() })
+                let path = config.last_file.path.clone();                
+                if path.is_empty() {
+                    return Ok(Repo{ config: config, books: Books::build_empty("My Books") })
+                } else {
+                    let result = load_books(path);
+                    match result {
+                        Ok(b) => {
+                            Ok(Repo{ config: config, books: b })
+                        },
+                        Err(e) => Err(BooksError{ error: e.to_string() })
+                    }
                 }
-
             },
             Err(e) => Err(e)
         }
