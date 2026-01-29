@@ -2,6 +2,7 @@
     "app": {
         "accounts": "Accounts",
         "journal": "Journal",
+        "modifiers": "Modifiers",
         "net_assets": "Net Assets",
         "settings": "Settings",
         "schedules": "Schedules",
@@ -22,7 +23,10 @@
     "buttons": {
         "add": "Add",
         "addRow": "Add row",
+        "cancel": "Cancel",
         "close": "Close",
+        "delete": "Delete",
+        "edit": "Edit",
         "ok": "Ok",
         "removeRow": "Remove row",
         "update": "Update"
@@ -144,6 +148,12 @@
         "last": "Last scheduled",
         "title": "Schedules"
     },
+    "modifiers": {
+        "createNew": "Create a new modifier",
+        "deleted": "Modifier deleted",
+        "noModifiers": "No modifiers",
+        "title": "Modifiers"
+    },
     "netAssets": {
         "asAt": "As at",
         "assets": "Assets",
@@ -196,5 +206,23 @@
         "required_columns_mapped": "Required columns mapped",
         "columns": "Columns",
         "sample_data": "CSV data"
+    },
+    "modifier": {
+        "title": "Modifier",
+        "edit_modifier": "Edit Modifier",
+        "new_modifier": "New Modifier",
+        "percentage": "Percentage",
+        "period": "Period",
+        "frequency": "Frequency",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "namePlaceholder": "Enter modifier name",
+        "nameRequired": "Name is required",
+        "frequencyRequired": "Frequency must be greater than 0",
+        "added": "Modifier added",
+        "updated": "Modifier updated",
+        "increase": "% increase.",
+        "decrease": "% decrease.",
+        "percent": "%"
     }
 }

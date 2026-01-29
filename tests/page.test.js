@@ -46,7 +46,7 @@ describe('Page Mode Tests', () => {
     })
 
     it('views object contains all expected view types', () => {
-        expect(Object.keys(views).length).toBe(7)
+        expect(Object.keys(views).length).toBe(8)
         expect(views.BOOKS).toBe('BOOKS')
         expect(views.ACCOUNTS).toBe('ACCOUNTS')
         expect(views.TRANSACTIONS).toBe('TRANSACTIONS')
@@ -54,6 +54,7 @@ describe('Page Mode Tests', () => {
         expect(views.SETTINGS).toBe('SETTINGS')
         expect(views.NET_ASSETS).toBe('NET_ASSETS')
         expect(views.JOURNAL).toBe('JOURNAL')
+        expect(views.MODIFIERS).toBe('MODIFIERS')
     })
 
     it('modes object contains all expected mode types', () => {
