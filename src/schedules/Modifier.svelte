@@ -2,7 +2,7 @@
     import Icon from '@iconify/svelte'
     import { _ } from 'svelte-i18n'
     import { onMount } from 'svelte'
-    import {config} from './config.js'
+    import {config} from '../config.js'
 
     let { close, edit, curModifier } = $props()
 

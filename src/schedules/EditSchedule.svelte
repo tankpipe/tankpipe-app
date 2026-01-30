@@ -1,18 +1,17 @@
 <script>
-    import {DateInput} from 'date-picker-svelte'
-    import {Errors} from './errors.js'
+    import {Errors} from '../errors.js'
     import {onMount} from "svelte"
-    import Select from './Select.svelte'
-    import {page, modes} from './page.js'
+    import Select from '../Select.svelte'
+    import {page, modes} from '../page.js'
     import Icon from '@iconify/svelte'
-    import {accounts} from './accounts'
-    import {generate} from './generate'
-    import {settings} from './settings.js'
+    import {accounts} from '../accounts.js'
+    import {generate} from './generate.js'
+    import {settings} from '../settings.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-    import TransactionList from './TransactionList.svelte'
+    import TransactionList from '../TransactionList.svelte'
     import SchedulePanel from './SchedulePanel.svelte'
-    import { periods } from './dates.js'
+    import { periods } from '../dates.js'
 
     let { close, curSchedule, loadSchedules, view } = $props()
 

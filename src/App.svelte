@@ -1,7 +1,7 @@
 <script>
     import Accounts from './Accounts.svelte'
-    import Schedules from './Schedules.svelte'
-    import Modifiers from './Modifiers.svelte'
+    import Schedules from './schedules/Schedules.svelte'
+    import Modifiers from './schedules/Modifiers.svelte'
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'

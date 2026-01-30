@@ -2,13 +2,13 @@
     import EditModifier from './EditModifier.svelte'
     import Modifier from './Modifier.svelte'
     import Icon from '@iconify/svelte'
-    import { page, isEditMode, isViewMode, views, modes, isListMode } from './page'
+    import { page, isEditMode, isViewMode, views, modes, isListMode } from '../page'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
-    import { Errors  } from './errors'
-    import Spinner from './Spinner.svelte'
-    import {config} from './config.js'
+    import { Errors  } from '../errors'
+    import Spinner from '../Spinner.svelte'
+    import {config} from '../config.js'
 
 
     let period = $state({value:"Months", name:"Months"})

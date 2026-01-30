@@ -1,14 +1,14 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import {Errors} from './errors.js'
+    import {Errors} from '../errors.js'
     import Icon from '@iconify/svelte'
     import {generate} from './generate.js'
-    import {config} from './config.js'
+    import {config} from '../config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-    import TransactionList from './TransactionList.svelte'
+    import TransactionList from '../TransactionList.svelte'
     import { onMount } from 'svelte';
-    import Spinner from './Spinner.svelte';
+    import Spinner from '../Spinner.svelte';
 
     let { close, edit, curSchedule } = $props()
 
