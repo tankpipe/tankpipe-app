@@ -6,12 +6,12 @@
     import { periods } from '../dates.js'
 
     let { 
-        frequency, 
-        period, 
-        date, 
+        frequency =$bindable(), 
+        period =$bindable(), 
+        date =$bindable(), 
         hasEnd, 
-        endDate, 
-        errors 
+        endDate =$bindable(), 
+        errors =$bindable() 
     } = $props()
 
     let max = $state(new Date())

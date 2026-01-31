@@ -139,7 +139,9 @@
         "generate": "Schedule transactions",
         "generating": "Scheduling...",
         "generation_complete": "Scheduling complete.",
-        "deleting_transactions": "Deleting transactions..."
+        "deleting_transactions": "Deleting transactions...",
+        "modifier": "Modifier",
+        "modifier_date": "Modifier date"
     },
     "schedules": {
         "createNew": "Create a new schedule",

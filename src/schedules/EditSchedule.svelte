@@ -34,8 +34,10 @@
     let crAccount = $state()
     let entries = $state([])
     let transactions = $state([])
-    $inspect(curSchedule)
-    $inspect(lastDate)
+    let modifier = $state()
+    let modifiers = $state([])
+    let schedule_modifiers = []
+    let schedule_modifier = null
 
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
@@ -71,6 +73,7 @@
     })
 
     onMount(() => {
+        loadModifiers()
         if ($page.mode === modes.EDIT) {
             name = curSchedule.name
             description = curSchedule.description
@@ -92,7 +95,10 @@
             endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
             lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
             hasEnd = endDate != null
-            date = new Date(curSchedule.start_date)            
+            date = new Date(curSchedule.start_date)               
+            if (curSchedule.modifier_configs && curSchedule.modifier_configs.length > 0) {
+                schedule_modifier = curSchedule.schedule_modifiers[0]
+            }
         } else if ($page.mode === modes.NEW) {
             drAccount = null
             crAccount = null
@@ -119,6 +125,15 @@
         }
     })
 
+    const loadModifiers = async () => {
+        console.log("loadModifiers")
+        const result = await invoke('modifiers')
+        modifiers = Array.isArray(result) ? [...result] : []
+        if (curSchedule && curSchedule.schedule_modifiers && curSchedule.schedule_modifiers.length > 0) {            
+            modifier = modifiers.find(m => m.id == curSchedule.schedule_modifiers[0].modifier_id)       
+        }
+    }
+
     const loadTransactions = async () => {
         console.log("loadScheduleTransactions")
         transactions = await invoke("schedule_transactions", { scheduleId: curSchedule.id, status: "Projected" })
@@ -135,6 +150,13 @@
         let match = periods.filter(p => p.value == value)
         return match.length > 0 ? match[0] : null
     }
+
+    const matchModifier = (modifierId) =>  {
+        if (!modifierId) return null
+        let match = $modifiers.filter(m => m.id == modifierId)
+        return match.length > 0 ? match[0] : null
+    }
+
 
     const onCancel = () => {
         console.log("onCancel")
@@ -171,6 +193,15 @@
                 }
             )
 
+            let updated_schedule_modifiers = []
+            console.log(schedule_modifier)
+            console.log(modifier)
+            if (modifier && modifier.id && (! schedule_modifier || schedule_modifier.modifier_id != modifier.id)) {
+                updated_schedule_modifiers.push({modifier_id: modifier.id, cycle_count: 0, next_date: "null"})
+            } else if (schedule_modifier) {
+                //updated_schedule_modifiers = [...schedule_modifiers]
+            }
+
             let schedule = {
                     name: name,
                     period: period.value,
@@ -178,7 +209,8 @@
                     start_date: dateStr,
                     last_date: "null",
                     end_date: endDateStr,
-                    entries: entries
+                    entries: entries,
+                    schedule_modifiers: updated_schedule_modifiers
                 }
 
             if ($page.mode === modes.NEW) {
@@ -217,9 +249,9 @@
     }
 
     const addSchedule = async (schedule) => {
-        console.log(schedule)
         schedule.id = zeros
-           await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
+        console.log(schedule)        
+        await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
     const saveSchedule = async (schedule) => {
@@ -334,7 +366,14 @@
         </table>
     </div>
     <hr/>
-    <SchedulePanel {frequency} {period} {date} {hasEnd} {endDate} {errors} />
+    <SchedulePanel bind:frequency={frequency} bind:period={period} bind:date={date} bind:hasEnd={hasEnd} bind:endDate={endDate} {errors} />
+    <hr/>
+    <div class="form-row">
+        <div class="top-widget">
+            <label for="desc">{$_('schedule.modifier')}</label>
+            <Select bind:item={modifier} items={modifiers} label="" none={true} flat={true} inError={errors.isInError("modifier")}/>
+        </div>
+    </div>
     <hr/>
     <div class="form-button-row">
         <div class="widget">
