@@ -6,7 +6,7 @@ use crate::{BooksState, handlers::error_handler};
 pub fn modifiers(state: tauri::State<BooksState>) -> Vec<Modifier> {
     println!("Fetching modifiers");
     let mutex_guard = state.0.lock().unwrap();
-    mutex_guard.books.modifiers().to_vec()
+    mutex_guard.books.modifiers().to_vec().into_iter().cloned().collect()
 }
 
 #[tauri::command]
