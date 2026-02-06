@@ -1,6 +1,7 @@
 <script>
     import Accounts from './Accounts.svelte'
-    import Schedules from './Schedules.svelte'
+    import Schedules from './schedules/Schedules.svelte'
+    import Modifiers from './schedules/Modifiers.svelte'
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'
@@ -122,10 +123,12 @@
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
+                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.MODIFIERS, mode: modes.LIST})} class:menu-selected={$page.view === views.MODIFIERS}>{$_('app.modifiers')}</button></li>
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.transactions')}</li>
-                        <li class="disabled">{$_('app.schedules')}</li>                        
+                        <li class="disabled">{$_('app.schedules')}</li>
+                        <li class="disabled">{$_('app.modifiers')}</li>                        
                         {/if}
                     </ul>
                 </div>
@@ -140,6 +143,8 @@
                 <Accounts bind:curAccount={curAccount} {loadAccounts}/>
                 {:else if $page.view === views.SCHEDULES}
                 <Schedules/>
+                {:else if $page.view === views.MODIFIERS}
+                <Modifiers/>
                 {:else if $page.view === views.NET_ASSETS}
                 <NetAssets bind:curAccount={curAccount} {loadAccounts}/>
                 {:else if $page.view === views.SETTINGS}

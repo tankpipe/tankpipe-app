@@ -400,7 +400,7 @@ mod tests {
     #[test]
     fn test_reader_dr_cr() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
+        let columns = read_columns(&"test_dr_cr.csv").unwrap();
         let transactions = read_transations(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);

@@ -1,5 +1,5 @@
 import { render } from '@testing-library/svelte'
-import Schedules from '../src/Schedules.svelte'
+import Schedules from '../src/schedules/Schedules.svelte'
 import {page, views, modes} from '../src/page'
 import schedules_data from './data/schedules_data.json'
 import {accounts} from '../src/accounts.js'

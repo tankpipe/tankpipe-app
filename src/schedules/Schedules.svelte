@@ -2,16 +2,16 @@
     import EditSchedule from './EditSchedule.svelte'
     import Schedule from './Schedule.svelte'
     import Icon from '@iconify/svelte'
-    import { page, isEditMode, isViewMode, views, modes, isListMode } from './page'
-    import {accounts} from './accounts'
+    import { page, isEditMode, isViewMode, views, modes, isListMode } from '../page'
+    import {accounts} from '../accounts'
     import { getEndDate} from './generate'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
-    import { selector } from './selector';
-    import { Errors  } from './errors';
+    import { selector } from '../selector';
+    import { Errors  } from '../errors';
     import DateInput from 'date-picker-svelte/DateInput.svelte';
-    import Spinner from './Spinner.svelte';
+    import Spinner from '../Spinner.svelte';
 
     let curSchedule = $state()
     let schedules = $state([])

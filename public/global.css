@@ -50,6 +50,11 @@ input:disabled {
 	color: #ccc;
 }
 
+input[type="number"]::-webkit-inner-spin-button {
+	cursor: pointer;
+	margin-left: 3px;
+}
+
 .og-button {
 	font-family: inherit;
 	font-size: inherit;

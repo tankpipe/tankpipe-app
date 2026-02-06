@@ -1,16 +1,17 @@
 <script>
-    import {DateInput} from 'date-picker-svelte'
-    import {Errors} from './errors.js'
+    import {Errors} from '../errors.js'
     import {onMount} from "svelte"
-    import Select from './Select.svelte'
-    import {page, modes} from './page.js'
+    import Select from '../Select.svelte'
+    import {page, modes} from '../page.js'
     import Icon from '@iconify/svelte'
-    import {accounts} from './accounts'
-    import {generate} from './generate'
-    import {settings} from './settings.js'
+    import {accounts} from '../accounts.js'
+    import {generate} from './generate.js'
+    import {settings} from '../settings.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-    import TransactionList from './TransactionList.svelte'
+    import TransactionList from '../TransactionList.svelte'
+    import SchedulePanel from './SchedulePanel.svelte'
+    import { periods } from '../dates.js'
 
     let { close, curSchedule, loadSchedules, view } = $props()
 
@@ -26,19 +27,17 @@
     let amount = $state()
     let frequency = $state(1)
     let endDate = $state()
-    let lastDate = $state()
-    let max = $state(new Date())
-    let min = $state(new Date())
-    let format = "yyyy-MM-dd"
+    let lastDate = $state()    
     let addButtonLabel = $state("Add")
     let period = $state({value:"Months", name:"Months"})
-    const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
     let drAccount = $state()
     let crAccount = $state()
     let entries = $state([])
     let transactions = $state([])
-    $inspect(curSchedule)
-    $inspect(lastDate)
+    let modifier = $state()
+    let modifiers = $state([])
+    let schedule_modifiers = []
+    let schedule_modifier = null
 
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
@@ -74,6 +73,7 @@
     })
 
     onMount(() => {
+        loadModifiers()
         if ($page.mode === modes.EDIT) {
             name = curSchedule.name
             description = curSchedule.description
@@ -95,9 +95,10 @@
             endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
             lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
             hasEnd = endDate != null
-            date = new Date(curSchedule.start_date)
-            max.setFullYear(date.getFullYear() + 20)
-            min.setFullYear(date.getFullYear() - 10)
+            date = new Date(curSchedule.start_date)               
+            if (curSchedule.modifier_configs && curSchedule.modifier_configs.length > 0) {
+                schedule_modifier = curSchedule.schedule_modifiers[0]
+            }
         } else if ($page.mode === modes.NEW) {
             drAccount = null
             crAccount = null
@@ -124,6 +125,15 @@
         }
     })
 
+    const loadModifiers = async () => {
+        console.log("loadModifiers")
+        const result = await invoke('modifiers')
+        modifiers = Array.isArray(result) ? [...result] : []
+        if (curSchedule && curSchedule.schedule_modifiers && curSchedule.schedule_modifiers.length > 0) {            
+            modifier = modifiers.find(m => m.id == curSchedule.schedule_modifiers[0].modifier_id)       
+        }
+    }
+
     const loadTransactions = async () => {
         console.log("loadScheduleTransactions")
         transactions = await invoke("schedule_transactions", { scheduleId: curSchedule.id, status: "Projected" })
@@ -140,6 +150,13 @@
         let match = periods.filter(p => p.value == value)
         return match.length > 0 ? match[0] : null
     }
+
+    const matchModifier = (modifierId) =>  {
+        if (!modifierId) return null
+        let match = $modifiers.filter(m => m.id == modifierId)
+        return match.length > 0 ? match[0] : null
+    }
+
 
     const onCancel = () => {
         console.log("onCancel")
@@ -168,13 +185,22 @@
             updateEntryTypes()
 
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
-            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
+            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"          
             entries.forEach (
                 e => {
                     e["account_id"] = e["account"]["id"]
                     e["amount"] = (e["entry_type"] === "Credit") ? e["crAmount"] : e["drAmount"]
                 }
             )
+
+            let updated_schedule_modifiers = []
+            console.log(schedule_modifier)
+            console.log(modifier)
+            if (modifier && modifier.id && (! schedule_modifier || schedule_modifier.modifier_id != modifier.id)) {
+                updated_schedule_modifiers.push({modifier_id: modifier.id, cycle_count: 0, next_date: "null"})
+            } else if (schedule_modifier) {
+                //updated_schedule_modifiers = [...schedule_modifiers]
+            }
 
             let schedule = {
                     name: name,
@@ -183,7 +209,8 @@
                     start_date: dateStr,
                     last_date: "null",
                     end_date: endDateStr,
-                    entries: entries
+                    entries: entries,
+                    schedule_modifiers: updated_schedule_modifiers
                 }
 
             if ($page.mode === modes.NEW) {
@@ -222,9 +249,9 @@
     }
 
     const addSchedule = async (schedule) => {
-        console.log(schedule)
         schedule.id = zeros
-           await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
+        console.log(schedule)        
+        await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
     const saveSchedule = async (schedule) => {
@@ -339,20 +366,12 @@
         </table>
     </div>
     <hr/>
-    <div class="panel-title">{$_('schedule.schedule')}</div>
-    <div class="form-row2">
-        <div class="widget">
-            {$_('schedule.every')}&nbsp;<input id="amount" class="frequency-input" class:error={errors.isInError("frequency")} bind:value={frequency}>
-            &nbsp;<Select bind:item={period} items={periods} flat={true} inError={errors.isInError("period")}/>
-            {$_('schedule.starting_from')}&nbsp;<div class="date-input"><DateInput bind:value={date} {format} placeholder="" {min} {max} /></div>
-        </div>
-    </div>
-    <div class="form-row2">
-        <div class="widget2">
-            <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
-            <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input id="end" type="radio" bind:group={hasEnd} value={true} class="" name="endType"/>
-            <div class="widget left"><label for="end">{$_('schedule.end_after')}&nbsp;</label><div class="date-input raise"><DateInput bind:value={endDate} {format} placeholder="" {min} {max} /></div></div>
+    <SchedulePanel bind:frequency={frequency} bind:period={period} bind:date={date} bind:hasEnd={hasEnd} bind:endDate={endDate} {errors} />
+    <hr/>
+    <div class="form-row">
+        <div class="top-widget">
+            <label for="desc">{$_('schedule.modifier')}</label>
+            <Select bind:item={modifier} items={modifiers} label="" none={true} flat={true} inError={errors.isInError("modifier")}/>
         </div>
     </div>
     <hr/>
@@ -374,7 +393,7 @@
 <hr class="fat-hr"/>
 <div>
     <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
-    <div class="toolbar toolbar-right">
+    <div class="toolbar toolbar-right list-toolbar">
         <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
 </div>
@@ -414,11 +433,6 @@
         clear:both;
     }
 
-    .form-row2, .form-button-row {
-        display: block;
-        text-align: left;
-    }
-
     .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
@@ -444,20 +458,6 @@
         font-size: 0.9em;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
-
-    .widget2 label {
-        display: inline-block;
-        font-size: 1.0em;
-    }
-
-    .widget2 input {
-        margin: 0px;
-    }
-
     .top-widget {
         display: inline-block;
         padding: 5px 0px 5px 0px;
@@ -470,19 +470,6 @@
     .money-input {
         width: 100px;
     }
-    .frequency-input {
-        width: 40px;
-        text-align: right;
-        background-color: #F0F0F0;
-    }
-
-    .raise {
-        margin-top: -7px;
-    }
-
-    .left {
-        padding-left: 0px;
-    }
 
     .float-left {
         float: left;
@@ -494,10 +481,6 @@
 
     .description-input {
         width: 400px;
-    }
-
-    .date-input {
-        float: right;
     }
 
     .total {
@@ -520,6 +503,10 @@
         float: left;
     }
 
+    .entry-buttons i:not(:first-child) {
+        margin-left: 5px;
+    }
+
     .greyed {
         color: #666;
         border-color: #666;
@@ -529,6 +516,10 @@
         color: #666 !important;
         border-color: #666 !important;
         cursor: default !important;
+    }
+
+    :global(.list-toolbar) {
+        margin: -2px 0 3px 0;
     }
 
     .gg-add-r {
@@ -553,7 +544,7 @@
         background: currentColor;
         border-radius: 5px;
         top: 8px;
-        left: 4px
+        left: 4px;
     }
 
     .gg-add-r::after {

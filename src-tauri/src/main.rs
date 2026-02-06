@@ -9,7 +9,7 @@ use std::error::Error;
 use std::sync::Mutex;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{App, Emitter, Manager};
-use crate::handlers::{account, transaction, schedule, repo};
+use crate::handlers::{account, transaction, schedule, modifier, repo};
 use crate::money_repo::Repo;
 
 pub mod account_display;
@@ -68,6 +68,11 @@ fn main() {
             schedule::generate_by_schedule,
             schedule::reset_schedule_last_date,
             schedule::end_date,
+            modifier::modifiers,
+            modifier::get_modifier,
+            modifier::add_modifier,
+            modifier::update_modifier,
+            modifier::delete_modifier,
             repo::update_settings,
             repo::settings,
             repo::config,

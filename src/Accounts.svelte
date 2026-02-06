@@ -1,13 +1,10 @@
 <script>
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
-    import {open} from '@tauri-apps/plugin-dialog'
     import {page, isEditMode, modes, views} from "./page"
-    import {config} from './config'
     import {accounts} from './accounts'
     import { context } from "./context"
     import EditBooks from "./EditBooks.svelte"
-    import { invoke } from '@tauri-apps/api/core'
     import {onMount} from 'svelte'
     import { _ } from 'svelte-i18n'
 
@@ -59,48 +56,7 @@
         }
         return false
     }
-
-    const newFile = async () => {
-        curAccount = null
-        page.set({view: views.BOOKS, mode: modes.NEW})
-    };
-
-    const openFile = async () => {
-        const selected = await open({
-            directory: false,
-            multiple: false,
-            filters: [{name: '*', extensions: ['json']}],
-            defaultPath: $config.data_dir,
-        });
-
-        if(selected) {
-            console.log(selected)
-            loadFile(selected)
-        }
-    }
-
-    const loadFile = async (path) => {
-        curAccount = null
-           await invoke('load_file', {path: path}).then(loadFileSuccess, loadFileFailure)
-    };
-
-    function loadFileSuccess(result) {
-        console.log(result)
-        loadConfig()
-        accounts.set(result)
-    }
-
-    function loadFileFailure(result) {
-        console.log(result)
-        errors = new Errors()
-        errors.addError("all", $_('accounts.errors.loadFailure', { result }))
-    }
-
-    const loadConfig = async () => {
-        let result = await invoke('config')
-        config.set(result)
-    };
-
+    
 </script>
 
 {#if ! $context.hasBooks}

@@ -1,4 +1,5 @@
-use accounts::account::{Schedule, Transaction, TransactionStatus};
+use accounts::account::{Transaction, TransactionStatus};
+use accounts::schedule::{Schedule};
 use uuid::Uuid;
 use crate::{BooksState, handlers::error_handler};
 use crate::account_display::DateParam;

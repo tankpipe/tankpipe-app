@@ -2,6 +2,7 @@
     "app": {
         "accounts": "Accounts",
         "journal": "Journal",
+        "modifiers": "Modifiers",
         "net_assets": "Net Assets",
         "settings": "Settings",
         "schedules": "Schedules",
@@ -22,7 +23,10 @@
     "buttons": {
         "add": "Add",
         "addRow": "Add row",
+        "cancel": "Cancel",
         "close": "Close",
+        "delete": "Delete",
+        "edit": "Edit",
         "ok": "Ok",
         "removeRow": "Remove row",
         "update": "Update"
@@ -135,7 +139,9 @@
         "generate": "Schedule transactions",
         "generating": "Scheduling...",
         "generation_complete": "Scheduling complete.",
-        "deleting_transactions": "Deleting transactions..."
+        "deleting_transactions": "Deleting transactions...",
+        "modifier": "Modifier",
+        "modifier_date": "Modifier date"
     },
     "schedules": {
         "createNew": "Create a new schedule",
@@ -143,6 +149,12 @@
         "scheduleUntil": "Schedule until",
         "last": "Last scheduled",
         "title": "Schedules"
+    },
+    "modifiers": {
+        "createNew": "Create a new modifier",
+        "deleted": "Modifier deleted",
+        "noModifiers": "No modifiers",
+        "title": "Modifiers"
     },
     "netAssets": {
         "asAt": "As at",
@@ -196,5 +208,23 @@
         "required_columns_mapped": "Required columns mapped",
         "columns": "Columns",
         "sample_data": "CSV data"
+    },
+    "modifier": {
+        "title": "Modifier",
+        "edit_modifier": "Edit Modifier",
+        "new_modifier": "New Modifier",
+        "percentage": "Percentage",
+        "period": "Period",
+        "frequency": "Frequency",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "namePlaceholder": "Enter modifier name",
+        "nameRequired": "Name is required",
+        "frequencyRequired": "Frequency must be greater than 0",
+        "added": "Modifier added",
+        "updated": "Modifier updated",
+        "increase": "% increase.",
+        "decrease": "% decrease.",
+        "percent": "%"
     }
 }
