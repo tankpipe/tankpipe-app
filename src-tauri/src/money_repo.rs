@@ -81,7 +81,8 @@ impl Repo {
             Ok(config) => {
                 let path = config.last_file.path.clone();                
                 if path.is_empty() {
-                    return Ok(Repo::from_components(config, Books::build_empty("My Books")))
+                    Err(BooksError{ error: "No last file path.".to_string() })
+                    //return Ok(Repo::from_components(config, Books::build_empty("My Books")))
                 } else {
                     let result = load_books(path.clone());
                     match result {

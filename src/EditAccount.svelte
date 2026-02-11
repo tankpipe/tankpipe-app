@@ -97,7 +97,7 @@
 
     function rejected(result) {
         errors = new Errors()
-        errors.addError("all", $_('account.form.errors.genericError', { values: { 0: result } }))
+        errors.addError("all", $_('errors.genericError', { values: { 0: result } }))
     }
 
     const addAccount = async (account) => {

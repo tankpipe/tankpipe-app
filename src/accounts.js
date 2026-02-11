@@ -6,4 +6,4 @@ const updateAccounts = (newAccounts) => {
     accounts.set(newAccounts)
 }
 
-export {accounts as accounts, update}
+export {accounts as accounts, updateAccounts}
