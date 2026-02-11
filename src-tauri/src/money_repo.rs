@@ -28,46 +28,20 @@ impl Repo {
         Repo{ config: config, books: books}
     }
     
-    pub fn load_startup() -> Result<Repo, BooksError> {
-        let config_result = Repo::load_config();
-        println!("config: {:?}", config_result);
-        match config_result {
-            Ok(config) => {
-                let path = config.last_file.path.clone();                
-                if path.is_empty() {
-                    Err(BooksError{ error: "No last file path.".to_string() })
-                } else {
-                    let result = load_books(path.clone());
-                    match result {
-                        Ok(b) => {
-                            Ok(Repo::from_components(config, b))
-                        },
-                        Err(e) => {
-                            let error_msgs = vec![
-                                format!("Error while loading the previously opened books file."),
-                                format!("File: {:?}", &path.display()),
-                                format!("Error: {}", e )];
-                            println!("{:?}", error_msgs);         
-
-                            Err(BooksError{ error: error_msgs.join("\n") })
-                        }
-                    }
-                }
-            },
-            Err(e) => Err(e)
-        }
-    }
-
-    pub fn load_file_and_config(path: &OsString) -> Result<Repo, BooksError> {
+    fn load_books_with_config<F>(path_provider: F) -> Result<Repo, BooksError> 
+    where 
+        F: FnOnce(&Config) -> Result<OsString, BooksError>
+    {
         let config_result = Repo::load_config();
         println!("config: {:?}", config_result);
         match config_result {
             Ok(mut config) => {
+                let path = path_provider(&config)?;
                 let result = load_books(path.clone());
                 match result {
                     Ok(b) => {
                         config.set_last_from_path(path.clone(), b.name.clone().as_str(), b.id);
-                        let _save_result = write_config( &config.settings_path(), &config);
+                        let _save_result = write_config(&config.settings_path(), &config);
                         Ok(Repo::from_components(config, b))
                     },
                     Err(e) => {
@@ -83,6 +57,21 @@ impl Repo {
             },
             Err(e) => Err(e)
         }
+    }
+
+    pub fn load_startup() -> Result<Repo, BooksError> {
+        Self::load_books_with_config(|config| {
+            let path = config.last_file.path.clone();                
+            if path.is_empty() {
+                Err(BooksError{ error: "No last file path.".to_string() })
+            } else {
+                Ok(path)
+            }
+        })
+    }
+
+    pub fn load_file_and_config(path: &OsString) -> Result<Repo, BooksError> {
+        Self::load_books_with_config(|_config| Ok(path.clone()))
     }
 
     pub fn load_config() -> Result<Config, BooksError> {
