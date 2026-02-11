@@ -23,4 +23,13 @@ const isInitialising = () => {
     return context.initialising
 }
 
-export {context, initializeContext, updateContext, setInitialising, isInitialising}
+const hasBooks = () => {
+    return context.hasBooks
+}
+
+
+const setHasBooks = (hasBooks) => {
+    context.update(value => (Object.assign(value, {hasBooks: hasBooks})))
+}
+
+export {context, initializeContext, updateContext, setInitialising, isInitialising, hasBooks, setHasBooks}

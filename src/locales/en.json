@@ -87,7 +87,7 @@
             "new_books": "New Books"
         },
         "messages": {
-            "get_started": "To get started give your first set of accounts a name. For example, Personal Finances."
+            "get_started": "To get started give your first set of accounts (books) a name. For example, Personal Finances."
         }
     },
     "editMultiple": {

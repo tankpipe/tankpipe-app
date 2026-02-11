@@ -3,7 +3,7 @@ import {open} from '@tauri-apps/plugin-dialog'
 import {page, modes, views} from './page.js'
 import {accounts, updateAccounts} from './accounts.js'
 import {updateSettings} from './settings.js'
-import {updateContext, setInitialising, isInitialising} from './context.js'
+import {updateContext, setInitialising, isInitialising, setHasBooks} from './context.js'
 import {config, updateConfig} from './config.js'
 import { get } from 'svelte/store'
 import { invoke } from '@tauri-apps/api/core';
@@ -11,7 +11,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 
 const listener = async () => {
-    await listen('file-open', (event) => {
+    listen('file-open', (event) => {
         console.log(event)
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
         openFile()
@@ -76,6 +76,8 @@ const initialiseBooks = async () => {
     await loadConfig()
     resetMenu()
     setInitialising(false)
+    page.set({view: views.ACCOUNTS, mode: modes.LIST})
+    setHasBooks(true)
     emit('initialised', "")
 }
 
@@ -110,5 +112,5 @@ const resetMenu = () => {
     }
 }
 
-export {showFilePicker, initialiseBooks, initialiseFailed}
+export {showFilePicker, initialiseBooks, initialiseFailed, loadConfig}
 

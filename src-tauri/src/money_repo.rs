@@ -139,6 +139,17 @@ impl Repo {
         }
     }
 
+    pub fn load_config() -> Result<Config, BooksError> {
+        let files = setup_app_directories()?;
+        let mut config_result = load_config(files.settings_path());
+
+        if config_result.is_err() {
+            println!("Config not found so performing initial setup...");
+            config_result = initial_setup();
+        }
+        config_result
+    }
+
     pub fn load_books(&mut self, path: &OsString) -> Result<(), BooksError> {
         let result = load_books(path);
 
@@ -178,6 +189,21 @@ impl Repo {
         let lower_name = name.to_ascii_lowercase();
         let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
         let last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
+        self.config.set_last(last_file.clone());
+        self.config.current_books_id = Some(self.books.id);
+        self.config.current_file = Some(last_file.clone());
+        new_books(self.config.last_file.path.clone(), &self.books)?;
+        match write_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
+
+    pub fn save_new_repo(&mut self) -> Result<(), BooksError> {
+        let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
+        let lower_name = &self.books.name.to_ascii_lowercase();
+        let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
+        let last_file = FileDetails::from_path(&self.books.name.clone(), self.config.file_path(&file_name));
         self.config.set_last(last_file.clone());
         self.config.current_books_id = Some(self.books.id);
         self.config.current_file = Some(last_file.clone());

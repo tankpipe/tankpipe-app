@@ -89,7 +89,9 @@ fn main() {
             repo::load_file,
             repo::new_file,
             repo::initialise,
-            repo::load_with_path
+            repo::load_with_path,
+            repo::load_config,
+            repo::create_first_books,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

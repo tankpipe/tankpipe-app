@@ -7,7 +7,8 @@
     import {page, modes, views} from './page.js'
     import {initialiseBooks, initialiseFailed} from'./events'
     import {accounts, updateAccounts} from './accounts'
-    import {initializeContext, isInitialising} from './context'
+    import {initializeContext, isInitialising, context} from './context'
+    import {config} from './config'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
@@ -17,7 +18,8 @@
     import NetAssets from './NetAssets.svelte'
     import { _, waitLocale, isLoading } from 'svelte-i18n'
     import './i18n'
-    import ErrorMsg from './ErrorMsg.svelte';
+    import ErrorMsg from './ErrorMsg.svelte'
+    import { updateConfig } from './config'
 
     export let curAccount = null
 
@@ -55,10 +57,27 @@
 
         if (supportedVersion) {
              await waitLocale()
-             await initialise()
+             //await initialise()
+             await invoke('load_config').then(loadConfigSuccess, loadConfigFailed)
+             if ($config.current_books_id || $config.current_file) {
+                 initialise()
+             } else {
+                 console.log('No books history found')
+                 
+                 page.set({view: views.BOOKS, mode: modes.NEW}) 
+             }
         }
 
     })()
+
+    const loadConfigSuccess = (result) => {
+        console.log(result)
+        updateConfig(result)        
+    }
+
+    const loadConfigFailed = (error) => {
+        console.log(error)
+    }
 
     const listener = async () => {
 
@@ -91,7 +110,11 @@
             <div class="column left">
                 <div class="menu-left">
                     <ul>
+                        {#if $context.hasBooks}
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
+                        {:else}
+                        <li class="disabled">{$_('app.accounts')}</li>
+                        {/if}
                         {#if $accounts.length > 0 }
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
@@ -102,7 +125,7 @@
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>
                         <li class="disabled">{$_('app.modifiers')}</li>                        
-                        {/if}
+                        {/if}                    
                     </ul>
                 </div>
 

@@ -3,7 +3,7 @@ import Accounts from '../src/Accounts.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page'
 import account_data from './data/account_data.json'
-import { locale } from 'svelte-i18n'
+import { locale, isLoading } from 'svelte-i18n'
 import '../src/i18n'
 
 locale.set('en')

@@ -4,6 +4,8 @@
     import {page, modes, views} from "./page"
     import {accounts} from './accounts'
     import {context} from './context.js';
+    import {config} from './config'
+    import {loadConfig} from './events.js'
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
@@ -14,7 +16,7 @@
     let addButtonLabel = $_('buttons.add')
 
     onMount(() => {
-            addButtonLabel = $_('buttons.add')
+        addButtonLabel = $_('buttons.add')
     })
 
     const onCancel = () => {
@@ -22,13 +24,20 @@
     }
 
     const newFile = async (name) => {
-        await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
+        console.log("newFile", name)
+        if ($config.current_books_id || $config.current_file) {
+            await invoke('new_file', {name: name}).then(loadFileSuccess, loadFileFailure)
+        } else {
+            await invoke('create_first_books', {name: name}).then(loadFileSuccess, loadFileFailure)
+        }
     }
 
-    function loadFileSuccess(result) {
+    const loadFileSuccess = async (result) => {
         console.log(result)
         emit('file-loaded', "")
         accounts.set(result)
+        await loadConfig()
+        page.set({view: views.ACCOUNTS, mode: modes.LIST})
     }
 
     function loadFileFailure(result) {
