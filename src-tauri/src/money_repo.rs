@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
 use accounts::books::{Books, BooksError};
-use accounts::book_repo::{load_books, save_books, new_books};
+use accounts::book_repo::{load_books, save_books, save_new_books};
 use directories::ProjectDirs;
 use regex::Regex;
 use dirs::home_dir;
@@ -185,7 +185,7 @@ impl Repo {
         self.config.set_last(last_file.clone());
         self.config.current_books_id = Some(self.books.id);
         self.config.current_file = Some(last_file.clone());
-        new_books(self.config.last_file.path.clone(), &self.books)?;
+        save_new_books(self.config.last_file.path.clone(), &self.books)?;
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
             Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
@@ -193,20 +193,19 @@ impl Repo {
     }
 
     pub fn save_new_repo(&mut self) -> Result<(), BooksError> {
-        let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
-        let lower_name = &self.books.name.to_ascii_lowercase();
-        let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
+        let file_name = derive_file_name(&self.books.name);
         let last_file = FileDetails::from_path(&self.books.name.clone(), self.config.file_path(&file_name));
         self.config.set_last(last_file.clone());
         self.config.current_books_id = Some(self.books.id);
         self.config.current_file = Some(last_file.clone());
-        new_books(self.config.last_file.path.clone(), &self.books)?;
+        save_new_books(self.config.last_file.path.clone(), &self.books)?;
+        
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
             Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
         }
     }
-
+     
     pub fn save_config(&self) -> Result<(), BooksError> {
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
@@ -214,6 +213,22 @@ impl Repo {
         }
     }
 
+    pub fn first_repo(name: &str) -> Result<Repo, BooksError> {
+        let mut config =  Repo::load_config()?;   
+        let books = Books::build_empty(&name);
+        config.current_books_id = Some(books.id);
+        let mut repo = Repo::from_components(config, books);
+        repo.save_new_repo()?;
+        Ok(repo)
+    }
+
+}
+
+pub fn derive_file_name(name: &str) -> String {
+    let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
+    let lower_name = name.to_ascii_lowercase();
+    let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
+    file_name
 }
 
 
@@ -294,8 +309,11 @@ pub fn initial_setup() -> Result<Config, BooksError> {
 #[cfg(test)]
 
 mod tests {
+    use std::{ffi::OsString, path::PathBuf};
+
+    use accounts::book_repo::file_exists;
     use serial_test::serial;
-    use crate::money_repo::{initial_setup, Repo};
+    use crate::money_repo::{Repo, derive_file_name, initial_setup, setup_app_directories};
 
     #[test]
     #[serial]
@@ -308,7 +326,17 @@ mod tests {
     #[test]
     #[serial]
     fn test_load() {
-        let repo = Repo::load_startup().unwrap();
-        assert_eq!("My Books", repo.books.name);
+        let name = "Unit Test Books";
+        let app_dirs = setup_app_directories().unwrap();
+        let file_path = PathBuf::from(app_dirs.data_dir.clone()).join(derive_file_name(name));
+
+        if file_exists(OsString::from(file_path.clone())) {
+            std::fs::remove_file(OsString::from(file_path.clone())).unwrap();
+        }
+
+        let repo = Repo::first_repo(name).unwrap();
+        assert_eq!(name, repo.books.name);
+        assert_eq!(repo.books.id, repo.config.current_books_id.unwrap());
+        std::fs::remove_file(OsString::from(file_path.clone())).unwrap();
     }
 }

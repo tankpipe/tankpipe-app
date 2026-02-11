@@ -1,4 +1,4 @@
-use accounts::books::{Books, Settings};
+use accounts::books::{Settings};
 use accounts::account::Account;
 use tauri::Manager;
 use std::ffi::OsString;
@@ -191,11 +191,7 @@ pub fn new_file(state: tauri::State<BooksState>, name: String) -> Result<Vec<Acc
 #[tauri::command]
 pub fn create_first_books(app_handle: tauri::AppHandle, name: String) -> Result<Vec<Account>, String> {
     println!("create_first_books {}", &name);
-    let mut config =  Repo::load_config().map_err(|e| e.error)?;   
-    let books = Books::build_empty(&name);
-    config.current_books_id = Some(books.id);
-    let mut repo = Repo::from_components(config, books);
-    repo.save_new_repo().map_err(|e| e.error)?;
+    let repo = Repo::first_repo(&name).map_err(|e| e.error)?;
     let accounts = repo.books.accounts();
     let state = BooksState(Mutex::from(repo));  
     app_handle.manage(state);
