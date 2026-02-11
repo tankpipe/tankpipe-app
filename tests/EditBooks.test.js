@@ -1,8 +1,8 @@
-import { render, waitFor } from '@testing-library/svelte'
+import { render } from '@testing-library/svelte'
 import EditBooks from '../src/EditBooks.svelte'
 import {page, views, modes} from '../src/page'
 import { mockIPC } from "@tauri-apps/api/mocks"
-import { locale } from 'svelte-i18n'
+import { init } from 'svelte-i18n'
 import { vi } from 'vitest'
 import account_data from './data/account_data.json'
 import '../src/i18n'
@@ -18,7 +18,10 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
     open: vi.fn(() => Promise.resolve(null))
 }))
 
-locale.set('en')
+init({
+    fallbackLocale: 'en',
+    initialLocale: 'en',
+});
 
 it('is displayed correctly', async () => {
     await new Promise(r => setTimeout(r));
@@ -30,7 +33,7 @@ it('is displayed correctly', async () => {
 
     })
 
-    const {container} = render(EditBooks, {})
+    const {container} = await render(EditBooks, {})
     expect(container.outerHTML).toMatchSnapshot();
 });
 
