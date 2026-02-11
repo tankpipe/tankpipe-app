@@ -42,7 +42,7 @@ fn main() {
 
             build_menus(app)?;
             if let Some(repo) = repo {
-                println!("Repo found during startup. {:?}", repo.books.name);
+                println!("Repo found during startup: {:?}", repo.books.name);
                 app.manage(BooksState(Mutex::from(repo)));
             } else {
                 println!("No repo found during startup.");
@@ -81,7 +81,6 @@ fn main() {
             repo::update_settings,
             repo::settings,
             repo::config,
-            repo::errors,
             repo::about,
             repo::update_config,
             repo::evaluate_csv,

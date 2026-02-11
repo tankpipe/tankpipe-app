@@ -54,18 +54,13 @@ impl AppDirectories {
 
 pub struct Repo {
     pub config: Config,
-    pub books: Books,
-    pub errors: Vec<String>
+    pub books: Books
 }
 
 impl Repo {
 
     pub fn from_components(config: Config, books: Books) -> Repo {
-        Repo{ config: config, books: books, errors: Vec::new() }
-    }
-
-    pub fn from_components_with_errors(config: Config, books: Books, errors: Vec<String>) -> Repo {
-        Repo{ config: config, books: books, errors: errors}
+        Repo{ config: config, books: books}
     }
     
     pub fn load_startup() -> Result<Repo, BooksError> {
@@ -82,7 +77,6 @@ impl Repo {
                 let path = config.last_file.path.clone();                
                 if path.is_empty() {
                     Err(BooksError{ error: "No last file path.".to_string() })
-                    //return Ok(Repo::from_components(config, Books::build_empty("My Books")))
                 } else {
                     let result = load_books(path.clone());
                     match result {
@@ -96,7 +90,6 @@ impl Repo {
                                 format!("Error: {}", e )];
                             println!("{:?}", error_msgs);         
 
-                            //Ok(Repo::from_components_with_errors(config, Books::build_empty("My Books"), error_msgs))
                             Err(BooksError{ error: error_msgs.join("\n") })
                         }
                     }

@@ -36,13 +36,6 @@ pub fn config(state: tauri::State<BooksState>) -> Config {
 }
 
 #[tauri::command]
-pub fn errors(state: tauri::State<BooksState>) -> Vec<String> {
-    println!("Fetching errors");
-    let mutex_guard = state.0.lock().unwrap();
-    mutex_guard.errors.clone()
-}
-
-#[tauri::command]
 pub async fn initialise(app_handle: tauri::AppHandle) -> Result<(), String> {
     println!("initialise");
     let repo =  Repo::load_startup();
