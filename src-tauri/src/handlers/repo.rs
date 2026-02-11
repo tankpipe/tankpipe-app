@@ -7,7 +7,7 @@ use crate::BooksState;
 use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
-use crate::handlers::{error_handler, repo};
+use crate::handlers::{error_handler};
 use crate::money_repo::Repo;
 use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, ColumnTypes};
 use crate::csv_check::CsvCheck;
@@ -47,33 +47,33 @@ pub async fn initialise(app_handle: tauri::AppHandle) -> Result<(), String> {
     println!("initialise");
     let repo =  Repo::load_startup();
     match repo {
-    Ok(repo) => {
-        let state = BooksState(Mutex::from(repo));  
-        app_handle.manage(state);
-        Ok(())        
-    },
-    Err(e) => Err(e.error),
-}
+        Ok(repo) => {
+            let state = BooksState(Mutex::from(repo));  
+            app_handle.manage(state);
+            Ok(())        
+        },
+        Err(e) => Err(e.error),
+    }
   
 }
 
 #[tauri::command]
 pub async fn load_with_path(app_handle: tauri::AppHandle, path: String) -> Result<(), String> {
-  let repo =  Repo::load_file_and_config(&OsString::from(path));
-  match repo {
-    Ok(repo) => {
-        let state = BooksState(Mutex::from(repo));  
-        app_handle.manage(state);
-        Ok(())        
-    },
-    Err(e) => Err(e.error),
-  }
+    let repo =  Repo::load_file_and_config(&OsString::from(path));
+    match repo {
+        Ok(repo) => {
+            let state = BooksState(Mutex::from(repo));  
+            app_handle.manage(state);
+            Ok(())        
+        },
+      Err(e) => Err(e.error),
+    }
   
 }
 
 #[tauri::command]
 pub async fn load_config() -> Result<Config, String> {
-  Repo::load_config().map_err(|e| e.error)   
+    Repo::load_config().map_err(|e| e.error)   
 }
 
 #[tauri::command]

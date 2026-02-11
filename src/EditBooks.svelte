@@ -34,9 +34,9 @@
 
     const loadFileSuccess = async (result) => {
         console.log(result)
-        emit('file-loaded', "")
         accounts.set(result)
         await loadConfig()
+        emit('file-loaded', "")
         page.set({view: views.ACCOUNTS, mode: modes.LIST})
     }
 

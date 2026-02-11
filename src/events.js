@@ -106,7 +106,8 @@ const loadConfig = async () => {
 };
 
 const resetMenu = () => {
-    updateContext({hasBooks: get(config).recent_files.length > 0})
+    const hasBooksData = get(config).current_books_id || get(config).current_file;
+    updateContext({hasBooks: hasBooksData})
     if (get(accounts).length < 1) {
         page.set({view: views.ACCOUNTS, mode: modes.NEW})
     }

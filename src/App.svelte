@@ -59,7 +59,7 @@
              await waitLocale()
              //await initialise()
              await invoke('load_config').then(loadConfigSuccess, loadConfigFailed)
-             if ($config.current_books_id || $config.current_file) {
+             if ($config && ($config.current_books_id || $config.current_file)) {
                  initialise()
              } else {
                  console.log('No books history found')

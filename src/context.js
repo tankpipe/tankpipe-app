@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { writable, get } from 'svelte/store'
 
 const context = writable({})
 
@@ -10,9 +10,7 @@ const initializeContext = () => {
 }
 
 const updateContext = (update) => {
-    context.set(
-        Object.assign(context, update)
-    )
+    context.update(current => Object.assign({}, current, update))
 }
 
 const setInitialising = (isInitialising) => {
