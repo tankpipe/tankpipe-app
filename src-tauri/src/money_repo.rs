@@ -29,13 +29,7 @@ impl Repo {
     }
     
     pub fn load_startup() -> Result<Repo, BooksError> {
-        let files = setup_app_directories()?;
-        let mut config_result = load_config(files.settings_path());
-
-        if config_result.is_err() {
-            println!("Config not found so performing initial setup...");
-            config_result = initial_setup();
-        }
+        let config_result = Repo::load_config();
         println!("config: {:?}", config_result);
         match config_result {
             Ok(config) => {
@@ -65,13 +59,7 @@ impl Repo {
     }
 
     pub fn load_file_and_config(path: &OsString) -> Result<Repo, BooksError> {
-        let files = setup_app_directories()?;
-        let mut config_result = load_config(files.settings_path());
-
-        if config_result.is_err() {
-            println!("Config not found so performing initial setup...");
-            config_result = initial_setup();
-        }
+        let config_result = Repo::load_config();
         println!("config: {:?}", config_result);
         match config_result {
             Ok(mut config) => {
@@ -99,7 +87,7 @@ impl Repo {
 
     pub fn load_config() -> Result<Config, BooksError> {
         let files = setup_app_directories()?;
-        let mut config_result = load_config(files.settings_path());
+        let mut config_result = read_config(files.settings_path());
 
         if config_result.is_err() {
             println!("Config not found so performing initial setup...");
@@ -271,7 +259,7 @@ fn build_home_dir_path() -> Result<OsString, BooksError> {
     Ok(h.unwrap().join("com.tankpipe.money").as_os_str().to_os_string())
 }
 
-pub fn load_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
+pub fn read_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
     println!("load config from: {:?}", path.as_ref());
     match File::open(path) {
         Err(why) => println!("Open settings file failed : {:?}", why.kind()),
