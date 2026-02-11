@@ -42,6 +42,8 @@ pub struct Config {
     #[serde(serialize_with = "serialize_osstring")]
     #[serde(deserialize_with = "deserialize_osstring")]
     pub config_dir: OsString,
+    pub current_file: Option<FileDetails>,
+    pub current_books_id: Option<Uuid>,
     pub last_file: FileDetails,
     pub recent_files: Vec<FileDetails>,
     pub display_date_format: DateFormat,
@@ -62,11 +64,13 @@ impl Config {
         PathBuf::from(self.data_dir.clone()).join(name)
     }
 
-    pub fn set_last_from_path(&mut self, path: OsString, name: &str) {
+    pub fn set_last_from_path(&mut self, path: OsString, name: &str, books_id: Uuid) {
         let last_file: FileDetails;
         let os_string_path = OsString::from(path);
         self.last_file.path = os_string_path.clone();
         self.last_file.name = name.to_string();
+        self.current_file = Some(self.last_file.clone());
+        self.current_books_id = Some(books_id);
         let index = self.recent_files.iter().position(|f| *f.path == os_string_path);
         match index {
             Some(i) => {

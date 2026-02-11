@@ -3,8 +3,6 @@
     import Icon from '@iconify/svelte'
     import {page, isEditMode, modes, views} from "./page"
     import {accounts} from './accounts'
-    import { context } from "./context"
-    import EditBooks from "./EditBooks.svelte"
     import {onMount} from 'svelte'
     import { _ } from 'svelte-i18n'
 
@@ -59,9 +57,7 @@
     
 </script>
 
-{#if ! $context.hasBooks}
-<EditBooks />
-{:else if isEditMode($page)}
+{#if isEditMode($page)}
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
 {:else}
     <div>

@@ -5,11 +5,9 @@
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'
-    import './events'
-    import {settings} from './settings'
-    import {accounts} from './accounts'
-    import {config} from './config'
-    import {initializeContext, updateContext} from './context'
+    import {initialiseBooks, initialiseFailed} from'./events'
+    import {accounts, updateAccounts} from './accounts'
+    import {initializeContext, isInitialising} from './context'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
@@ -17,12 +15,14 @@
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import NetAssets from './NetAssets.svelte'
-    import { _, waitLocale } from 'svelte-i18n'
+    import { _, waitLocale, isLoading } from 'svelte-i18n'
     import './i18n'
+    import ErrorMsg from './ErrorMsg.svelte';
 
     export let curAccount = null
+
     let dialog
-    let initializing = true
+    
     initializeContext()
 
     export let transactions = []
@@ -31,51 +31,31 @@
     onMount(async () => {
         unlistenLoaded = await listen('file-loaded', (event) => {
             curAccount = null
-            loadConfig()
-        })
+        })         
     })
 
     onDestroy(async () => {
         unlistenLoaded()
     })
 
+    const initialise = async () => {        
+        await invoke('initialise').then(initialiseBooks, initialiseFailed)
+    };
+
     const loadAccounts = async () => {
         curAccount = null
         let result = await invoke('accounts')
-        accounts.set(result)
+        updateAccounts(result)
     };
 
-    const loadSettings = async () => {
-        let result = await invoke('settings')
-        settings.set(result)
-    };
-
-    const loadConfig = async () => {
-        let result = await invoke('config')
-        config.set(result)
-        console.log(result)
-        resetMenu()
-    };
-
-    const resetMenu = () => {
-        updateContext({hasBooks: $config.recent_files.length > 0})
-        if ($accounts.length < 1) {
-            page.set({view: views.ACCOUNTS, mode: modes.NEW})
-        }
-    }
     let supportedVersion = false;
 
     (async () => {
         supportedVersion = (typeof HTMLDialogElement === 'function')
 
         if (supportedVersion) {
-             initializing = true
              await waitLocale()
-             await loadSettings()
-             await loadAccounts()
-             await loadConfig()
-             resetMenu()
-             initializing = false
+             await initialise()
         }
 
     })()
@@ -91,30 +71,23 @@
 
     listener()
 
-    let dialogShown = false
     let closeIcon = true
-    // afterUpdate(() => {
-    //     if ( ! $context.hasBooks && dialog && ! dialogShown) {
-    //         closeIcon = false
-    //         dialog.showModal()
-    //         dialogShown = true
-    //     }
-    // })
 
 </script>
 
 <main>
-    <div class="app">
+    <div class="app">                
         {#if !supportedVersion}
         <div class="column middle">
             <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
             <div class="loading">User Agent: {window.navigator.userAgent}</div>
         </div>
-        {:else if initializing}
-            <div class="loading">Loading...</div>
+        {:else if isInitialising()}
+        <div class="column middle">
+            <ErrorMsg/>
+        </div>
         {/if}
-
-        {#if !initializing && supportedVersion}
+        {#if !isInitialising() && supportedVersion && !$isLoading}
             <div class="column left">
                 <div class="menu-left">
                     <ul>
@@ -135,6 +108,7 @@
 
             </div>
             <div class="column middle">
+                <ErrorMsg/>
                 {#if $page.view === views.TRANSACTIONS}
                 <Transactions bind:this={transactions} bind:curAccount={curAccount} journalMode={false}/>
                 {:else if $page.view === views.JOURNAL}

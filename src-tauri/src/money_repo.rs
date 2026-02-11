@@ -41,6 +41,8 @@ impl AppDirectories {
             version: VERSION.to_string(),
             data_dir: self.data_dir.clone(),
             config_dir: self.config_dir.clone(),
+            current_books_id: None,
+            current_file: None,
             last_file: FileDetails::empty(),
             recent_files: Vec::new(),
             display_date_format: DateFormat::Locale,
@@ -50,14 +52,22 @@ impl AppDirectories {
     }
 }
 
-
 pub struct Repo {
     pub config: Config,
     pub books: Books,
+    pub errors: Vec<String>
 }
 
 impl Repo {
 
+    pub fn from_components(config: Config, books: Books) -> Repo {
+        Repo{ config: config, books: books, errors: Vec::new() }
+    }
+
+    pub fn from_components_with_errors(config: Config, books: Books, errors: Vec<String>) -> Repo {
+        Repo{ config: config, books: books, errors: errors}
+    }
+    
     pub fn load_startup() -> Result<Repo, BooksError> {
         let files = setup_app_directories()?;
         let mut config_result = load_config(files.settings_path());
@@ -71,14 +81,56 @@ impl Repo {
             Ok(config) => {
                 let path = config.last_file.path.clone();                
                 if path.is_empty() {
-                    return Ok(Repo{ config: config, books: Books::build_empty("My Books") })
+                    return Ok(Repo::from_components(config, Books::build_empty("My Books")))
                 } else {
-                    let result = load_books(path);
+                    let result = load_books(path.clone());
                     match result {
                         Ok(b) => {
-                            Ok(Repo{ config: config, books: b })
+                            Ok(Repo::from_components(config, b))
                         },
-                        Err(e) => Err(BooksError{ error: e.to_string() })
+                        Err(e) => {
+                            let error_msgs = vec![
+                                format!("Error while loading the previously opened books file."),
+                                format!("File: {:?}", &path.display()),
+                                format!("Error: {}", e )];
+                            println!("{:?}", error_msgs);         
+
+                            //Ok(Repo::from_components_with_errors(config, Books::build_empty("My Books"), error_msgs))
+                            Err(BooksError{ error: error_msgs.join("\n") })
+                        }
+                    }
+                }
+            },
+            Err(e) => Err(e)
+        }
+    }
+
+    pub fn load_file_and_config(path: &OsString) -> Result<Repo, BooksError> {
+        let files = setup_app_directories()?;
+        let mut config_result = load_config(files.settings_path());
+
+        if config_result.is_err() {
+            println!("Config not found so performing initial setup...");
+            config_result = initial_setup();
+        }
+        println!("config: {:?}", config_result);
+        match config_result {
+            Ok(mut config) => {
+                let result = load_books(path.clone());
+                match result {
+                    Ok(b) => {
+                        config.set_last_from_path(path.clone(), b.name.clone().as_str(), b.id);
+                        let _save_result = write_config( &config.settings_path(), &config);
+                        Ok(Repo::from_components(config, b))
+                    },
+                    Err(e) => {
+                        let error_msgs = vec![
+                            format!("Error while loading the books file."),
+                            format!("File: {:?}", &path.display()),
+                            format!("Error: {}", e )];
+                        println!("{:?}", error_msgs);         
+
+                        Err(BooksError{ error: error_msgs.join("\n") })
                     }
                 }
             },
@@ -92,7 +144,7 @@ impl Repo {
         match result {
             Ok(b) => {
                 self.books = b;
-                self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str());
+                self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str(), self.books.id);
                 let save_result = write_config( &self.config.settings_path(), &self.config);
                 match save_result {
                     Ok(()) => Ok(()),
@@ -105,8 +157,18 @@ impl Repo {
     }
 
     pub fn save(&self) -> Result<(), BooksError> {
-        let _ = save_books(self.config.last_file.path.clone(), &self.books);
-        Ok(())
+        
+        match self.config.current_books_id  {
+            Some(id) => {                
+                if id == self.books.id {
+                    let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+                    Ok(())
+                } else {
+                    Err(BooksError::from_str("Current books id does not match the file path books id"))
+                }
+            },
+            None => Err(BooksError::from_str("No file path for current books"))
+        }
     }
 
     pub fn new_books(&mut self, name: &str) -> Result<(), BooksError> {
@@ -115,7 +177,9 @@ impl Repo {
         let lower_name = name.to_ascii_lowercase();
         let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
         let last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
-        self.config.set_last(last_file);
+        self.config.set_last(last_file.clone());
+        self.config.current_books_id = Some(self.books.id);
+        self.config.current_file = Some(last_file.clone());
         new_books(self.config.last_file.path.clone(), &self.books)?;
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
