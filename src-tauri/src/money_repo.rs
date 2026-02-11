@@ -17,41 +17,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Manage storage
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct AppDirectories {
-    data_dir: OsString,
-    config_dir: OsString
-}
-
-impl AppDirectories {
-    pub fn settings_path(&self) -> PathBuf {
-        PathBuf::from(self.config_dir.clone()).join("settings.json")
-    }
-
-    pub fn from_project_dirs(d: &ProjectDirs) -> AppDirectories {
-        AppDirectories{
-            data_dir: d.data_dir().as_os_str().to_os_string(),
-            config_dir: d.config_dir().as_os_str().to_os_string()
-        }
-    }
-
-    pub fn to_config(&self) -> Config {
-        Config{
-            id: Uuid::new_v4(),
-            version: VERSION.to_string(),
-            data_dir: self.data_dir.clone(),
-            config_dir: self.config_dir.clone(),
-            current_books_id: None,
-            current_file: None,
-            last_file: FileDetails::empty(),
-            recent_files: Vec::new(),
-            display_date_format: DateFormat::Locale,
-            import_date_format: "%d/%m/%Y".to_string(),
-            csv_mappings: HashMap::new(),
-        }
-    }
-}
-
 pub struct Repo {
     pub config: Config,
     pub books: Books
@@ -222,6 +187,41 @@ impl Repo {
         Ok(repo)
     }
 
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct AppDirectories {
+    data_dir: OsString,
+    config_dir: OsString
+}
+
+impl AppDirectories {
+    pub fn settings_path(&self) -> PathBuf {
+        PathBuf::from(self.config_dir.clone()).join("settings.json")
+    }
+
+    pub fn from_project_dirs(d: &ProjectDirs) -> AppDirectories {
+        AppDirectories{
+            data_dir: d.data_dir().as_os_str().to_os_string(),
+            config_dir: d.config_dir().as_os_str().to_os_string()
+        }
+    }
+
+    pub fn to_config(&self) -> Config {
+        Config{
+            id: Uuid::new_v4(),
+            version: VERSION.to_string(),
+            data_dir: self.data_dir.clone(),
+            config_dir: self.config_dir.clone(),
+            current_books_id: None,
+            current_file: None,
+            last_file: FileDetails::empty(),
+            recent_files: Vec::new(),
+            display_date_format: DateFormat::Locale,
+            import_date_format: "%d/%m/%Y".to_string(),
+            csv_mappings: HashMap::new(),
+        }
+    }
 }
 
 pub fn derive_file_name(name: &str) -> String {
