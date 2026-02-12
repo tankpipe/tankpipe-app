@@ -2,4 +2,8 @@ import { writable } from 'svelte/store'
 
 const accounts = writable({})
 
-export {accounts as accounts}
+const updateAccounts = (newAccounts) => {
+    accounts.set(newAccounts)
+}
+
+export {accounts as accounts, updateAccounts}

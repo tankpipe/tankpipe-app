@@ -11,7 +11,7 @@ describe('Page Mode Tests', () => {
             currentPage = value
         })
 
-        expect(currentPage.view).toBe(views.ACCOUNTS)
+        expect(currentPage.view).toBe('')
         expect(currentPage.mode).toBe(modes.LIST)
         expect(currentPage.payload).toEqual({})
     })

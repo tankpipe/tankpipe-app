@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
 use accounts::books::{Books, BooksError};
-use accounts::book_repo::{load_books, save_books, new_books};
+use accounts::book_repo::{load_books, save_books, save_new_books};
 use directories::ProjectDirs;
 use regex::Regex;
 use dirs::home_dir;
@@ -15,7 +15,167 @@ use crate::config::{Config, FileDetails, DateFormat};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[cfg(not(test))]    
+const FALLBACK_PATH: &'static str = "com.tankpipe.money";
+#[cfg(test)]
+const FALLBACK_PATH: &'static str = "com.tankpipe.money_test";
+
+#[cfg(not(test))]    
+const APP_NAME: &'static str = "money";
+#[cfg(test)]
+const APP_NAME: &'static str = "money_test";
+
+
 /// Manage storage
+
+pub struct Repo {
+    pub config: Config,
+    pub books: Books
+}
+
+impl Repo {
+
+    pub fn from_components(config: Config, books: Books) -> Repo {
+        Repo{ config: config, books: books}
+    }
+    
+    fn load_books_with_config<F>(path_provider: F) -> Result<Repo, BooksError> 
+    where 
+        F: FnOnce(&Config) -> Result<OsString, BooksError>
+    {
+        let config_result = Repo::load_config();
+        println!("config: {:?}", config_result);
+        match config_result {
+            Ok(mut config) => {
+                let path = path_provider(&config)?;
+                let result = load_books(path.clone());
+                match result {
+                    Ok(b) => {
+                        config.set_last_from_path(path.clone(), b.name.clone().as_str(), b.id);
+                        let _save_result = write_config(&config.settings_path(), &config);
+                        Ok(Repo::from_components(config, b))
+                    },
+                    Err(e) => {
+                        let error_msgs = vec![
+                            format!("Error while loading the books file."),
+                            format!("File: {:?}", &path.display()),
+                            format!("Error: {}", e )];
+                        println!("{:?}", error_msgs);         
+
+                        Err(BooksError{ error: error_msgs.join("\n") })
+                    }
+                }
+            },
+            Err(e) => Err(e)
+        }
+    }
+
+    pub fn load_startup() -> Result<Repo, BooksError> {
+        Self::load_books_with_config(|config| {
+            let path = config.last_file.path.clone();                
+            if path.is_empty() {
+                Err(BooksError{ error: "No last file path.".to_string() })
+            } else {
+                Ok(path)
+            }
+        })
+    }
+
+    pub fn load_file_and_config(path: &OsString) -> Result<Repo, BooksError> {
+        Self::load_books_with_config(|_config| Ok(path.clone()))
+    }
+
+    pub fn load_config() -> Result<Config, BooksError> {
+        let files = setup_app_directories()?;
+        let mut config_result = read_config(files.settings_path());
+
+        if config_result.is_err() {
+            println!("Config not found so performing initial setup...");
+            config_result = initial_setup();
+        }
+        config_result
+    }
+
+    pub fn load_books(&mut self, path: &OsString) -> Result<(), BooksError> {
+        let result = load_books(path);
+
+        match result {
+            Ok(b) => {
+                self.books = b;
+                self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str(), self.books.id);
+                let save_result = write_config( &self.config.settings_path(), &self.config);
+                match save_result {
+                    Ok(()) => Ok(()),
+                    Err(e) => Err(BooksError{ error: e.to_string() })
+                }
+            },
+            Err(e) => Err(BooksError{ error: e.to_string() })
+        }
+
+    }
+
+    pub fn save(&self) -> Result<(), BooksError> {
+        
+        match self.config.current_books_id  {
+            Some(id) => {                
+                if id == self.books.id {
+                    let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+                    Ok(())
+                } else {
+                    Err(BooksError::from_str("Current books id does not match the file path books id"))
+                }
+            },
+            None => Err(BooksError::from_str("No file path for current books"))
+        }
+    }
+
+    pub fn new_books(&mut self, name: &str) -> Result<(), BooksError> {
+        self.books = Books::build_empty(name);
+        let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
+        let lower_name = name.to_ascii_lowercase();
+        let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
+        let last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
+        self.config.set_last(last_file.clone());
+        self.config.current_books_id = Some(self.books.id);
+        self.config.current_file = Some(last_file.clone());
+        save_new_books(self.config.last_file.path.clone(), &self.books)?;
+        match write_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
+
+    pub fn save_new_repo(&mut self) -> Result<(), BooksError> {
+        let file_name = derive_file_name(&self.books.name);
+        let last_file = FileDetails::from_path(&self.books.name.clone(), self.config.file_path(&file_name));
+        self.config.set_last(last_file.clone());
+        self.config.current_books_id = Some(self.books.id);
+        self.config.current_file = Some(last_file.clone());
+        save_new_books(self.config.last_file.path.clone(), &self.books)?;
+        
+        match write_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
+     
+    pub fn save_config(&self) -> Result<(), BooksError> {
+        match write_config(self.config.settings_path(), &self.config) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        }
+    }
+
+    pub fn first_repo(name: &str) -> Result<Repo, BooksError> {
+        let mut config =  Repo::load_config()?;   
+        let books = Books::build_empty(&name);
+        config.current_books_id = Some(books.id);
+        let mut repo = Repo::from_components(config, books);
+        repo.save_new_repo()?;
+        Ok(repo)
+    }
+
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct AppDirectories {
@@ -41,6 +201,8 @@ impl AppDirectories {
             version: VERSION.to_string(),
             data_dir: self.data_dir.clone(),
             config_dir: self.config_dir.clone(),
+            current_books_id: None,
+            current_file: None,
             last_file: FileDetails::empty(),
             recent_files: Vec::new(),
             display_date_format: DateFormat::Locale,
@@ -50,91 +212,16 @@ impl AppDirectories {
     }
 }
 
-
-pub struct Repo {
-    pub config: Config,
-    pub books: Books,
+pub fn derive_file_name(name: &str) -> String {
+    let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
+    let lower_name = name.to_ascii_lowercase();
+    let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
+    file_name
 }
-
-impl Repo {
-
-    pub fn load_startup() -> Result<Repo, BooksError> {
-        let files = setup_app_directories()?;
-        let mut config_result = load_config(files.settings_path());
-
-        if config_result.is_err() {
-            println!("Config not found so performing initial setup...");
-            config_result = initial_setup();
-        }
-        println!("config: {:?}", config_result);
-        match config_result {
-            Ok(config) => {
-                let path = config.last_file.path.clone();                
-                if path.is_empty() {
-                    return Ok(Repo{ config: config, books: Books::build_empty("My Books") })
-                } else {
-                    let result = load_books(path);
-                    match result {
-                        Ok(b) => {
-                            Ok(Repo{ config: config, books: b })
-                        },
-                        Err(e) => Err(BooksError{ error: e.to_string() })
-                    }
-                }
-            },
-            Err(e) => Err(e)
-        }
-    }
-
-    pub fn load_books(&mut self, path: &OsString) -> Result<(), BooksError> {
-        let result = load_books(path);
-
-        match result {
-            Ok(b) => {
-                self.books = b;
-                self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str());
-                let save_result = write_config( &self.config.settings_path(), &self.config);
-                match save_result {
-                    Ok(()) => Ok(()),
-                    Err(e) => Err(BooksError{ error: e.to_string() })
-                }
-            },
-            Err(e) => Err(BooksError{ error: e.to_string() })
-        }
-
-    }
-
-    pub fn save(&self) -> Result<(), BooksError> {
-        let _ = save_books(self.config.last_file.path.clone(), &self.books);
-        Ok(())
-    }
-
-    pub fn new_books(&mut self, name: &str) -> Result<(), BooksError> {
-        self.books = Books::build_empty(name);
-        let re = Regex::new(r"[^a-z0-9_\-]").unwrap();
-        let lower_name = name.to_ascii_lowercase();
-        let file_name = format!("{}.json", re.replace_all(&lower_name, "_"));
-        let last_file = FileDetails::from_path(name, self.config.file_path(&file_name));
-        self.config.set_last(last_file);
-        new_books(self.config.last_file.path.clone(), &self.books)?;
-        match write_config(self.config.settings_path(), &self.config) {
-            Ok(_) => Ok(()),
-            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
-        }
-    }
-
-    pub fn save_config(&self) -> Result<(), BooksError> {
-        match write_config(self.config.settings_path(), &self.config) {
-            Ok(_) => Ok(()),
-            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
-        }
-    }
-
-}
-
 
 fn setup_app_directories() -> Result<AppDirectories, BooksError> {
-    let dir = ProjectDirs::from("com", "tankpipe", "money");
+    let dir = ProjectDirs::from("com", "tankpipe", APP_NAME);
+
     match dir {
         Some(d) => {
             let mut directories = AppDirectories::from_project_dirs(&d);
@@ -149,8 +236,8 @@ fn setup_app_directories() -> Result<AppDirectories, BooksError> {
             Ok(directories)
         },
         None => {
-            println!("Unable to determine directories for storing data");
-            Err(BooksError::from_str("Unable to determine directories for storing data"))
+            println!("Unable to determine directories for storing testdata");
+            Err(BooksError::from_str("Unable to determine directories for storing test data"))
         }
     }
 
@@ -162,17 +249,17 @@ fn initialise_settings(files: AppDirectories) -> Result<Config, BooksError> {
         Ok(_) => Ok(config),
         Err(e) => return Err(BooksError{ error: format!("Error while trying to write config file: {:?}", e) })
     }
-}
+}   
 
 fn build_home_dir_path() -> Result<OsString, BooksError> {
     let h = home_dir();
     if h.is_none() {
         return Err(BooksError{ error: "Could not determine home directory".to_string() })
-    }
-    Ok(h.unwrap().join("com.tankpipe.money").as_os_str().to_os_string())
+    }       
+    Ok(h.unwrap().join(FALLBACK_PATH).as_os_str().to_os_string())
 }
 
-pub fn load_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
+pub fn read_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
     println!("load config from: {:?}", path.as_ref());
     match File::open(path) {
         Err(why) => println!("Open settings file failed : {:?}", why.kind()),
@@ -208,10 +295,12 @@ pub fn initial_setup() -> Result<Config, BooksError> {
 
 
 #[cfg(test)]
-
 mod tests {
+    use std::{ffi::OsString, path::PathBuf};
+
+    use accounts::book_repo::file_exists;
     use serial_test::serial;
-    use crate::money_repo::{initial_setup, Repo};
+    use crate::money_repo::{Repo, derive_file_name, initial_setup, setup_app_directories};
 
     #[test]
     #[serial]
@@ -224,7 +313,17 @@ mod tests {
     #[test]
     #[serial]
     fn test_load() {
-        let repo = Repo::load_startup().unwrap();
-        assert_eq!("My Books", repo.books.name);
+        let name = "Unit Test Books";
+        let app_dirs = setup_app_directories().unwrap();
+        let file_path = PathBuf::from(app_dirs.data_dir.clone()).join(derive_file_name(name));
+
+        if file_exists(OsString::from(file_path.clone())) {
+            std::fs::remove_file(OsString::from(file_path.clone())).unwrap();
+        }
+
+        let repo = Repo::first_repo(name).unwrap();
+        assert_eq!(name, repo.books.name);
+        assert_eq!(repo.books.id, repo.config.current_books_id.unwrap());
+        std::fs::remove_file(OsString::from(file_path.clone())).unwrap();
     }
 }

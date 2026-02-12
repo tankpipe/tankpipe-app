@@ -5,11 +5,10 @@
     import Transactions from './Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'
-    import './events'
-    import {settings} from './settings'
-    import {accounts} from './accounts'
+    import {initialiseBooks, initialiseFailed} from'./events'
+    import {accounts, updateAccounts} from './accounts'
+    import {initializeContext, isInitialising, context} from './context'
     import {config} from './config'
-    import {initializeContext, updateContext} from './context'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
@@ -17,12 +16,15 @@
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import NetAssets from './NetAssets.svelte'
-    import { _, waitLocale } from 'svelte-i18n'
+    import { _, waitLocale, isLoading } from 'svelte-i18n'
     import './i18n'
+    import ErrorMsg from './ErrorMsg.svelte'
+    import { updateConfig } from './config'
 
     export let curAccount = null
+
     let dialog
-    let initializing = true
+    
     initializeContext()
 
     export let transactions = []
@@ -31,54 +33,50 @@
     onMount(async () => {
         unlistenLoaded = await listen('file-loaded', (event) => {
             curAccount = null
-            loadConfig()
-        })
+        })         
     })
 
     onDestroy(async () => {
         unlistenLoaded()
     })
 
+    const initialise = async () => {        
+        await invoke('initialise').then(initialiseBooks, initialiseFailed)
+    };
+
     const loadAccounts = async () => {
         curAccount = null
         let result = await invoke('accounts')
-        accounts.set(result)
+        updateAccounts(result)
     };
 
-    const loadSettings = async () => {
-        let result = await invoke('settings')
-        settings.set(result)
-    };
-
-    const loadConfig = async () => {
-        let result = await invoke('config')
-        config.set(result)
-        console.log(result)
-        resetMenu()
-    };
-
-    const resetMenu = () => {
-        updateContext({hasBooks: $config.recent_files.length > 0})
-        if ($accounts.length < 1) {
-            page.set({view: views.ACCOUNTS, mode: modes.NEW})
-        }
-    }
     let supportedVersion = false;
 
     (async () => {
         supportedVersion = (typeof HTMLDialogElement === 'function')
 
         if (supportedVersion) {
-             initializing = true
              await waitLocale()
-             await loadSettings()
-             await loadAccounts()
-             await loadConfig()
-             resetMenu()
-             initializing = false
+             //await initialise()
+             await invoke('load_config').then(loadConfigSuccess, loadConfigFailed)
+             if ($config && ($config.current_books_id || $config.current_file)) {
+                 initialise()
+             } else {
+                 console.log('No books history found')                 
+                 page.set({view: views.BOOKS, mode: modes.NEW}) 
+             }
         }
 
     })()
+
+    const loadConfigSuccess = (result) => {
+        console.log(result)
+        updateConfig(result)        
+    }
+
+    const loadConfigFailed = (error) => {
+        console.log(error)
+    }
 
     const listener = async () => {
 
@@ -91,34 +89,31 @@
 
     listener()
 
-    let dialogShown = false
     let closeIcon = true
-    // afterUpdate(() => {
-    //     if ( ! $context.hasBooks && dialog && ! dialogShown) {
-    //         closeIcon = false
-    //         dialog.showModal()
-    //         dialogShown = true
-    //     }
-    // })
 
 </script>
 
 <main>
-    <div class="app">
+    <div class="app">                
         {#if !supportedVersion}
         <div class="column middle">
             <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
             <div class="loading">User Agent: {window.navigator.userAgent}</div>
         </div>
-        {:else if initializing}
-            <div class="loading">Loading...</div>
+        {:else if isInitialising()}
+        <div class="column middle">
+            <ErrorMsg/>
+        </div>
         {/if}
-
-        {#if !initializing && supportedVersion}
+        {#if !isInitialising() && supportedVersion && !$isLoading}
             <div class="column left">
                 <div class="menu-left">
                     <ul>
+                        {#if $context.hasBooks}
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
+                        {:else}
+                        <li class="disabled">{$_('app.accounts')}</li>
+                        {/if}
                         {#if $accounts.length > 0 }
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
                         <li><button class="og-button" type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
@@ -129,12 +124,13 @@
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>
                         <li class="disabled">{$_('app.modifiers')}</li>                        
-                        {/if}
+                        {/if}                    
                     </ul>
                 </div>
 
             </div>
             <div class="column middle">
+                <ErrorMsg/>
                 {#if $page.view === views.TRANSACTIONS}
                 <Transactions bind:this={transactions} bind:curAccount={curAccount} journalMode={false}/>
                 {:else if $page.view === views.JOURNAL}

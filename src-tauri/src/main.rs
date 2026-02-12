@@ -19,7 +19,6 @@ pub mod money_repo;
 pub mod reader;
 pub mod csv_check;
 mod handlers;
-mod menu;
 
 pub struct BooksState(Mutex<Repo>);
 
@@ -28,7 +27,7 @@ struct Payload {}
 
 
 fn main() {
-    let repo = Repo::load_startup().expect("Unable to initialise app");
+    let repo: Option<Repo> = Repo::load_startup().ok();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -41,9 +40,14 @@ fn main() {
             }
 
             build_menus(app)?;
+            if let Some(repo) = repo {
+                println!("Repo found during startup: {:?}", repo.books.name);
+                app.manage(BooksState(Mutex::from(repo)));
+            } else {
+                println!("No repo found during startup.");
+            }
             Ok(())
         })
-        .manage(BooksState(Mutex::from(repo)))
         .invoke_handler(tauri::generate_handler![
             transaction::entries,
             transaction::transactions,
@@ -81,10 +85,14 @@ fn main() {
             repo::evaluate_csv,
             repo::import_csv,
             repo::load_file,
-            repo::new_file
+            repo::new_file,
+            repo::initialise,
+            repo::load_with_path,
+            repo::load_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+        
 }
 
 

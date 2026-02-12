@@ -10,4 +10,8 @@ const dateFormat = (config) => {
     }
 }
 
-export {config, dateFormat}
+const updateConfig = (update) => {
+    config.update(value => (Object.assign(value, update)))
+}
+
+export {config, dateFormat, updateConfig}

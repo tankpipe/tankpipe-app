@@ -1,11 +1,14 @@
-use accounts::books::Settings;
+use accounts::books::{Settings};
 use accounts::account::Account;
+use tauri::Manager;
 use std::ffi::OsString;
+use std::sync::Mutex;
 use crate::BooksState;
 use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
-use crate::handlers::error_handler;
+use crate::handlers::{error_handler};
+use crate::money_repo::Repo;
 use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, ColumnTypes};
 use crate::csv_check::CsvCheck;
 
@@ -30,6 +33,40 @@ pub fn config(state: tauri::State<BooksState>) -> Config {
     println!("Fetching config");
     let mutex_guard = state.0.lock().unwrap();
     mutex_guard.config.clone()
+}
+
+#[tauri::command]
+pub async fn initialise(app_handle: tauri::AppHandle) -> Result<(), String> {
+    println!("initialise");
+    let repo =  Repo::load_startup();
+    match repo {
+        Ok(repo) => {
+            let state = BooksState(Mutex::from(repo));  
+            app_handle.manage(state);
+            Ok(())        
+        },
+        Err(e) => Err(e.error),
+    }
+  
+}
+
+#[tauri::command]
+pub async fn load_with_path(app_handle: tauri::AppHandle, path: String) -> Result<(), String> {
+    let repo =  Repo::load_file_and_config(&OsString::from(path));
+    match repo {
+        Ok(repo) => {
+            let state = BooksState(Mutex::from(repo));  
+            app_handle.manage(state);
+            Ok(())        
+        },
+      Err(e) => Err(e.error),
+    }
+  
+}
+
+#[tauri::command]
+pub async fn load_config() -> Result<Config, String> {
+    Repo::load_config().map_err(|e| e.error)   
 }
 
 #[tauri::command]
@@ -120,6 +157,21 @@ pub fn load_file(state: tauri::State<BooksState>, path: String) -> Result<Vec<Ac
     Ok(mutex_guard.books.accounts())
 }
 
+#[tauri::command]
+pub fn load_books(state: tauri::State<BooksState>, path: String) -> Result<Vec<Account>, String> {
+    println!("load_books: {:?}", path);
+    let mut mutex_guard = state.0.lock().unwrap();
+    let add_result = mutex_guard.load_books(&OsString::from(path));
+    if add_result.is_err() {
+        let the_error = add_result.unwrap_err().error;
+        println!("{}", the_error);
+        return Err(the_error);
+    }
+    Ok(mutex_guard.books.accounts())
+}
+
+
+
 
 #[tauri::command]
 pub fn new_file(state: tauri::State<BooksState>, name: String) -> Result<Vec<Account>, String> {
@@ -133,6 +185,17 @@ pub fn new_file(state: tauri::State<BooksState>, name: String) -> Result<Vec<Acc
         return Err(the_error);
     }
     Ok(mutex_guard.books.accounts())
+}
+
+
+#[tauri::command]
+pub fn create_first_books(app_handle: tauri::AppHandle, name: String) -> Result<Vec<Account>, String> {
+    println!("create_first_books {}", &name);
+    let repo = Repo::first_repo(&name).map_err(|e| e.error)?;
+    let accounts = repo.books.accounts();
+    let state = BooksState(Mutex::from(repo));  
+    app_handle.manage(state);
+    Ok(accounts)
 }
 
 
