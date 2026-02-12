@@ -1,6 +1,7 @@
 <script>
     import {settings} from './settings.js'
     import {config} from './config.js'
+    import {hasBooks} from './context.js'
     import Select from './Select.svelte';
     import { invoke } from '@tauri-apps/api/core'
 
@@ -10,7 +11,7 @@
         if ($settings) {
             await invoke('update_settings', {settings: $settings}).then(
                 () => console.log("settings saved"),
-                () => console.log("settings not saved " + result)
+                (result) => console.log("settings not saved " + result)
             )
         }
     }
@@ -24,28 +25,26 @@
 
             await invoke('update_config', {configSettings: configSettings}).then(
                 () => console.log("configuration saved"),
-                () => console.log("configuration not saved " + result)
+                (result) => console.log("configuration not saved " + result)
             )
         }
     }
-
-
 </script>
 <div class="controls">
     <div class="form-heading">Settings</div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings}/>
+            <div class="label label-column">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings} disabled={!hasBooks()}/>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Display date format</div><div class="field"><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}/></div>
+            <div class="label label-column">Display date format</div><div class="field"><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}  disabled={!hasBooks()}/></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig}/></div>
+            <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig} disabled={!hasBooks()}/></div>
         </div>
     </div>
 </div>
@@ -62,14 +61,6 @@
         padding: 5px 0px 5px 10px;
         float: left;
         clear: both;
-    }
-
-    .date-input {
-        float: right;
-    }
-
-    .date-input input {
-        border: none;
     }
 
     .label {

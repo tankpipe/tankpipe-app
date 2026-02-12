@@ -3,17 +3,15 @@ import {open} from '@tauri-apps/plugin-dialog'
 import {page, modes, views} from './page.js'
 import {accounts, updateAccounts} from './accounts.js'
 import {updateSettings} from './settings.js'
-import {updateContext, setInitialising, isInitialising, setHasBooks} from './context.js'
+import {updateContext, setInitialising, isInitialising, setHasBooks, hasBooks} from './context.js'
 import {config, updateConfig} from './config.js'
 import { get } from 'svelte/store'
-import { invoke } from '@tauri-apps/api/core';
-
+import { invoke } from '@tauri-apps/api/core'
 
 
 const listener = async () => {
     listen('file-open', (event) => {
-        console.log(event)
-        page.set({view: views.ACCOUNTS, mode: modes.LIST})
+        console.log(event)        
         openFile()
     })
 
@@ -51,7 +49,7 @@ const showFilePicker = async (success) => {
 
 const loadFile = async (path) => {
     emit('clear_errors')
-    if (isInitialising()) {
+    if (isInitialising() || !hasBooks()) {
         await invoke('load_with_path', {path: path}).then(initialiseBooks, loadFileFailure)
     } else {
         await invoke('load_file', {path: path}).then(loadFileSuccess, loadFileFailure)
@@ -62,6 +60,7 @@ const loadFileSuccess = (result) => {
     console.log(result)
     emit('file-loaded', "")
     updateAccounts(result)
+    page.set({view: views.ACCOUNTS, mode: modes.LIST})
 }
 
 const loadFileFailure = (result) => {
@@ -105,12 +104,12 @@ const loadConfig = async () => {
     console.log(result)
 };
 
-const resetMenu = () => {
+const resetMenu = async () => {
     const hasBooksData = get(config).current_books_id || get(config).current_file;
     updateContext({hasBooks: hasBooksData})
     if (get(accounts).length < 1) {
         page.set({view: views.ACCOUNTS, mode: modes.NEW})
-    }
+    }    
 }
 
 export {showFilePicker, initialiseBooks, initialiseFailed, loadConfig}

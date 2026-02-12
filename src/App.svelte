@@ -62,8 +62,7 @@
              if ($config && ($config.current_books_id || $config.current_file)) {
                  initialise()
              } else {
-                 console.log('No books history found')
-                 
+                 console.log('No books history found')                 
                  page.set({view: views.BOOKS, mode: modes.NEW}) 
              }
         }

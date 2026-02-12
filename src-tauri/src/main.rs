@@ -19,7 +19,6 @@ pub mod money_repo;
 pub mod reader;
 pub mod csv_check;
 mod handlers;
-mod menu;
 
 pub struct BooksState(Mutex<Repo>);
 
@@ -90,7 +89,6 @@ fn main() {
             repo::initialise,
             repo::load_with_path,
             repo::load_config,
-            repo::create_first_books,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
