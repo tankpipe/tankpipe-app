@@ -15,6 +15,17 @@ use crate::config::{Config, FileDetails, DateFormat};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[cfg(not(test))]    
+const FALLBACK_PATH: &'static str = "com.tankpipe.money";
+#[cfg(test)]
+const FALLBACK_PATH: &'static str = "com.tankpipe.money_test";
+
+#[cfg(not(test))]    
+const APP_NAME: &'static str = "money";
+#[cfg(test)]
+const APP_NAME: &'static str = "money_test";
+
+
 /// Manage storage
 
 pub struct Repo {
@@ -208,9 +219,9 @@ pub fn derive_file_name(name: &str) -> String {
     file_name
 }
 
-
 fn setup_app_directories() -> Result<AppDirectories, BooksError> {
-    let dir = ProjectDirs::from("com", "tankpipe", "money");
+    let dir = ProjectDirs::from("com", "tankpipe", APP_NAME);
+
     match dir {
         Some(d) => {
             let mut directories = AppDirectories::from_project_dirs(&d);
@@ -225,8 +236,8 @@ fn setup_app_directories() -> Result<AppDirectories, BooksError> {
             Ok(directories)
         },
         None => {
-            println!("Unable to determine directories for storing data");
-            Err(BooksError::from_str("Unable to determine directories for storing data"))
+            println!("Unable to determine directories for storing testdata");
+            Err(BooksError::from_str("Unable to determine directories for storing test data"))
         }
     }
 
@@ -238,14 +249,14 @@ fn initialise_settings(files: AppDirectories) -> Result<Config, BooksError> {
         Ok(_) => Ok(config),
         Err(e) => return Err(BooksError{ error: format!("Error while trying to write config file: {:?}", e) })
     }
-}
+}   
 
 fn build_home_dir_path() -> Result<OsString, BooksError> {
     let h = home_dir();
     if h.is_none() {
         return Err(BooksError{ error: "Could not determine home directory".to_string() })
-    }
-    Ok(h.unwrap().join("com.tankpipe.money").as_os_str().to_os_string())
+    }       
+    Ok(h.unwrap().join(FALLBACK_PATH).as_os_str().to_os_string())
 }
 
 pub fn read_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
@@ -284,7 +295,6 @@ pub fn initial_setup() -> Result<Config, BooksError> {
 
 
 #[cfg(test)]
-
 mod tests {
     use std::{ffi::OsString, path::PathBuf};
 
