@@ -89,6 +89,7 @@ fn main() {
             repo::initialise,
             repo::load_with_path,
             repo::load_config,
+            repo::reconcile_csv,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -25,6 +25,7 @@
     let fileDialogShown = false
     let rememberForNextTime = false
     let hasHeaderRow = false;
+    let useForReconciliation = false;
 
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
@@ -125,10 +126,19 @@
 
     const importCsv = async () => {
         console.log(path, columnTypes)
-        errors = new Errors()
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+        
+        if (useForReconciliation) {
+            await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
+        } else {
+            await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+        }
+    }
+
+    const reconciliationCompleted = (results) => {
+        msg = `Reconciliation complete: ${results.length} transactions processed`
+        console.log('Reconciliation results:', results)
     }
 
     const close = () => {
@@ -146,7 +156,9 @@
     <div class="toolbar">
         {#if curAccount}
         <button class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
-        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={$_('transactions.importTransactions')}><Icon icon="mdi:application-import" width="22"/></button>
+        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={useForReconciliation ? $_('transactions.reconcileTransactions') : $_('transactions.importTransactions')}>
+            <Icon icon={useForReconciliation ? "mdi:compare-horizontal" : "mdi:application-import"} width="22"/>
+        </button>
         <button class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></button>
         {/if}
     </div>
@@ -176,6 +188,11 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">{$_('importer.use_for_reconciliation')}</div><input type="checkbox" bind:checked={useForReconciliation} />
         </div>
     </div>
 </div>
