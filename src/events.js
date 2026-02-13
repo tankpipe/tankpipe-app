@@ -48,6 +48,7 @@ const showFilePicker = async (success) => {
 
 
 const loadFile = async (path) => {
+    console.log("loadFile", path, (isInitialising() || !hasBooks()))
     emit('clear_errors')
     if (isInitialising() || !hasBooks()) {
         await invoke('load_with_path', {path: path}).then(initialiseBooks, loadFileFailure)
@@ -74,9 +75,9 @@ const initialiseBooks = async () => {
     await loadSettings()
     await loadConfig()
     resetMenu()
-    setInitialising(false)
-    page.set({view: views.ACCOUNTS, mode: modes.LIST})
     setHasBooks(true)
+    setInitialising(false)
+    page.set({view: views.ACCOUNTS, mode: modes.LIST})    
     emit('initialised', "")
 }
 

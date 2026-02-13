@@ -52,6 +52,7 @@ pub async fn initialise(app_handle: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn load_with_path(app_handle: tauri::AppHandle, path: String) -> Result<(), String> {
+    println!("load_with_path: {:?}", &path);
     let repo =  Repo::load_file_and_config(&OsString::from(path));
     match repo {
         Ok(repo) => {
@@ -66,6 +67,7 @@ pub async fn load_with_path(app_handle: tauri::AppHandle, path: String) -> Resul
 
 #[tauri::command]
 pub async fn load_config() -> Result<Config, String> {
+    println!("load_config");
     Repo::load_config().map_err(|e| e.error)   
 }
 

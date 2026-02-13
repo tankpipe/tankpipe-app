@@ -7,7 +7,7 @@
     import {page, modes, views} from './page.js'
     import {initialiseBooks, initialiseFailed} from'./events'
     import {accounts, updateAccounts} from './accounts'
-    import {initializeContext, isInitialising, context} from './context'
+    import {initializeContext, context} from './context'
     import {config} from './config'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
@@ -100,12 +100,8 @@
             <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
             <div class="loading">User Agent: {window.navigator.userAgent}</div>
         </div>
-        {:else if isInitialising()}
-        <div class="column middle">
-            <ErrorMsg/>
-        </div>
         {/if}
-        {#if !isInitialising() && supportedVersion && !$isLoading}
+        {#if supportedVersion && !$isLoading}
             <div class="column left">
                 <div class="menu-left">
                     <ul>
