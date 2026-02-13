@@ -18,11 +18,11 @@ const setInitialising = (isInitialising) => {
 }
 
 const isInitialising = () => {
-    return context.initialising
+    return get(context).initialising
 }
 
 const hasBooks = () => {
-    return context.hasBooks
+    return get(context).hasBooks
 }
 
 

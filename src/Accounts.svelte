@@ -2,6 +2,7 @@
     import EditAccount from "./EditAccount.svelte"
     import Icon from '@iconify/svelte'
     import {page, isEditMode, modes, views} from "./page"
+    import {context} from './context'
     import {accounts} from './accounts'
     import {onMount} from 'svelte'
     import { _ } from 'svelte-i18n'
@@ -59,13 +60,11 @@
 
 {#if isEditMode($page)}
 <EditAccount {curAccount} {loadAccounts} {close} initialize={accounts.length < 1}/>
-{:else}
+{:else if ($context.hasBooks)}
     <div>
-        {#if !isEditMode($page)}
         <div class="toolbar toolbar-right">
             <button class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
         </div>
-        {/if}
         <div class="form-heading">{$_('accounts.title')}</div>
     </div>
     <div class="scroller">

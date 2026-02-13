@@ -2,6 +2,7 @@ import { render, waitFor } from '@testing-library/svelte'
 import Accounts from '../src/Accounts.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page'
+import {setHasBooks} from '../src/context'
 import account_data from './data/account_data.json'
 import { init } from 'svelte-i18n'
 import '../src/i18n'
@@ -13,6 +14,7 @@ init({
 accounts.set(account_data)
 
 it('is displayed correctly', async () => {
+    setHasBooks(true)
     page.set({view: views.ACCOUNTS, mode: modes.LIST})
     const {container} = await render(Accounts, {loadAccounts: () => {return account_data}, curAccount: account_data[0]})
     expect(container.outerHTML).toMatchSnapshot();
