@@ -22,7 +22,8 @@ impl NewAccount {
             name: self.name,
             starting_balance: self.starting_balance,
             account_type: self.account_type,
-            balance: dec!(0)
+            balance: dec!(0),
+            reconciliation_info: None,
         }
     }
 

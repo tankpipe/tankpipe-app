@@ -8,14 +8,13 @@
     let topScroll
 
     $effect(() => {
-
-            if (!topScroll) {
-                const closest = findClosestTransaction()
-                if (closest) {
-                    topScroll = getScrollPosition(closest.id)
-                }
+        if (!topScroll) {
+            const closest = findClosestTransaction()
+            if (closest) {
+                topScroll = getScrollPosition(closest.id)
             }
-            scrollToPosition()
+        }
+        scrollToPosition()
     });
 
     const setCurrentScroll = () => {
@@ -100,6 +99,21 @@
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 
+    const isReconciled = (entry) => {        
+        if (curAccount.reconciliation_info) {
+            const reconDate = new Date(curAccount.reconciliation_info.date).getTime()
+            const transDate = new Date(entry.date).getTime()
+            if (transDate < reconDate) return true
+            if (transDate == reconDate) {
+                // Find the index of the reconciliation transaction in the transactions array
+                const reconIndex = transactions.findIndex(trans => trans.id === curAccount.reconciliation_info.transaction_id)
+                const transIndex = transactions.findIndex(trans => trans.id === entry.transaction_id)
+                return transIndex <= reconIndex                    
+            }
+        }
+        return false
+    }
+
     const sortEntries = (entries) => {
         return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
@@ -127,7 +141,7 @@
             {#if $selector.showMultipleSelect}
             <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}
+            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th></th>
         </tr>
         {#each transactions as t}
             {@const selected = isSelected(t)}
@@ -147,6 +161,7 @@
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
+                <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
             </tr>
             {/if}
           {/if}
@@ -164,6 +179,7 @@
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
+                <td class="reconciled-cell">{isReconciled(t) ? '✓' : ''}</td>
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>
@@ -286,6 +302,13 @@
         color: green;
         text-align: left;
     }
+
+    .reconciled-cell {
+        background-color: #444 !important;
+        font-size: .8em;
+        font-weight: bold;
+        padding: 0 0 4px 3px;
+    }    
 
     @media (min-width: 1010px) {
         .description {
