@@ -26,6 +26,8 @@
     let descriptionFilter = $state("")
     let allTransactions = []
     let transactions = $derived([])
+    let reconciliationResults = $state([])
+    let isReconciliationMode = $state(false)
     let chartValues = []
 
     $effect(() => {
@@ -205,6 +207,18 @@
         page.set({view: $page.view, mode: modes.LIST})
     }
 
+    const handleReconciliationResults = (results) => {
+        reconciliationResults = results
+        isReconciliationMode = true
+        page.set({view: $page.view, mode: modes.LIST})
+    }
+
+    const exitReconciliationMode = () => {
+        isReconciliationMode = false
+        reconciliationResults = []
+        loadTransactions()
+    }
+
 </script>
 
 <div class="account-heading">
@@ -234,7 +248,7 @@
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
 {#if $page.mode == modes.LOAD}
-<Importer {curAccount} onClose={onCloseEdit} />
+<Importer {curAccount} onClose={onCloseEdit} onReconciliationResults={handleReconciliationResults} />
 {/if}
 {#if isListMode($page)}
 <div class="widget errors">
@@ -245,6 +259,14 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
+{#if isReconciliationMode}
+<div class="reconciliation-header">
+    <div class="reconciliation-title">Reconciliation Results</div>
+    <button class="exit-reconciliation" onclick={exitReconciliationMode}>
+        <Icon icon="mdi:close" width="16"/> Exit Reconciliation
+    </button>
+</div>
+{/if}
 {#if showFilter}
 <div class="" id="filter">
     <table>
@@ -260,7 +282,7 @@
     </table>
 </div>
 {/if}
-<TransactionList {curAccount} {journalMode} transactions={transactions} onSelect={selectTransaction} />
+<TransactionList {curAccount} {journalMode} transactions={transactions} reconciliationResults={reconciliationResults} isReconciliationMode={isReconciliationMode} onSelect={selectTransaction} />
 {/if}
 
 <style>
@@ -385,7 +407,41 @@
 
     :global(.single-button:hover) {
         cursor: pointer;
-        color: #F0F0F0;
+        color: #e0e0e0;
+    }
+
+    .reconciliation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #2a2a2a;
+        padding: 10px 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border-left: 4px solid #4CAF50;
+    }
+
+    .reconciliation-title {
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    .exit-reconciliation {
+        background-color: #555;
+        border: none;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9em;
+    }
+
+    .exit-reconciliation:hover {
+        background-color: #666;
     }
 
     .error-msg {

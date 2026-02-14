@@ -156,6 +156,7 @@ pub fn read_transations <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str,
 fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fmt: &str) -> Result<Transaction, BooksError> {
     let date = parse_date_str(get_value(&row, columns, ColumnType::Date)?, fmt)?;
     let (amount, entry_type) = determine_amount(&row, columns)?;
+    let balance = get_balance(&row, columns)?;
     let entry = Entry{
         id: Uuid::new_v4(),
         transaction_id: Uuid::new_v4(),
@@ -164,9 +165,18 @@ fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fm
         account_id: account.id,
         entry_type,
         amount: amount.abs(),
-        balance: None
+        balance
     };
     Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
+}
+
+fn get_balance(row: &Vec<String>, columns: &ColumnTypes) -> Result<Option<Decimal>, BooksError> {
+    let balance = if columns.has_column(ColumnType::Balance) {
+        Some(parse_money_str(get_value(row, columns, ColumnType::Balance)?).unwrap())
+    } else {
+        None
+    };
+    Ok(balance)
 }
 
 fn determine_amount(row: &Vec<String>, columns: &ColumnTypes) -> Result<(Decimal, Side), BooksError> {

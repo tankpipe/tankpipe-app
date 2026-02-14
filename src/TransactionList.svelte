@@ -4,8 +4,73 @@
     import { _ } from 'svelte-i18n'
     import { selector, toggleSelected, toggleAllSelected, isSelected } from './selector'
 
-    let { curAccount, journalMode = false,  transactions, onSelect } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect } = $props()
     let topScroll
+
+    let displayTransactions = $derived(() => {
+        if (!isReconciliationMode || reconciliationResults.length === 0) {
+            return transactions
+        }
+
+        // Filter reconciliation results that need to be displayed
+        const unmatchedResults = reconciliationResults
+            .map(result => {
+                const transaction = result.transaction
+                
+                // Extract date from first entry (like existing transactions do)
+                return {
+                    ...transaction,
+                    date: getEntry(transaction).date,
+                    isReconciliationResult: true,
+                    reconciliationStatus: result.status,
+                    balance: result.balance,
+                    // Store target transaction ID for matched/partial matches
+                    targetTransactionId: result.matched_transaction_id
+                }
+            })
+
+            console.log(unmatchedResults)
+
+        // Start with existing transactions in their original order
+        let combined = transactions.map(tx => ({
+            ...tx,
+            isReconciliationResult: false,
+            reconciliationStatus: null
+        }))
+
+        // Sort unmatched results by date to ensure proper insertion order
+        unmatchedResults.sort((a, b) => new Date(a.date) - new Date(b.date))
+
+        // Insert each reconciliation result at the correct position
+        // Work backwards through the array to avoid index shifting issues
+        for (let i = unmatchedResults.length - 1; i >= 0; i--) {
+            const reconTx = unmatchedResults[i]
+            
+            // For matched/partial matched transactions, insert immediately after target
+            if (reconTx.targetTransactionId) {
+                const targetIndex = combined.findIndex(tx => tx.id === reconTx.targetTransactionId)
+                if (targetIndex !== -1) {
+                    combined.splice(targetIndex + 1, 0, reconTx)
+                    continue
+                }
+            }
+            
+            // For unmatched transactions, insert by date
+            const insertIndex = combined.findIndex((tx) => {
+                return new Date(getEntry(tx).date) >= new Date(reconTx.date)
+            })
+            
+            if (insertIndex === -1) {
+                // No later transaction, append to end
+                combined.push(reconTx)
+            } else {
+                // Insert at the correct position
+                combined.splice(insertIndex, 0, reconTx)
+            }
+        }
+
+        return combined
+    })
 
     $effect(() => {
         if (!topScroll) {
@@ -114,6 +179,21 @@
         return false
     }
 
+    const getReconciliationStatus = (transaction) => {
+        if (!isReconciliationMode) return ''
+        
+        if (transaction.isReconciliationResult) {
+            switch (transaction.reconciliationStatus) {
+                case 'Matched': return '🟢'
+                case 'PartialMatch': return '🟡'
+                case 'Unmatched': return '🔴'
+                default: return ''
+            }
+        }
+        
+        return ''
+    }
+
     const sortEntries = (entries) => {
         return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
@@ -141,27 +221,30 @@
             {#if $selector.showMultipleSelect}
             <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th></th>
+            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th>Reconciled</th>{#if isReconciliationMode}<th>Match Status</th>{/if}
         </tr>
-        {#each transactions as t}
+        {#each displayTransactions() as t}
             {@const selected = isSelected(t)}
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  onclick={(event) => stopPropagationHandler(event, () => selectTransaction(e))} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
-                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
+                <td class={projected(e) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(e)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
                         {#if en.account_id != curAccount.id}
                         <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
                         {/if}
                     {/each}
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e)}</td>
-                <td class="{projected(t)} money">{getBalance(e)}</td>
+                <td class="{projected(e)} money">{getDebitAmount(e)}</td>
+                <td class="{projected(e)} money">{getCreditAmount(e)}</td>
+                <td class="{projected(e)} money">{getBalance(e)}</td>
                 <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
+                {#if isReconciliationMode}
+                <td class="reconciliation-status-cell">{getReconciliationStatus(t)}</td>
+                {/if}
             </tr>
             {/if}
           {/if}
@@ -172,14 +255,17 @@
                 {#if $selector.showMultipleSelect}
                 <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
                 {/if}
-                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
+                <td class={projected(e) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(e)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
                     <div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
                     <div class="description tiny">{e.description}</div>
                 </td>
-                <td class="{projected(t)} money">{getDebitAmount(e)}</td>
-                <td class="{projected(t)} money">{getCreditAmount(e)}</td>
-                <td class="reconciled-cell">{isReconciled(t) ? '✓' : ''}</td>
+                <td class="{projected(e)} money">{getDebitAmount(e)}</td>
+                <td class="{projected(e)} money">{getCreditAmount(e)}</td>
+                <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
+                {#if isReconciliationMode}
+                <td class="reconciliation-status-cell">{getReconciliationStatus(t)}</td>
+                {/if}
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>
@@ -308,6 +394,13 @@
         font-size: .8em;
         font-weight: bold;
         padding: 0 0 4px 3px;
+    }
+
+    .reconciliation-status-cell {
+        text-align: center !important;
+        min-width: 80px;
+        font-weight: bold;
+        font-size: 1.2em;
     }    
 
     @media (min-width: 1010px) {

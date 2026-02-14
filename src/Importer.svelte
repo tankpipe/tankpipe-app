@@ -25,7 +25,9 @@
     let fileDialogShown = false
     let rememberForNextTime = false
     let hasHeaderRow = false;
-    let useForReconciliation = false;
+    let useForReconciliation = true;
+
+    export let onReconciliationResults = null
 
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
@@ -139,6 +141,9 @@
     const reconciliationCompleted = (results) => {
         msg = `Reconciliation complete: ${results.length} transactions processed`
         console.log('Reconciliation results:', results)
+        if (onReconciliationResults) {
+            onReconciliationResults(results)
+        }
     }
 
     const close = () => {

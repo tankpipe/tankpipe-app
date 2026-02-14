@@ -122,6 +122,10 @@ pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Acco
 pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, save_mapping: bool, has_headers: bool) -> Result<(), String> {
     println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{}", path, account.id, column_types, save_mapping, has_headers);
     let mut mutex_guard = state.0.lock().unwrap();
+    
+    // Remove Balance from column types as it is calculated dynamically
+    let column_types: Vec<String> = column_types.into_iter().filter(|c| c != "balance").collect();
+    
     let load_result = read_transations(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
 
     match load_result {
