@@ -8,6 +8,8 @@
     let topScroll
 
     let displayTransactions = $derived(() => {
+        console.log('displayTransactions derived', curAccount.id, isReconciliationMode, reconciliationResults.length)
+        // If not in reconciliation mode or no reconciliation results, return normal transactions
         if (!isReconciliationMode || reconciliationResults.length === 0) {
             return transactions
         }

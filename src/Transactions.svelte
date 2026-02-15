@@ -27,6 +27,7 @@
     let allTransactions = []
     let transactions = $derived([])
     let reconciliationResults = $state([])
+    let reconciliationAccountId = $state(null)
     let isReconciliationMode = $state(false)
     let chartValues = []
 
@@ -36,6 +37,10 @@
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
         } else if (curAccount && curAccount !== previousAccount) {
+            console.log("curAccount changed", curAccount.id)
+            isReconciliationMode = false
+            reconciliationResults = []
+            reconciliationAccountId = null
             topScroll = null
             transactions = []
             clearSelected()
@@ -209,6 +214,7 @@
 
     const handleReconciliationResults = (results) => {
         reconciliationResults = results
+        reconciliationAccountId = curAccount?.id ?? null
         isReconciliationMode = true
         page.set({view: $page.view, mode: modes.LIST})
     }
@@ -216,6 +222,7 @@
     const exitReconciliationMode = () => {
         isReconciliationMode = false
         reconciliationResults = []
+        reconciliationAccountId = null
         loadTransactions()
     }
 
@@ -224,7 +231,7 @@
 <div class="account-heading">
     {#if isListMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
+        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); isReconciliationMode = false; reconciliationResults = []; reconciliationAccountId = null}}/>
     </div>
     <div class="toolbar">
         <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
@@ -282,7 +289,14 @@
     </table>
 </div>
 {/if}
-<TransactionList {curAccount} {journalMode} transactions={transactions} reconciliationResults={reconciliationResults} isReconciliationMode={isReconciliationMode} onSelect={selectTransaction} />
+<TransactionList
+    {curAccount}
+    {journalMode}
+    transactions={transactions}
+    reconciliationResults={reconciliationAccountId === curAccount?.id ? reconciliationResults : []}
+    isReconciliationMode={reconciliationAccountId === curAccount?.id && isReconciliationMode}
+    onSelect={selectTransaction}
+/>
 {/if}
 
 <style>
