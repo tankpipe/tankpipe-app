@@ -123,8 +123,8 @@ pub fn read_rows<P: AsRef<Path>>(path: &P) -> Result<Vec<Vec<String>>, BooksErro
      }
 }
 
-pub fn read_transations <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str, columns: &ColumnTypes, has_headers: bool) -> Result<Vec<Transaction>, BooksError> {
-    println!("read_transations : {:?}", columns);
+pub fn read_transactions <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str, columns: &ColumnTypes, has_headers: bool) -> Result<Vec<Transaction>, BooksError> {
+    println!("read_transactions : {:?}", columns);
     validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
         .has_headers(has_headers)
@@ -332,7 +332,7 @@ mod tests {
     use chrono::NaiveDate;
     use csv::StringRecord;
     use rust_decimal_macros::dec;
-    use crate::reader::{balance_impact, read_columns, read_transations, ColumnType};
+    use crate::reader::{balance_impact, read_columns, read_transactions, ColumnType};
 
     use super::{parse_date_str, detect_columns};
 
@@ -349,7 +349,7 @@ mod tests {
     fn test_reader_file_not_found() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
         let columns = read_columns(&"test.csv").unwrap();
-        let result = read_transations(&String::from("no_such_file.csv"), &account, "%d/%m/%Y", &columns, true);
+        let result = read_transactions(&String::from("no_such_file.csv"), &account, "%d/%m/%Y", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to read csv file. No such file or directory (os error 2)", result.unwrap_err().error);
     }
@@ -387,7 +387,7 @@ mod tests {
     fn test_reader() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
         let columns = read_columns(&"test.csv").unwrap();
-        let transactions = read_transations(&String::from("test.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
+        let transactions = read_transactions(&String::from("test.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
@@ -401,7 +401,7 @@ mod tests {
     fn test_invalid_date() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
         let columns = read_columns(&"test.csv").unwrap();
-        let result = read_transations(&String::from("test.csv"), &account, "%Y-%M-%D", &columns, true);
+        let result = read_transactions(&String::from("test.csv"), &account, "%Y-%M-%D", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
 
@@ -411,7 +411,7 @@ mod tests {
     fn test_reader_dr_cr() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
         let columns = read_columns(&"test_dr_cr.csv").unwrap();
-        let transactions = read_transations(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
+        let transactions = read_transactions(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);

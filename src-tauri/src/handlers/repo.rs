@@ -9,7 +9,7 @@ use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::{error_handler};
 use crate::money_repo::Repo;
-use crate::reader::{check_csv_format, read_headers, read_rows, read_transations, ColumnTypes};
+use crate::reader::{check_csv_format, read_headers, read_rows, read_transactions, ColumnTypes};
 use crate::csv_check::CsvCheck;
 
 
@@ -126,7 +126,7 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
     // Remove Balance from column types as it is calculated dynamically
     let column_types: Vec<String> = column_types.into_iter().filter(|c| c != "balance").collect();
     
-    let load_result = read_transations(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
+    let load_result = read_transactions(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
 
     match load_result {
         Ok(transactions) => {
@@ -154,7 +154,7 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
 pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, has_headers: bool) -> Result<Vec<accounts::books::ReconciliationResult>, String> {
     println!("reconcile_csv: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account.id, column_types, has_headers);
     let mutex_guard = state.0.lock().unwrap();
-    let load_result = read_transations(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
+    let load_result = read_transactions(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
 
     match load_result {
         Ok(transactions) => {
@@ -247,7 +247,7 @@ mod tests {
         repo.books.add_account(account);
         
         // Load manual transactions into the books
-        let manual_transactions = read_transations(
+        let manual_transactions = read_transactions(
             &Path::new("test/fixtures/bank_transactions_manual.csv"),
             &repo.books.accounts().first().unwrap(),
             &"%Y-%m-%d", // Default date format
@@ -268,7 +268,7 @@ mod tests {
         }
         
         // Now reconcile against bank transactions
-        let bank_transactions = read_transations(
+        let bank_transactions = read_transactions(
             &Path::new("test/fixtures/bank_transactions.csv"),
             &repo.books.accounts().first().unwrap(),
             &"%Y-%m-%d", // Default date format
