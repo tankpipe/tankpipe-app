@@ -8,9 +8,8 @@
     let topScroll
 
     let displayTransactions = $derived(() => {
-        console.log('displayTransactions derived', curAccount.id, isReconciliationMode, reconciliationResults.length)
         // If not in reconciliation mode or no reconciliation results, return normal transactions
-        if (!isReconciliationMode || reconciliationResults.length === 0) {
+        if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
             return transactions
         }
 
@@ -181,21 +180,6 @@
         return false
     }
 
-    const getReconciliationStatus = (transaction) => {
-        if (!isReconciliationMode) return ''
-        
-        if (transaction.isReconciliationResult) {
-            switch (transaction.reconciliationStatus) {
-                case 'Matched': return '🟢'
-                case 'PartialMatch': return '🟡'
-                case 'Unmatched': return '🔴'
-                default: return ''
-            }
-        }
-        
-        return ''
-    }
-
     const sortEntries = (entries) => {
         return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
@@ -272,10 +256,6 @@
                 </td>
                 <td class="{projected(e)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(e)} money">{getCreditAmount(e)}</td>
-                <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
-                {#if isReconciliationMode}
-                <td class="reconciliation-status-cell">{getReconciliationStatus(t)}</td>
-                {/if}
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>
