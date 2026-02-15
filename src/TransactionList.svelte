@@ -208,8 +208,13 @@
     }
 
     const stopPropagationHandler = (event, handler) => {
+        console.log('stopPropagationHandler called:', { event, handler, handlerType: typeof handler })
         event.stopPropagation()
-        handler()
+        if (typeof handler === 'function') {
+            handler()
+        } else {
+            console.error('Handler is not a function:', handler)
+        }
     }
 
 </script>
@@ -221,14 +226,15 @@
             {#if $selector.showMultipleSelect}
             <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th>Reconciled</th>{#if isReconciliationMode}<th>Match Status</th>{/if}
+            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th></th>
         </tr>
         {#each displayTransactions() as t}
             {@const selected = isSelected(t)}
+            {@const isReconciliationRow = isReconciliationMode && t.isReconciliationResult}
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}"  onclick={(event) => stopPropagationHandler(event, () => selectTransaction(e))} id={t.id}><!--{t.id}-->
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''}"  onclick={(event) => stopPropagationHandler(event, () => e && selectTransaction(e))} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(e) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(e)} title="{e.description}"><div class="description">{e.description}</div>
@@ -241,11 +247,13 @@
                 <td class="{projected(e)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(e)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(e)} money">{getBalance(e)}</td>
-                <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
-                {#if isReconciliationMode}
-                <td class="reconciliation-status-cell">{getReconciliationStatus(t)}</td>
-                {/if}
+                <td class="reconciled-cell">{!isReconciliationRow && isReconciled(e) ? '✓' : ''}</td>
             </tr>
+            {#if isReconciliationRow}
+            <tr>
+                <td colspan="7" class="divider-row"></td>
+            </tr>
+            {/if}
             {/if}
           {/if}
           {#if journalMode}
@@ -341,9 +349,9 @@
     }
 
     .single-entry td {
-        background-color: #34391a;
+        /* background-color: #34391a; */
     }
-
+    
     .money {
         text-align: right !important;
         min-width: 92px;
@@ -401,7 +409,27 @@
         min-width: 80px;
         font-weight: bold;
         font-size: 1.2em;
-    }    
+    }   
+    
+    .divider-row {
+        background-color: #444;     
+    }
+
+    .reconciliation-row-matched td {
+        color: #74d965;
+    }   
+
+    .reconciliation-row-partialmatch td {
+        color: #daae3e;
+    }
+
+    .reconciliation-row-unmatched td {
+        color: #e2634f;
+    }
+
+    .reconciliation-row td {
+        background-color: #2a2a2a;
+    }
 
     @media (min-width: 1010px) {
         .description {

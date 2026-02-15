@@ -127,13 +127,25 @@
     }
 
     const importCsv = async () => {
-        console.log(path, columnTypes)
+        
+        if (!path) {
+            errors.addError("all", "No file selected")
+            return
+        }
+        
+        if (!curAccount || !curAccount.id) {
+            errors.addError("all", "No account selected")
+            return
+        }
+        
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         
         if (useForReconciliation) {
+            console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow})
             await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
         } else {
+            console.log('Calling import_csv with:', {path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
             await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
         }
     }
@@ -161,7 +173,7 @@
     <div class="toolbar">
         {#if curAccount}
         <button class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
-        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv()} title={useForReconciliation ? $_('transactions.reconcileTransactions') : $_('transactions.importTransactions')}>
+        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv} title={useForReconciliation ? $_('transactions.reconcileTransactions') : $_('transactions.importTransactions')}>
             <Icon icon={useForReconciliation ? "mdi:compare-horizontal" : "mdi:application-import"} width="22"/>
         </button>
         <button class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></button>
