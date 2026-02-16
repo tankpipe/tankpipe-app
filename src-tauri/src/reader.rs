@@ -92,14 +92,14 @@ impl Index<usize> for ColumnTypes {
     }
 }
 
-pub fn check_csv_format<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
-    let columns = read_columns(path)?;
+pub fn check_csv_format<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
+    let columns = read_columns(path, reverse_dr_cr)?;
     //validate_columns(&columns)?;
     Ok(columns)
 }
 
-pub fn read_rows<P: AsRef<Path>>(path: &P) -> Result<Vec<Vec<String>>, BooksError> {
-    let columns = read_columns(path)?;
+pub fn read_rows<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<Vec<Vec<String>>, BooksError> {
+    let columns = read_columns(path, reverse_dr_cr)?;
     let _ = validate_columns(&columns);
     let rdr = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -230,8 +230,8 @@ pub fn read_headers<P: AsRef<Path>>(path: &P) -> Result<Vec<String> , BooksError
 
 
 
-
-pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
+/// Read and auto detect column types from CSV file headers.
+pub fn read_columns<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
     let rdr = csv::ReaderBuilder::new()
         .has_headers(true)
         .from_path(path);
@@ -239,7 +239,7 @@ pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError>
     match rdr {
         Ok(mut reader) => {
             let headers = reader.headers().unwrap();
-            detect_columns(headers, true)
+            detect_columns(headers, reverse_dr_cr)
         },
         Err(e) => {
             return Err(BooksError{ error: format!("Unable to read csv file. {}", e).to_string() })
@@ -326,7 +326,6 @@ fn parse_transaction_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error
 
 
 #[cfg(test)]
-
 mod tests {
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
@@ -348,7 +347,7 @@ mod tests {
     #[test]
     fn test_reader_file_not_found() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
+        let columns = read_columns(&"test.csv", true).unwrap();
         let result = read_transactions(&String::from("no_such_file.csv"), &account, "%d/%m/%Y", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to read csv file. No such file or directory (os error 2)", result.unwrap_err().error);
@@ -386,7 +385,7 @@ mod tests {
     #[test]
     fn test_reader() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
+        let columns = read_columns(&"test.csv", true).unwrap();
         let transactions = read_transactions(&String::from("test.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
@@ -400,17 +399,16 @@ mod tests {
     #[test]
     fn test_invalid_date() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
+        let columns = read_columns(&"test.csv", true).unwrap();
         let result = read_transactions(&String::from("test.csv"), &account, "%Y-%M-%D", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
-
     }
 
     #[test]
     fn test_reader_dr_cr() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test_dr_cr.csv").unwrap();
+        let columns = read_columns(&"test_dr_cr.csv", true).unwrap();
         let transactions = read_transactions(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
@@ -421,9 +419,24 @@ mod tests {
         assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
     }
 
+     #[test]
+    fn test_reader_dr_cr_no_reverse() {
+        let account = Account::create_new("Savings Account 1", AccountType::Asset);
+        let columns = read_columns(&"test_dr_cr.csv", false).unwrap();
+        let transactions = read_transactions(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
+        assert_eq!(4, transactions.len());
+        assert_eq!("Rent received", transactions[0].entries[0].description);
+        assert_eq!(dec!(1200), transactions[0].entries[0].amount);
+        assert_eq!(Side::Credit, transactions[0].entries[0].entry_type);
+        assert_eq!(account.id, transactions[0].entries[0].account_id);
+        assert_eq!(dec!(500), transactions[1].entries[0].amount);
+        assert_eq!(Side::Debit, transactions[1].entries[0].entry_type);
+    }
+
+
     #[test]
     fn test_read_columns() {
-        let columns = read_columns(&"test.csv").unwrap();
+        let columns = read_columns(&"test.csv", false).unwrap();
         assert_eq!(4, columns.len());
         assert_eq!(ColumnType::Date, columns[0]);
         assert_eq!(ColumnType::Description, columns[1]);
@@ -434,11 +447,6 @@ mod tests {
     #[test]
     fn test_balance_impact() {
         let _asset_account = Account::create_new("Savings Account 1", AccountType::Asset);
-        assert_eq!(Side::Debit, balance_impact(dec!(100)));
-        assert_eq!(Side::Debit, balance_impact(dec!(0)));
-        assert_eq!(Side::Credit, balance_impact(dec!(-100)));
-
-        let _credit_account = Account::create_new("Credit Card", AccountType::Liability);
         assert_eq!(Side::Debit, balance_impact(dec!(100)));
         assert_eq!(Side::Debit, balance_impact(dec!(0)));
         assert_eq!(Side::Credit, balance_impact(dec!(-100)));

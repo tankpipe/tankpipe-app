@@ -10,25 +10,23 @@
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
-    export let curAccount
-    export let onClose
+    let { curAccount, onClose, onReconciliationResults = null } = $props()
 
-    let errors = new Errors()
-    let msg = ""
-    let rows = []
-    let columnTypes = []
-    let selectedColumns = []
-    let columns = []
-    let requiredColumnsMatched = false;
-    let mappingExists = false;
-    let path = ""
-    let fileDialogShown = false
-    let rememberForNextTime = false
-    let hasHeaderRow = false;
-    let useForReconciliation = true;
-
-    export let onReconciliationResults = null
-
+    let errors = $state(new Errors())
+    let msg = $state("")
+    let rows = $state([])
+    let columnTypes = $state([])
+    let selectedColumns = $state([])
+    let columns = $state([])
+    let requiredColumnsMatched = $state(false);
+    let mappingExists = $state(false);
+    let path = $state("")
+    let fileDialogShown = $state(false)
+    let hasHeaderRow = $state(true)
+    let rememberForNextTime = $state(true)
+    let useForReconciliation = $state(true)
+    let showReverseDrCrMsg = $state(false)
+    let originalDrCrColumns = $state([])
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
     const COLUMN_TYPES_MAP = {
@@ -51,7 +49,9 @@
         COLUMN_TYPES_MAP["Unknown"]
     ]
 
-    $: {
+    const hasSelectedColumn = (id) => selectedColumns.some(col => col?.id === id)
+
+    $effect(() => {
         if ((!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
         }
@@ -63,10 +63,21 @@
         }
 
         requiredColumnsMatched =
-                selectedColumns.includes(COLUMN_TYPES_MAP["Date"]) && selectedColumns.includes(COLUMN_TYPES_MAP["Description"]) &&
-                (selectedColumns.includes(COLUMN_TYPES_MAP["Amount"]) ||
-                 selectedColumns.includes(COLUMN_TYPES_MAP["Debit"]) && selectedColumns.includes(COLUMN_TYPES_MAP["Credit"]))
-    }
+                hasSelectedColumn("Date") && hasSelectedColumn("Description") &&
+                (hasSelectedColumn("Amount") ||
+                 hasSelectedColumn("Debit") && hasSelectedColumn("Credit"))
+
+        if (showReverseDrCrMsg) {
+            const curDrCrColumns = selectedColumns.filter(col => col && (col.id === 'Debit' || col.id === 'Credit'))
+            if (originalDrCrColumns.length === 0 && curDrCrColumns.length > 0) {         
+                originalDrCrColumns = [...curDrCrColumns]
+            } else {
+                let changed = curDrCrColumns.length > 0 &&  (originalDrCrColumns.length !== curDrCrColumns.length || 
+                     originalDrCrColumns.some((col, index) => col.id !== curDrCrColumns[index].id))        
+                showReverseDrCrMsg = !changed            
+            }
+        }
+    });
 
     const evaluateFile = async () => {
         let appDataDirPath
@@ -91,15 +102,16 @@
         console.log(result)
         rows = result.sample_rows.slice(0, 20)
         columnTypes = result.column_types.columns
-        columns = result.column_types.columns.map(c => columns.push({name: c}))
+        showReverseDrCrMsg = result.dr_cr_reversed      
+        columns = result.column_types.columns.map(c => ({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
         mappingExists = result.mapping_exists
         rememberForNextTime = mappingExists
         requiredColumnsMatched =
-                columnTypes.includes("Date") && columnTypes.includes("Description") &&
-                (columnTypes.includes("Amount") ||
-                 columnTypes.includes("Debit") && columnTypes.includes("Credit"))
+                hasSelectedColumn("Date") && hasSelectedColumn("Description") &&
+                (hasSelectedColumn("Amount") ||
+                 hasSelectedColumn("Debit") && hasSelectedColumn("Credit"))
         hasHeaderRow = !(columnTypes.length > 0 && columnTypes.every(e => e == "Unknown"))
     }
 
@@ -142,7 +154,7 @@
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         
         if (useForReconciliation) {
-            console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow})
+            console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
             await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
         } else {
             console.log('Calling import_csv with:', {path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
@@ -172,11 +184,11 @@
     </div>
     <div class="toolbar">
         {#if curAccount}
-        <button class="toolbar-icon import-icon" on:click={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
-        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" on:click={importCsv} title={useForReconciliation ? $_('transactions.reconcileTransactions') : $_('transactions.importTransactions')}>
+        <button class="toolbar-icon import-icon" onclick={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
+        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" onclick={importCsv} title={useForReconciliation ? $_('transactions.reconcileTransactions') : $_('transactions.importTransactions')}>
             <Icon icon={useForReconciliation ? "mdi:compare-horizontal" : "mdi:application-import"} width="22"/>
         </button>
-        <button class="toolbar-icon import-icon" on:click={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></button>
+        <button class="toolbar-icon import-icon" onclick={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></button>
         {/if}
     </div>
 </div>
@@ -201,7 +213,7 @@
         <div class="widget">
             <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
         </div>
-    </div>
+    </div>    
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
@@ -219,11 +231,11 @@
         <div class="label label-column"><div class="success-msg">{$_('importer.required_columns_mapped')}&nbsp;&check;</div></div>
         {/if}
     </div>
-    </div>
+</div>
 <div class="scroller" id="scroller">
     <table class="csv-table">
         <tbody>
-            <tr><th colspan="{columnTypes.length}">{$_('importer.columns')}</th></tr>
+            <tr><th colspan="2">{$_('importer.columns')}</th><th colspan="{columnTypes.length - 2}"><div class="label label-column note">{#if showReverseDrCrMsg}{$_('importer.reverse_dr_cr')}{/if}</div></th></tr>
             <tr class="shrink-font">
             {#each columnTypes as c, i}
                 <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} none={true} flat={true}/></td>
@@ -355,6 +367,11 @@
     .success-msg {
         color: rgb(0, 187, 0);
         text-align: left;
+    }
+    .note {
+        font-size: 0.7em;
+        color: #daae3e !important;
+        height: 9px;
     }
 
 </style>

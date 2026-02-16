@@ -204,10 +204,12 @@
         "no_data": "No data was read",
         "has_header": "Has header row",
         "import_date_format": "Import date format",
+        "reverse_dr_cr": "Debit/Credit columns reversed by default",
         "save_mappings": "Remember for next time",
         "required_columns_mapped": "Required columns mapped",
         "columns": "Columns",
-        "sample_data": "CSV data"
+        "sample_data": "CSV data",
+        "use_for_reconciliation": "Reconciliation mode"
     },
     "modifier": {
         "title": "Modifier",

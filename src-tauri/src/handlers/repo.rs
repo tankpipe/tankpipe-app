@@ -85,15 +85,6 @@ pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSet
     error_handler(mutex_guard.save_config())
 }
 
-fn process_csv_with_column_types(path: &String, column_types: ColumnTypes) -> Result<CsvCheck, String> {
-    let header = read_headers(path).unwrap();
-    let rows = read_rows(path);
-    match rows {
-        Ok(rows) => Ok(CsvCheck::create_new(column_types, header, rows)),
-        Err(e) => Err(e.error),
-    }
-}
-
 #[tauri::command]
 pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<CsvCheck, String> {
     println!("evaluate_csv: {:?}, for account:{:?}", path, account.id);
@@ -109,12 +100,22 @@ pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Acco
             }
         }
         None => {
-            let result = check_csv_format(&path);
+            let result = check_csv_format(&path, true);
             match result {
                 Ok(column_types) => process_csv_with_column_types(&path, column_types),
                 Err(e) => Err(e.error),
             }
         }
+    }
+}
+
+fn process_csv_with_column_types(path: &String, column_types: ColumnTypes) -> Result<CsvCheck, String> {
+    let header = read_headers(path).unwrap();
+    // Read the rows as they are to show as a sample.
+    let rows = read_rows(path, false);
+    match rows {
+        Ok(rows) => Ok(CsvCheck::create_new(column_types, header, rows, true)),
+        Err(e) => Err(e.error),
     }
 }
 
