@@ -128,25 +128,25 @@
         maximumFractionDigits: 2,
     })
 
-    const getDebitAmount = (transaction) => {
-        return transaction.entry_type === "Debit" ? formatter.format(transaction.amount) : ''
+    const getDebitAmount = (entry) => {
+        return entry.entry_type === "Debit" ? formatter.format(entry.amount) : ''
     }
 
-    const getCreditAmount = (transaction) => {
-        return transaction.entry_type === "Credit" ? formatter.format(transaction.amount) : ''
+    const getCreditAmount = (entry) => {
+        return entry.entry_type === "Credit" ? formatter.format(entry.amount) : ''
     }
 
-    const getBalance = (transaction) => {
-        return formatter.format(transaction.balance)
+    const getBalance = (entry) => {
+        return formatter.format(entry.balance)
     }
 
-    const getDate = (transaction) => {
-        const date = new Date(transaction.date)
+    const getDate = (entry) => {
+        const date = new Date(entry.date)
 
         switch ($config.display_date_format) {
             case "Regular": return date.toLocaleDateString("en-GB")
             case "US": return date.toLocaleDateString("en-US")
-            case "ISO": return transaction.date
+            case "ISO": return entry.date
             default: return date.toLocaleDateString()
         }
     }
