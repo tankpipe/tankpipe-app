@@ -24,7 +24,6 @@
     let fileDialogShown = $state(false)
     let hasHeaderRow = $state(true)
     let rememberForNextTime = $state(true)
-    let useForReconciliation = $state(true)
     let showReverseDrCrMsg = $state(false)
     let originalDrCrColumns = $state([])
 
@@ -153,13 +152,27 @@
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         
-        if (useForReconciliation) {
-            console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
-            await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
-        } else {
-            console.log('Calling import_csv with:', {path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
-            await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+        console.log('Calling import_csv with:', {path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
+        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+    }
+
+    const reconcileCsv = async () => {
+        
+        if (!path) {
+            errors.addError("all", "No file selected")
+            return
         }
+        
+        if (!curAccount || !curAccount.id) {
+            errors.addError("all", "No account selected")
+            return
+        }
+        
+        let updatedColumns = []
+        selectedColumns.forEach(c => updatedColumns.push(c.id))
+        
+        console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
+        await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
     }
 
     const reconciliationCompleted = (results) => {
@@ -185,8 +198,11 @@
     <div class="toolbar">
         {#if curAccount}
         <button class="toolbar-icon import-icon" onclick={evaluateFile} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
-        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" onclick={importCsv} title={useForReconciliation ? $_('transactions.reconcileTransactions') : $_('transactions.importTransactions')}>
-            <Icon icon={useForReconciliation ? "mdi:compare-horizontal" : "mdi:application-import"} width="22"/>
+        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" onclick={importCsv} title={$_('transactions.importTransactions')}>
+            <Icon icon="mdi:application-import" width="22"/>
+        </button>
+        <button class="{requiredColumnsMatched ? 'toolbar-icon-on' : 'toolbar-icon'} import-icon" onclick={reconcileCsv} title={$_('importer.reconcileTransactions')}>
+            <Icon icon="mdi:compare-horizontal" width="22"/>
         </button>
         <button class="toolbar-icon import-icon" onclick={close} title={$_('actions.close')}><Icon icon="mdi:window-close" width="22"/></button>
         {/if}
@@ -217,11 +233,6 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
-        </div>
-    </div>
-    <div class="form-row2">
-        <div class="widget">
-            <div class="label label-column">{$_('importer.use_for_reconciliation')}</div><input type="checkbox" bind:checked={useForReconciliation} />
         </div>
     </div>
 </div>

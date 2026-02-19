@@ -175,7 +175,7 @@
         "hideFilter": "Hide filter",
         "hideSelect": "Hide select transactions",
         "importTransactions": "Import transactions",
-        "openCsv": "Open CSV for import",
+        "openCsv": "Open CSV file",
         "noTransactions": "No transactions",
         "showFilter": "Show filter",
         "showSelect": "Show select transactions",
@@ -209,7 +209,7 @@
         "required_columns_mapped": "Required columns mapped",
         "columns": "Columns",
         "sample_data": "CSV data",
-        "use_for_reconciliation": "Reconciliation mode"
+        "reconcileTransactions": "Reconcile transactions"
     },
     "modifier": {
         "title": "Modifier",
