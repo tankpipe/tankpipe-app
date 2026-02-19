@@ -273,10 +273,9 @@
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-                <tr 
-                    class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} 
-                    {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} 
-                    {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''}" 
+                <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} 
+                           {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} 
+                           {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''}" 
                     onclick={!isReconciliationRow ? (event) => stopPropagationHandler(event, () => e && selectTransaction(e)) : undefined} 
                     id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
@@ -313,7 +312,7 @@
                     <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
                 {/if}
             </tr>
-            {#if isReconciliationRow}
+            {#if isReconciliationMode && ! hasReconciliationMatch(e)}
             <tr>
                 <td colspan="7" class="divider-row"></td>
             </tr>
@@ -548,6 +547,26 @@
 
     .reconciled-recon-row td{
         color: #888;
+    }
+
+    .reconciliation-row-matched:hover td {
+        cursor: default !important;
+        color: #74d965 !important;
+    }
+
+    .reconciliation-row-partialmatch:hover td {
+        cursor: default !important;
+        color: #daae3e !important;
+    }
+
+    .reconciliation-row-unmatched:hover td {
+        cursor: default !important;
+        color: #e2634f !important;
+    }
+
+    .reconciled-recon-row:hover td {
+        cursor: default !important;
+        color: #888 !important;
     }
 
     @media (min-width: 1010px) {
