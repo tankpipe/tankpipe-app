@@ -136,15 +136,16 @@ pub fn read_transactions <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str
 
             for result in reader.deserialize() {
                 match result {
-                    Ok(item) => {
-                        transactions.push(to_transaction(&columns, item, account, fmt)?);
-
-                    },
-                    Err(e) => {
-                        println!("Skipping row as unabled to process. Error: {:?}", e)
-                    },
+                    Ok(item) => transactions.push(to_transaction(&columns, item, account, fmt)?),
+                    Err(e) => println!("Skipping row as unabled to process. Error: {:?}", e)
                 }
             }
+            
+            if transactions_are_reversed(&transactions, account) {
+                println!("Detected reversed transaction order, reversing...");
+                transactions.reverse();
+            }
+            
             Ok(transactions)
         },
         Err(e) => {
@@ -203,7 +204,6 @@ fn get_value(row: &Vec<String>, columns: &ColumnTypes, column: ColumnType) -> Re
     }
 }
 
-
 pub fn balance_impact(amount: Decimal) -> Side {
     if amount.ge(&dec!(0)) {
         Side::Debit
@@ -227,8 +227,6 @@ pub fn read_headers<P: AsRef<Path>>(path: &P) -> Result<Vec<String> , BooksError
         }
     }
 }
-
-
 
 /// Read and auto detect column types from CSV file headers.
 pub fn read_columns<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
@@ -275,6 +273,37 @@ fn validate_columns(columns: &ColumnTypes) -> Result<(), BooksError> {
     }
 
     return Err(BooksError{ error: "Header row should include one each of Date, Description, [Debit, Credit | Amount].".to_string()})
+}
+
+/// Detect if transactions are in reverse chronological order (newest first)
+pub fn transactions_are_reversed(transactions: &[Transaction], account: &Account) -> bool {
+    if transactions.len() < 2 {
+        return false;
+    }
+    
+    // Check if dates are generally decreasing (newest to oldest)
+    let mut decreasing_count = 0;
+    let mut total_comparisons = 0;
+    let mut currently_decreasing = false;
+    
+    for window in transactions.windows(2) {
+        if let (Some(first_entry), Some(second_entry)) = (
+            window[0].find_entry_by_account(&account.id),
+            window[1].find_entry_by_account(&account.id)
+        ) {
+            if first_entry.date > second_entry.date || (first_entry.date == second_entry.date && currently_decreasing) {
+                decreasing_count += 1;
+                currently_decreasing = true;
+            } else {
+                currently_decreasing = false;
+            }
+            total_comparisons += 1;
+        }
+    }
+    
+    // If more than 70% of comparisons show decreasing dates, consider it reversed
+    println!("decreasing_count: {}, total_comparisons: {}", decreasing_count, total_comparisons);
+    total_comparisons > 0 && (decreasing_count as f64 / total_comparisons as f64) > 0.7
 }
 
 fn parse_money_str(amount: String) -> Result<Decimal, BooksError> {
