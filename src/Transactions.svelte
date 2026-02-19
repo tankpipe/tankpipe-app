@@ -5,7 +5,7 @@
     import { Errors } from './errors'
     import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
     import { settings } from './settings'
-    import { accounts } from './accounts'
+    import { accounts, updateAccounts } from './accounts'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte'
@@ -20,7 +20,7 @@
     let curEntry = $state({})
     let errors = $state(new Errors())
     let msg = $state("")
-    let previousAccount
+    let previousAccountId
     let topScroll
     let showFilter = $state(false)
     let descriptionFilter = $state("")
@@ -36,7 +36,7 @@
             curAccount = {}
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
-        } else if (curAccount && curAccount !== previousAccount) {
+        } else if (curAccount && curAccount.id !== previousAccountId) {
             console.log("curAccount changed", curAccount.id)
             isReconciliationMode = false
             reconciliationResults = []
@@ -47,7 +47,7 @@
             errors = new Errors()
             msg = ""
             loadTransactions()
-            previousAccount = curAccount
+            previousAccountId = curAccount.id
         }
 
         if (!$page.isEditMode) {
@@ -225,6 +225,12 @@
         reconciliationAccountId = null
         loadTransactions()
     }
+    
+    const loadAccounts = async () => {
+        let result = await invoke('accounts')
+        updateAccounts(result)
+        curAccount = $accounts.find(a => a.id === curAccount.id)
+    };   
 
 </script>
 
@@ -270,7 +276,7 @@
 <div class="reconciliation-header">
     <div class="reconciliation-title">Reconciliation Results</div>
     <button class="exit-reconciliation" onclick={exitReconciliationMode}>
-        <Icon icon="mdi:close" width="16"/> Exit Reconciliation
+        <Icon icon="mdi:close" width="16"/>
     </button>
 </div>
 {/if}
@@ -296,6 +302,7 @@
     reconciliationResults={reconciliationAccountId === curAccount?.id ? reconciliationResults : []}
     isReconciliationMode={reconciliationAccountId === curAccount?.id && isReconciliationMode}
     onSelect={selectTransaction}
+    loadAccounts={loadAccounts}
 />
 {/if}
 
@@ -430,7 +437,7 @@
         align-items: center;
         background-color: #2a2a2a;
         padding: 10px 15px;
-        margin: 10px 0;
+        margin: 10px 30px 10px 0;
         border-radius: 5px;
         border-left: 4px solid #4CAF50;
     }

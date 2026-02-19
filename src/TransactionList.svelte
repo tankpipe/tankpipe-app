@@ -3,9 +3,11 @@
     import { accounts } from './accounts'
     import { _ } from 'svelte-i18n'
     import { selector, toggleSelected, toggleAllSelected, isSelected } from './selector'
-
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect } = $props()
+    import { invoke } from "@tauri-apps/api/core"
+    
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect, loadAccounts } = $props()
     let topScroll
+    let hoveredReconIndex = $state(null)
 
     let displayTransactions = $derived(() => {
         // If not in reconciliation mode or no reconciliation results, return normal transactions
@@ -29,8 +31,6 @@
                     targetTransactionId: result.matched_transaction_id
                 }
             })
-
-            console.log(unmatchedResults)
 
         // Start with existing transactions in their original order
         let combined = transactions.map(tx => ({
@@ -180,6 +180,60 @@
         return false
     }
 
+    const isReconciliationPoint = (entry) => {
+        return !!(curAccount?.reconciliation_info &&
+            entry?.transaction_id === curAccount.reconciliation_info.transaction_id)
+    }
+
+    const hasReconciliationMatch = (entry) => {
+        if (!isReconciliationMode || reconciliationResults.length === 0) {
+            return false
+        }
+
+        return reconciliationResults.some(result =>
+            result.matched_transaction_id === entry.transaction_id &&
+            result.status !== 'Unmatched'
+        )
+    }
+
+    const reconcilationTargetAlreadyReconciled = (transaction) => {
+        if (!transaction || !transaction.targetTransactionId) return false
+        
+        const targetTransaction = transactions.find(t => t.id === transaction.targetTransactionId)
+        if (!targetTransaction) return false
+        
+        return isReconciled(getEntry(targetTransaction))
+    }
+
+    const markerStateForRow = (entry) => {
+        if (!entry) return 'future'
+        if (isReconciliationPoint(entry)) return 'current'
+        if (isReconciled(entry)) return 'past'
+        return 'future'
+    }
+
+    const setReconPoint = async (entry) => {
+        if (!curAccount || !curAccount.id || !entry) return
+
+        const updatedAccount = {
+            ...curAccount,
+            reconciliation_info: {
+                date: entry.date,
+                transaction_id: entry.transaction_id,
+                balance: entry.balance
+            }
+        }
+
+        curAccount = updatedAccount
+
+        try {
+            await invoke('update_account', {account: updatedAccount})
+            loadAccounts()
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     const sortEntries = (entries) => {
         return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
@@ -194,7 +248,6 @@
     }
 
     const stopPropagationHandler = (event, handler) => {
-        console.log('stopPropagationHandler called:', { event, handler, handlerType: typeof handler })
         event.stopPropagation()
         if (typeof handler === 'function') {
             handler()
@@ -214,13 +267,18 @@
             {/if}
             <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th></th>
         </tr>
-        {#each displayTransactions() as t}
+        {#each displayTransactions() as t, i}
             {@const selected = isSelected(t)}
             {@const isReconciliationRow = isReconciliationMode && t.isReconciliationResult}
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''}"  onclick={(event) => stopPropagationHandler(event, () => e && selectTransaction(e))} id={t.id}><!--{t.id}-->
+                <tr 
+                    class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} 
+                    {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} 
+                    {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''}" 
+                    onclick={!isReconciliationRow ? (event) => stopPropagationHandler(event, () => e && selectTransaction(e)) : undefined} 
+                    id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>{/if}
                 <td class={projected(e) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(e)} title="{e.description}"><div class="description">{e.description}</div>
@@ -233,7 +291,27 @@
                 <td class="{projected(e)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(e)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(e)} money">{getBalance(e)}</td>
-                <td class="reconciled-cell">{!isReconciliationRow && isReconciled(e) ? '✓' : ''}</td>
+                {#if isReconciliationRow}
+                    <td class="reconciled-cell"></td>
+                {:else if isReconciliationMode}
+                    {#if isReconciled(e)}
+                        <td class="reconciled-cell">✓</td>
+                    {:else if hasReconciliationMatch(e)}
+                        <td class="reconciled-cell">
+                            <button
+                                class={"recon-marker " + markerStateForRow(e) + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
+                                onclick={(event) => stopPropagationHandler(event, () => setReconPoint(e))}
+                                onmouseenter={() => hoveredReconIndex = i}
+                                onmouseleave={() => hoveredReconIndex = null}
+                                title="Set reconciliation point here"
+                            >✓</button>
+                        </td>
+                    {:else}
+                        <td class="reconciled-cell"></td>
+                    {/if}
+                {:else}
+                    <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
+                {/if}
             </tr>
             {#if isReconciliationRow}
             <tr>
@@ -384,6 +462,59 @@
         font-size: .8em;
         font-weight: bold;
         padding: 0 0 4px 3px;
+        text-align: center;
+    }
+
+    .recon-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid #666;
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+        color: transparent;
+        font-size: 12px;
+        line-height: 12px;
+    }
+
+    .recon-marker.past {
+        background: #4CAF50;
+        border-color: #4CAF50;
+        opacity: 0.5;
+    }
+
+    .recon-marker.current {
+        background: #4CAF50;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px #222, 0 0 0 3px #4CAF50;
+    }
+
+    .recon-marker.future {
+        background: transparent;
+        border-color: #666;
+    }
+
+    .recon-marker:hover {
+        border-color: #9be29f;
+    }
+
+    .recon-marker.hover-highlight {
+        border-color: transparent;
+        background: transparent;
+        color: #4CAF50;
+        box-shadow: none;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .recon-check {
+        margin-left: 6px;
+        color: #c0c0c0;
+        font-weight: bold;
     }
 
     .reconciliation-status-cell {
@@ -411,6 +542,12 @@
 
     .reconciliation-row td {
         background-color: #2a2a2a;
+        font-size: .7em;
+        line-height: .8em;
+    }
+
+    .reconciled-recon-row td{
+        color: #888;
     }
 
     @media (min-width: 1010px) {
