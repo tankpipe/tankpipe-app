@@ -39,9 +39,6 @@
             reconciliationStatus: null
         }))
 
-        // Sort unmatched results by date to ensure proper insertion order
-        unmatchedResults.sort((a, b) => new Date(a.date) - new Date(b.date))
-
         // Insert each reconciliation result at the correct position
         // Work backwards through the array to avoid index shifting issues
         for (let i = unmatchedResults.length - 1; i >= 0; i--) {
@@ -196,6 +193,17 @@
         )
     }
 
+    const canBeReconciled = (entry) => {
+        if (!isReconciliationMode || reconciliationResults.length === 0) {
+            return false
+        }
+
+        return reconciliationResults.some(result =>
+            result.matched_transaction_id === entry.transaction_id &&
+           (result.status == 'Matched' || result.status == 'PartialMatch')
+        )
+    }
+
     const reconcilationTargetAlreadyReconciled = (transaction) => {
         if (!transaction || !transaction.targetTransactionId) return false
         
@@ -295,7 +303,7 @@
                 {:else if isReconciliationMode}
                     {#if isReconciled(e)}
                         <td class="reconciled-cell">✓</td>
-                    {:else if hasReconciliationMatch(e)}
+                    {:else if canBeReconciled(e)}
                         <td class="reconciled-cell">
                             <button
                                 class={"recon-marker " + markerStateForRow(e) + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
@@ -531,7 +539,7 @@
         color: #74d965;
     }   
 
-    .reconciliation-row-partialmatch td {
+    .reconciliation-row-partialmatch td, .reconciliation-row-mismatch td {
         color: #daae3e;
     }
 
@@ -554,7 +562,7 @@
         color: #74d965 !important;
     }
 
-    .reconciliation-row-partialmatch:hover td {
+    .reconciliation-row-partialmatch:hover td, .reconciliation-row-mismatch:hover td  {
         cursor: default !important;
         color: #daae3e !important;
     }
