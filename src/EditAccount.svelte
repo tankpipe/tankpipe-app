@@ -1,4 +1,4 @@
-<script>
+<script module>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
@@ -9,17 +9,19 @@
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
 
-    export let close
-    export let curAccount
-    export let loadAccounts
-    export let initialize = false
-
     const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
+</script>
 
-    let msg = ""
-    let errors = new Errors()
-    let name, startingBalance, accountType
-    let addButtonLabel = $_('buttons.add')
+<script>
+    let { close, curAccount, loadAccounts, initialize = false } = $props()
+
+    let msg = $state("")
+    let errors = $state(new Errors())
+    let name = $state()
+    let startingBalance = $state()
+    let accountType = $state()
+    let addButtonLabel = $state($_('buttons.add'))
+    let transactions = $state([])
 
     onMount(() => {
         if ($page.mode === modes.EDIT) {
@@ -35,12 +37,11 @@
         }
     })
 
-    $: {
+    $effect(() => {
         if (curAccount && curAccount.id) loadTransactions()
-    }
+    })
 
-    let transactions = []
-    export const loadTransactions = async () => {
+    const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
         transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
@@ -138,7 +139,7 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('account.form.title.edit') : $_('account.form.title.new')}</div>
     <div class="toolbar toolbar-right">
         {#if transactions.length < 1}
-        <button class="toolbar-icon" on:click="{deleteAccount(curAccount)}" title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick={deleteAccount(curAccount)} title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {/if}
     </div>
     <div class="form-row">
@@ -164,8 +165,8 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
-            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
     </div>    
     {#if curAccount.reconciliation_info}               
