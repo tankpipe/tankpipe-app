@@ -6,7 +6,7 @@
     import {config} from '../config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-    import TransactionList from '../TransactionList.svelte'
+    import TransactionList from '../transactions/TransactionList.svelte'
     import { onMount } from 'svelte';
     import Spinner from '../Spinner.svelte';
 

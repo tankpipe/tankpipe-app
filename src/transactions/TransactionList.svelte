@@ -1,8 +1,8 @@
 <script>
-    import { config } from './config.js'
-    import { accounts } from './accounts'
+    import { config } from '../config.js'
+    import { accounts } from '../accounts'
     import { _ } from 'svelte-i18n'
-    import { selector, toggleSelected, toggleAllSelected, isSelected } from './selector'
+    import { selector, toggleSelected, toggleAllSelected, isSelected } from '../selector.js'
     import { invoke } from "@tauri-apps/api/core"
     
     let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect, loadAccounts } = $props()

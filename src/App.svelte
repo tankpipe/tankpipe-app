@@ -2,7 +2,7 @@
     import Accounts from './Accounts.svelte'
     import Schedules from './schedules/Schedules.svelte'
     import Modifiers from './schedules/Modifiers.svelte'
-    import Transactions from './Transactions.svelte'
+    import Transactions from './transactions/Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'
     import {initialiseBooks, initialiseFailed} from'./events'

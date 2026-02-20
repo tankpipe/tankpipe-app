@@ -169,7 +169,7 @@
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
     </div>    
-    {#if curAccount.reconciliation_info}               
+    {#if curAccount && curAccount.reconciliation_info}               
         <hr/>
         <div class="info-title">{$_('account.reconciliationInfo')}</div>
         <div class="info-row">

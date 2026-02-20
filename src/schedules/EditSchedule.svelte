@@ -9,7 +9,7 @@
     import {settings} from '../settings.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-    import TransactionList from '../TransactionList.svelte'
+    import TransactionList from '../transactions/TransactionList.svelte'
     import SchedulePanel from './SchedulePanel.svelte'
     import { periods } from '../dates.js'
 

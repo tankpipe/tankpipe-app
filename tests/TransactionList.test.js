@@ -8,7 +8,7 @@ import { vi } from 'vitest'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale } from 'svelte-i18n'
 import '../src/i18n.js'
-import TransactionList from '../src/TransactionList.svelte'
+import TransactionList from '../src/transactions/TransactionList.svelte'
 
 locale.set('en')
 Element.prototype.scrollTo = () => {}
