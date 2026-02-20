@@ -5,7 +5,7 @@
     import Icon from '@iconify/svelte'
     import {page, modes} from './page.js'
     import {accounts} from './accounts.js'
-    import {config} from './config.js'
+    import {config, formatAmount, formatDate} from './config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
 
@@ -27,6 +27,7 @@
             startingBalance = curAccount.starting_balance
             accountType = matchAccountType(curAccount.account_type)
             addButtonLabel = $_('buttons.update')
+            console.log(curAccount)
         } else {
             addButtonLabel = $_('buttons.add')
             startingBalance = "0"
@@ -110,6 +111,7 @@
         console.log(account)
         await invoke('update_account', {account: account}).then(resolved, rejected)
         loadAccounts()
+        close()
     }
 
     function deleteResolved(result) {
@@ -165,7 +167,21 @@
             <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
         </div>
-    </div>
+    </div>    
+    {#if curAccount.reconciliation_info}               
+        <hr/>
+        <div class="info-title">{$_('account.reconciliationInfo')}</div>
+        <div class="info-row">
+                <div class="info-label">{$_('account.reconciledTo')}&nbsp;</div>
+                <div class="info-value">{formatDate(curAccount.reconciliation_info.date)}</div>              
+        </div>
+        <div class="info-row">
+                <div class="info-label">{$_('account.reconciledBalance')}&nbsp;</div>
+                <div class="info-value">{formatAmount(curAccount.reconciliation_info.balance)}</div>              
+        </div>
+        <div class="info-row">&nbsp;</div>
+        <hr/>
+    {/if}
 </div>
 
 <style>
@@ -266,6 +282,44 @@
 
     .description-input {
         width: 400px;
+    }
+
+    .info-row {
+        padding: 5px 0 0px 10px;
+        margin: 0 0 0 0;
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear: both;
+    }
+
+    .info-label {
+        font-size: 0.75em;
+        color: #aaa;
+    }
+
+    .info-value {
+        font-size: 0.75em;
+        color: #aaa;
+    }
+    
+    .info-title {
+        white-space: nowrap;
+        font-weight: 200;
+        font-size: 1em;
+        color: #757575;
+        margin-bottom: 10px;
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear: both;
+    }
+
+    hr {
+        border-style: none;
+        border: 1px solid #363636;
+        margin-left: -20px;
+        width: 100vw;
     }
 
 </style>

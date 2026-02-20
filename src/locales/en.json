@@ -70,8 +70,11 @@
             "success": {
                 "deleted": "Account deleted.",
                 "saved": "Account saved."
-            }
-        }
+            }            
+        },
+        "reconciliationInfo": "Reconciliation",
+        "reconciledTo": "Reconciled to",
+        "reconciledBalance": "Reconciled balance"
     },
     "dialog": {
         "close": "Close dialog"
