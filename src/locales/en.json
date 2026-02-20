@@ -110,7 +110,9 @@
         "delete": "Delete transaction",
         "edit": "Edit Transaction",
         "new": "New Transaction",
+        "view": "Transaction",
         "recorded": "Recorded",
+        "reconciled": "Reconciled",
         "schedule": "Schedule",
         "errors": {
             "accountRequired": "Account is required",

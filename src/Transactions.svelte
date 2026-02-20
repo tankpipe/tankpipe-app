@@ -1,9 +1,10 @@
 <script>
     import EditTransaction from './EditTransaction.svelte'
+    import Transaction from './Transaction.svelte'
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
     import { Errors } from './errors'
-    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
+    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from './page'
     import { settings } from './settings'
     import { accounts, updateAccounts } from './accounts'
     import { invoke } from "@tauri-apps/api/core"
@@ -80,9 +81,30 @@
         return 0
     }
 
+    const isReconciled = (entry) => {        
+        if (curAccount.reconciliation_info) {
+            const reconDate = new Date(curAccount.reconciliation_info.date).getTime()
+            const transDate = new Date(entry.date).getTime()
+            if (transDate < reconDate) return true
+            if (transDate == reconDate) {
+                // Find the index of the reconciliation transaction in the transactions array
+                const reconIndex = transactions.findIndex(trans => trans.id === curAccount.reconciliation_info.transaction_id)
+                const transIndex = transactions.findIndex(trans => trans.id === entry.transaction_id)
+                return transIndex <= reconIndex                    
+            }
+        }
+        return false
+    }
+
     const selectTransaction = (entry) => {
         curEntry = entry
-        page.set({view: $page.view, mode: modes.EDIT})
+        
+        // Route to view-only mode for reconciled transactions
+        if (isReconciled(entry)) {
+            page.set({view: $page.view, mode: modes.VIEW})
+        } else {
+            page.set({view: $page.view, mode: modes.EDIT})
+        }
     }
 
     const editTransactions = () => {
@@ -254,6 +276,10 @@
     {/if}
     {/if}
 </div>
+
+{#if isViewMode($page)}
+<Transaction {curEntry} onClose={onCloseEdit} />
+{/if}
 {#if isSingleEditMode($page)}
 <EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
 {/if}
