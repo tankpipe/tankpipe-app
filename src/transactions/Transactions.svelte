@@ -18,7 +18,7 @@
 
     let { curAccount, journalMode = false } = $props()
 
-    let curEntry = $state({})
+    let curTransaction = $state({})
     let errors = $state(new Errors())
     let msg = $state("")
     let previousAccountId
@@ -81,26 +81,19 @@
         return 0
     }
 
-    const isReconciled = (entry) => {        
-        if (curAccount.reconciliation_info) {
-            const reconDate = new Date(curAccount.reconciliation_info.date).getTime()
-            const transDate = new Date(entry.date).getTime()
-            if (transDate < reconDate) return true
-            if (transDate == reconDate) {
-                // Find the index of the reconciliation transaction in the transactions array
-                const reconIndex = transactions.findIndex(trans => trans.id === curAccount.reconciliation_info.transaction_id)
-                const transIndex = transactions.findIndex(trans => trans.id === entry.transaction_id)
-                return transIndex <= reconIndex                    
-            }
-        }
-        return false
+    const isReconciled = (entry) => {                
+        return entry.reconciled
     }
 
-    const selectTransaction = (entry) => {
-        curEntry = entry
+    const isAnyReconciled = (transaction) => {                
+        return transaction.entries.some(e => e.reconciled)
+    }
+
+    const selectTransaction = (transaction) => {
+        curTransaction = transaction
         
         // Route to view-only mode for reconciled transactions
-        if (isReconciled(entry)) {
+        if (isAnyReconciled(transaction)) {
             page.set({view: $page.view, mode: modes.VIEW})
         } else {
             page.set({view: $page.view, mode: modes.EDIT})
@@ -252,6 +245,7 @@
         let result = await invoke('accounts')
         updateAccounts(result)
         curAccount = $accounts.find(a => a.id === curAccount.id)
+        loadTransactions()
     };   
 
 </script>
@@ -278,10 +272,10 @@
 </div>
 
 {#if isViewMode($page)}
-<Transaction {curEntry} onClose={onCloseEdit} />
+<Transaction transactionId={curTransaction.id} onClose={onCloseEdit} />
 {/if}
 {#if isSingleEditMode($page)}
-<EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
+<EditTransaction {loadTransactions} transactionId={curTransaction.id} onClose={onCloseEdit} />
 {/if}
 {#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>

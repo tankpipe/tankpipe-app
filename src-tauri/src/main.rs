@@ -62,6 +62,7 @@ fn main() {
             account::add_account,
             account::update_account,
             account::delete_account,
+            account::reconcile_account,
             schedule::schedules,
             schedule::get_schedule,
             schedule::add_schedule,

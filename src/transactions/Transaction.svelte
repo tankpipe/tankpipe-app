@@ -8,7 +8,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
-    let { curEntry, onClose } = $props()
+    let { transactionId, onClose } = $props()
 
     let curTransaction = $state({})
 
@@ -22,7 +22,7 @@
 
     $effect(() => {
         if ($page.mode === modes.VIEW) {
-            fetchTransaction(curEntry.transaction_id)
+            fetchTransaction(transactionId)
         }
     })
 

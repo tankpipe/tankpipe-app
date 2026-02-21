@@ -10,7 +10,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
-    let { loadTransactions, curEntry, onClose } = $props()
+    let { loadTransactions, transactionId, onClose } = $props()
 
     let curTransaction = $state({})
 
@@ -30,7 +30,7 @@
     $effect(() => {
 
         if ($page.mode === modes.EDIT) {
-            fetchTransaction(curEntry.transaction_id)
+            fetchTransaction(transactionId)
         } else {
             curTransaction = {id: zeros, status:"Recorded"}
             let date = new Date()
