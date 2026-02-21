@@ -269,17 +269,17 @@
                     onclick={!isReconciliationRow ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
                     id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if ! isAnyReconciled(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
-                <td class={projected(e) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(e)} title="{e.description}"><div class="description">{e.description}</div>
+                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
                         {#if en.account_id != curAccount.id}
                         <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
                         {/if}
                     {/each}
                 </td>
-                <td class="{projected(e)} money">{getDebitAmount(e)}</td>
-                <td class="{projected(e)} money">{getCreditAmount(e)}</td>
-                <td class="{projected(e)} money">{getBalance(e)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e)}</td>
+                <td class="{projected(t)} money">{getBalance(e)}</td>
                 {#if isReconciliationRow}
                     <td class="reconciled-cell"></td>
                 {:else if isReconciliationMode}
@@ -316,13 +316,13 @@
                 {#if $selector.showMultipleSelect}
                 <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
                 {/if}
-                <td class={projected(e) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(e)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
+                <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
                     <div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
                     <div class="description tiny">{e.description}</div>
                 </td>
-                <td class="{projected(e)} money">{getDebitAmount(e)}</td>
-                <td class="{projected(e)} money">{getCreditAmount(e)}</td>
+                <td class="{projected(t)} money">{getDebitAmount(e)}</td>
+                <td class="{projected(t)} money">{getCreditAmount(e)}</td>
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>

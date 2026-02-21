@@ -45,6 +45,35 @@ it('is displayed correctly for Journal view', async () => {
     await checkResults(mockFetchTransactions)
 });
 
+it('renders Projected transaction with projected class and fields', async () => {
+    const mockFetchTransactions = loadTransactions()
+    config.set({ display_date_format: 'Regular' })
+
+    // Use the projected transaction from fixture (status: 'Projected')
+    const projectedTx = { ...transaction_data[2] }
+
+    // Ensure the current account matches one of the entries so it renders a row
+    const { findByText, container, findAllByText } = render(TransactionList, {
+        curAccount: account_data[0], // Account 1 present in projectedTx entries
+        journalMode: false,
+        transactions: [projectedTx]
+    })
+
+    // Wait for render by ensuring description appears
+    await findAllByText('Office supplies purchase')
+
+    // The projected class should be applied to date/description/amount cells
+    const hasProjectedClass = container.querySelectorAll('td.projected').length > 0
+    expect(hasProjectedClass).toBe(true)
+
+    // Check formatted fields render (credit and balance both show 75.00)
+    const amounts = await findAllByText('75.00')
+    expect(amounts.length).toBeGreaterThanOrEqual(1)
+
+    // Snapshot the single projected row rendering
+    expect(container.outerHTML).toMatchSnapshot()
+});
+
 async function checkResults(mockFetchTransactions) {
     let transactions = [transaction_data[0], transaction_data[1]]
     const { findAllByText, container } = render(TransactionList, { curAccount: account_data[0], journalMode: true, transactions: transactions })
