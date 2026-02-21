@@ -99,11 +99,12 @@
             if (curSchedule.modifier_configs && curSchedule.modifier_configs.length > 0) {
                 schedule_modifier = curSchedule.schedule_modifiers[0]
             }
-        } else if ($page.mode === modes.NEW) {
+        } else if ($page.mode === modes.NEW) {            
             drAccount = null
             crAccount = null
             addButtonLabel = $_('buttons.add')
             successMsg = $_('schedule.created')
+            transactions = []
 
             if ($page.payload && $page.payload.entries) {
                 console.log($page.payload)
@@ -122,6 +123,8 @@
     $effect(() => {
         if (curSchedule && curSchedule.id) {
             loadTransactions()
+        } else {
+            transactions = []
         }
     })
 
@@ -394,7 +397,7 @@
 <div>
     <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
     <div class="toolbar toolbar-right list-toolbar">
-        <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')} disabled={!curSchedule || !curSchedule.id}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
 </div>
 <TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
