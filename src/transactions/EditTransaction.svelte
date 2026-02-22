@@ -44,12 +44,16 @@
 
     })
 
+    const isAnyReconciled = (transaction) => {                
+        return transaction.entries.some(e => e.reconciled)
+    }
+
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}}]
     }
 
     const handleRemoveClick = () => {
-        if (entries.length > 2) {
+        if (entries.length > 2 && ! entries[entries.length - 1].reconciled) {
             entries = [...entries.slice(0, entries.length - 1)]
         }
     }
@@ -184,7 +188,8 @@
             (entries.length == 2 &&
             entries[0].description === entries[1].description &&
             entries[0].amount === entries[1].amount &&
-            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime())
+            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime() &&
+            ! entries.some(e => e.reconciled))
         )
     }
 
@@ -278,10 +283,13 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
+    {#if entries.some(e => e.reconciled)}
+    <div class="recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
+    {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled)}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -317,21 +325,24 @@
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" /></div></td>
-                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled={e.reconciled} closeOnSelection={true}/></div></td>
+                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description} disabled={e.reconciled}></td>
+                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={e.reconciled}/></div></td>
                     <td class="money">
-                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>
+                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount} disabled={e.reconciled}>
                     </td>
                     <td class="money">
-                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>
+                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount} disabled={e.reconciled}>
                     </td>
+                    {#if e.reconciled}
+                    <td class="reconciled-cell">✓</td>
+                    {/if}
                 </tr>
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
                         <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
-                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></button>
+                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')} disabled={entries[entries.length - 1].reconciled}><Icon icon="mdi:table-row-remove"  width="24"/></button>
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
@@ -347,7 +358,7 @@
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="recorded" type=checkbox bind:checked={recorded}>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled)}>
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">
@@ -523,5 +534,26 @@
         float: left;
     }
 
+    .recon-msg {
+        color: #daae3e;
+        float: left;
+        margin: 0px 0px 0px 20px;        
+        display: flex;
+        align-items: center;
+    }
+
+    .recon-msg span {
+        padding-top: 5px;
+        font-size: 0.85em;
+    }
+
+    .reconciled-cell {
+        background-color: #444 !important;
+        color: #ccc;
+        font-size: .8em;
+        font-weight: bold;
+        padding: 0 0 4px 3px;
+        text-align: center;
+    }
 
 </style>

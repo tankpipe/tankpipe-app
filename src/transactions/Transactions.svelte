@@ -81,19 +81,15 @@
         return 0
     }
 
-    const isReconciled = (entry) => {                
-        return entry.reconciled
-    }
-
-    const isAnyReconciled = (transaction) => {                
-        return transaction.entries.some(e => e.reconciled)
+    const isAllReconciled = (transaction) => {                
+        return transaction.entries.every(e => e.reconciled)
     }
 
     const selectTransaction = (transaction) => {
         curTransaction = transaction
         
         // Route to view-only mode for reconciled transactions
-        if (isAnyReconciled(transaction)) {
+        if (isAllReconciled(transaction)) {
             page.set({view: $page.view, mode: modes.VIEW})
         } else {
             page.set({view: $page.view, mode: modes.EDIT})
@@ -118,7 +114,7 @@
     }
 
     export const loadTransactions = async () => {
-        console.log("loadTransactions: " + curAccount)
+        console.log("loadTransactions for", curAccount?.id)
 
         if (!curAccount || !curAccount.id) {
             allTransactions = await invoke("all_transactions", {})
@@ -138,13 +134,10 @@
     }
 
     const filterList = () => {
-        console.log("filterList")
         transactions = allTransactions.filter(
             t => descriptionFilter == "" ||
             (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||
             (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase())))
-
-        console.log("filterList: " + transactions.length)
     }
 
     const chartBalance = (balance) => {
@@ -374,7 +367,7 @@
         color: #c0c0c0;
         margin: 0 15px 5px 10px;
         display: flex;
-        padding-right: 9px;
+        padding-right: 13px;
         width: 105px;
     }
 

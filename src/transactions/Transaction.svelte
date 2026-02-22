@@ -111,7 +111,7 @@
         <button class="toolbar-icon" onclick={schedule} title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
     {/if}
-    <div class="recon-msg"><span>{$_('transaction.reconciled')}</span><Icon icon="mdi:check" width="24"/></div>
+    <div class="recon-msg"><span>{$_('transaction.reconciled')}</span><Icon icon="mdi:check" width="18"/></div>
     {#if compoundMode}
     <div class="entries">
         <table>
@@ -128,6 +128,9 @@
                 <td class="money">
                     <input id="cramount" class="money-input" bind:value={e.crAmount} disabled/>
                 </td>
+                {#if e.reconciled}
+                    <td class="reconciled-cell"><Icon icon="mdi:check" width="16"/></td>
+                {/if}
             </tr>
             {/each}
             <tr>
@@ -248,7 +251,7 @@
     }
 
     .recon-msg {
-        color: green;
+        color: #74d965;
         float: left;
         margin: 0px 0px 0px 20px;        
         display: flex;
@@ -256,8 +259,17 @@
     }
 
     .recon-msg span {
-        padding-top: 2px;
+        padding-top: 5px;
+        font-size: .85em;
     }
     
+    .reconciled-cell {
+        background-color: #444 !important;
+        color: #ccc;
+        font-size: .8em;
+        font-weight: bold;
+        padding: 0 0 4px 3px;
+        text-align: center;
+    }
 
 </style>

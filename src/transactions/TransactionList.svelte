@@ -4,7 +4,8 @@
     import { _ } from 'svelte-i18n'
     import { selector, toggleSelected, toggleAllSelected, isSelected } from '../selector.js'
     import { invoke } from "@tauri-apps/api/core"
-    
+    import Icon from '@iconify/svelte'
+
     let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect, loadAccounts } = $props()
     let topScroll
     let hoveredReconIndex = $state(null)
@@ -299,7 +300,7 @@
                         <td class="reconciled-cell"></td>
                     {/if}
                 {:else}
-                    <td class="reconciled-cell">{isReconciled(e) ? '✓' : ''}</td>
+                    <td class="reconciled-cell">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{/if}</td>
                 {/if}
             </tr>
             {#if isReconciliationMode && ! hasReconciliationMatch(e)}
@@ -312,9 +313,9 @@
           {#if journalMode}
             {@const sortedEntries = sortEntries(t.entries)}
             {#each sortedEntries as e}
-            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" onclick={() => selectTransaction(e)} id={t.id}><!--{t.id}-->
+            <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" onclick={() => selectTransaction(t)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}
-                <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}><input id={"selected_" + t.id} type=checkbox checked={selected}></td>
+                <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if ! isAnyReconciled(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>
                 {/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
@@ -323,6 +324,7 @@
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
+                <td class="reconciled-cell">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{/if}</td>
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>
