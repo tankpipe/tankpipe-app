@@ -114,6 +114,8 @@
         "recorded": "Recorded",
         "reconciled": "Reconciled",
         "partiallyReconciled": "Partially reconciled",
+        "reconcileTransaction": "Reconcile transaction",
+        "reconcileTransactions": "Reconcile transactions",
         "schedule": "Schedule",
         "errors": {
             "accountRequired": "Account is required",

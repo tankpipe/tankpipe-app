@@ -184,7 +184,7 @@
         margin: 40px 20px 0px 20px;
         min-width: 200px;
     }
-
+    
     .app {
         background-color: #444;
         height: 100%;
@@ -286,6 +286,13 @@
         float: left;
     }
    
+    :global(.selectable-text) {
+        -webkit-user-select: all; /* Chrome/Safari */
+        -moz-user-select: all; /* Firefox */
+        -ms-user-select: all; /* IE10+ */
+        -o-user-select: all;
+        user-select: all;
+    }
 
     @media (min-width: 640px) {
         main {

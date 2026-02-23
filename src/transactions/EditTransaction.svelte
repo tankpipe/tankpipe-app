@@ -367,10 +367,10 @@
         </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}
-            <div class="error-msg">{e}</div>
+            <div class="error-msg selectable-text">{e}</div>
             {/each}
             {#if msg}
-            <div class="success-msg">{msg}</div>
+            <div class="success-msg selectable-text">{msg}</div>
             {/if}
         </div>
     </div>

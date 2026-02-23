@@ -214,11 +214,16 @@
         return 'future'
     }
 
-    const setReconPoint = async (entry) => {
-        if (!curAccount || !curAccount.id || !entry) return
+    const reconcileTransactions = async (toEntry) => {
+        if (!curAccount || !curAccount.id || !toEntry) return
 
         try {
-            await invoke('reconcile_account', {accountId: curAccount.id, transactionId: entry.transaction_id})
+            const transactionIds = reconciliationResults
+                .slice(0, reconciliationResults.findIndex(result => result.matched_transaction_id === toEntry.transaction_id) + 1)
+                .filter(result => result.status == 'Matched' || result.status == 'PartialMatch')
+                .map(result => result.matched_transaction_id)
+
+            await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds})
             loadAccounts()
         } catch (err) {
             console.log(err)
@@ -290,10 +295,10 @@
                         <td class="reconciled-cell">
                             <button
                                 class={"recon-marker " + markerStateForRow(e) + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
-                                onclick={(event) => stopPropagationHandler(event, () => setReconPoint(e))}
+                                onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
                                 onmouseenter={() => hoveredReconIndex = i}
                                 onmouseleave={() => hoveredReconIndex = null}
-                                title="Set reconciliation point here"
+                                title={$_('transaction.reconcileTransactions')}
                             >✓</button>
                         </td>
                     {:else}
