@@ -291,10 +291,9 @@
                 <td class="{projected(t)} money">{getBalance(e)}</td>
                 {#if isReconciliationRow}
                     <td class="reconciled-cell"></td>
-                {:else if isReconciliationMode}
-                    {#if isReconciled(e)}
-                        <td class="reconciled-cell">✓</td>
-                    {:else if canBeReconciled(e)}
+                {:else if isReconciled(e) }
+                    <td class="reconciled-cell"><Icon icon="mdi:check" width="16"/></td>
+                {:else if isReconciliationMode && canBeReconciled(e)}
                         <td class="reconciled-cell">
                             <button
                                 class={"recon-marker " + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
@@ -304,11 +303,10 @@
                                 title={$_('transaction.reconcileTransactions')}
                             >✓</button>
                         </td>
-                    {:else}
-                        <td class="reconciled-cell"></td>
-                    {/if}
+                {:else if e.reconciled_status == 'Outstanding' }
+                    <td class="reconciled-cell"><Icon icon="mdi:circle-small" width="16"/></td>
                 {:else}
-                    <td class="reconciled-cell">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{/if}</td>
+                    <td class="reconciled-cell"></td>
                 {/if}
             </tr>
             {#if isReconciliationMode && ! hasReconciliationMatch(e)}
@@ -332,7 +330,7 @@
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
-                <td class="reconciled-cell">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{/if}</td>
+                <td class="reconciled-cell">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == 'Outstanding'}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>
