@@ -122,6 +122,7 @@
             allTransactions = await invoke("transactions", { accountId: curAccount.id })
         }
 
+        console.log("allTransactions", allTransactions)
         chartValues = []
         if (!journalMode) {
             for (const t of allTransactions) {

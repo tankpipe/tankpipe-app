@@ -5,10 +5,13 @@
     import { selector, toggleSelected, toggleAllSelected, isSelected } from '../selector.js'
     import { invoke } from "@tauri-apps/api/core"
     import Icon from '@iconify/svelte'
+    import { Errors } from '../errors'
 
     let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect, loadAccounts } = $props()
     let topScroll
     let hoveredReconIndex = $state(null)
+    let errors = $state(new Errors())
+    let msg = $state("")
 
     let displayTransactions = $derived(() => {
         // If not in reconciliation mode or no reconciliation results, return normal transactions
@@ -164,16 +167,11 @@
     const date_class = date_style()
 
     const isReconciled = (entry) => {                
-        return entry.reconciled
+        return entry.reconciled_status == 'Reconciled'
     }
 
     const isAnyReconciled = (transaction) => {                
-        return transaction.entries.some(e => e.reconciled)
-    }
-
-    const isReconciliationPoint = (entry) => {
-        return !!(curAccount?.reconciliation_info &&
-            entry?.transaction_id === curAccount.reconciliation_info.transaction_id)
+        return transaction.entries.some(e => e.reconciled_status == 'Reconciled'   )
     }
 
     const hasReconciliationMatch = (entry) => {
@@ -207,13 +205,6 @@
         return isReconciled(getEntry(targetTransaction))
     }
 
-    const markerStateForRow = (entry) => {
-        if (!entry) return 'future'
-        if (isReconciliationPoint(entry)) return 'current'
-        if (isReconciled(entry)) return 'past'
-        return 'future'
-    }
-
     const reconcileTransactions = async (toEntry) => {
         if (!curAccount || !curAccount.id || !toEntry) return
 
@@ -223,11 +214,14 @@
                 .filter(result => result.status == 'Matched' || result.status == 'PartialMatch')
                 .map(result => result.matched_transaction_id)
 
-            await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds})
-            loadAccounts()
+            await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds})            
         } catch (err) {
             console.log(err)
+            errors = new Errors()
+            errors.addError("all", $_('transactions.error', { values: {error: err} }))
+            showErrors(errors)
         }
+        loadAccounts()        
     }
 
     const sortEntries = (entries) => {
@@ -255,7 +249,16 @@
     }
 
 </script>
-
+{#if errors.getErrorMessages().length > 0 || msg && msg != ""}
+<div class="widget errors">
+    {#each errors.getErrorMessages() as e}
+    <div class="error-msg selectable-text">{e}</div>
+    {/each}
+    {#if msg}
+    <div class="success-msg selectable-text">{msg}</div>
+    {/if}
+</div>
+{/if}
 <div class="scroller" id="scroller">
     <table class="{journalMode ? 'journal' : ''}">
         <tbody>
@@ -294,7 +297,7 @@
                     {:else if canBeReconciled(e)}
                         <td class="reconciled-cell">
                             <button
-                                class={"recon-marker " + markerStateForRow(e) + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
+                                class={"recon-marker " + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
                                 onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
                                 onmouseenter={() => hoveredReconIndex = i}
                                 onmouseleave={() => hoveredReconIndex = null}
@@ -564,6 +567,18 @@
     .reconciled-recon-row:hover td {
         cursor: default !important;
         color: #888 !important;
+    }
+
+    .error-msg {
+        color: red;
+        text-align: left;
+        margin-bottom: 3px;
+        font-size: 0.9em;
+    }
+
+    .success-msg {
+        color: green;
+        text-align: left;
     }
 
     @media (min-width: 1010px) {

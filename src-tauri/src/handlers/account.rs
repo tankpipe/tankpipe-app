@@ -36,18 +36,10 @@ pub fn delete_account(state: tauri::State<BooksState>, account: Account) -> Resu
 }
 
 #[tauri::command]
-pub fn reconcile_account(state: tauri::State<BooksState>, account_id: Uuid, transaction_id: Uuid) -> Result<(), String> {
-    println!("Reconcile account {}", account_id);
-    let mut mutex_guard = state.0.lock().unwrap();
-    error_handler(mutex_guard.books.reconcile_account(account_id, transaction_id))?;
-    error_handler(mutex_guard.save())
-}
-
-#[tauri::command]
 pub fn reconcile_account_transaction(state: tauri::State<BooksState>, account_id: Uuid, transaction_id: Uuid) -> Result<(), String> {
     println!("Reconcile account {} transaction {}", account_id, transaction_id);
     let mut mutex_guard = state.0.lock().unwrap();
-    error_handler(mutex_guard.books.reconcile_account_by_transaction(account_id, transaction_id))?;
+    error_handler(mutex_guard.books.reconcile_account_transactions(account_id, vec![transaction_id]))?;
     error_handler(mutex_guard.save())
 }
 

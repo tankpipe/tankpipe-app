@@ -167,7 +167,7 @@ fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fm
         entry_type,
         amount: amount.abs(),
         balance,
-        reconciled: false,
+        reconciled_status: None,
     };
     Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
 }

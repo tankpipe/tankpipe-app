@@ -189,8 +189,12 @@
             entries[0].description === entries[1].description &&
             entries[0].amount === entries[1].amount &&
             entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime() &&
-            ! entries.some(e => e.reconciled))
+            ! entries.some(e => e.reconciled_status && (e.reconciled_status == "Reconciled" || e.reconciled_status == "Outstanding")))
         )
+    }
+
+    const editable = (e) => {
+        return !(e.reconciled_status && (e.reconciled_status == "Reconciled" || e.reconciled_status == "Outstanding"))
     }
 
     function fetched(result) {
@@ -325,14 +329,14 @@
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled={e.reconciled} closeOnSelection={true}/></div></td>
-                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description} disabled={e.reconciled}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={e.reconciled}/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled={!editable(e)} closeOnSelection={true}/></div></td>
+                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description} disabled={!editable(e)}></td>
+                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={!editable(e)}/></div></td>
                     <td class="money">
-                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount} disabled={e.reconciled}>
+                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount} disabled={!editable(e)}>
                     </td>
                     <td class="money">
-                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount} disabled={e.reconciled}>
+                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount} disabled={!editable(e)}>
                     </td>
                     {#if e.reconciled}
                     <td class="reconciled-cell">✓</td>
