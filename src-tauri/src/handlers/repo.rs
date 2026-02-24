@@ -160,7 +160,7 @@ pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account: Acc
 
     match load_result {
         Ok(transactions) => {
-            let reconciliation_result = mutex_guard.books.reconcile(account.id, transactions);
+            let reconciliation_result = mutex_guard.books.match_transactions(account.id, transactions);
             match reconciliation_result {
                 Ok(results) => Ok(results),
                 Err(e) => Err(e.error),
@@ -234,21 +234,16 @@ mod tests {
 
     #[test]
     fn test_reconciliation_between_csv_files() {
-        // Create a new books instance with unique name
         let test_name = format!("Test Books_{}", std::process::id());
-        let mut repo = Repo::first_repo(&test_name).unwrap();
+        let mut repo = Repo::first_repo(&test_name).unwrap();        
         
-        // Create a test account (checking account)
         let account = Account::create_new(
             "Test Checking Account",
             AccountType::Asset
         );
         let account_id = account.id;
-        
-        // Add account to books
         repo.books.add_account(account);
         
-        // Load manual transactions into the books
         let manual_transactions = read_transactions(
             &Path::new("test/fixtures/bank_transactions_manual.csv"),
             &repo.books.accounts().first().unwrap(),
@@ -263,13 +258,11 @@ mod tests {
             ]),
             true // has_headers
         ).unwrap();
-        
-        // Add manual transactions to books
+
         for transaction in manual_transactions {
             repo.books.add_transaction(transaction).unwrap();
         }
         
-        // Now reconcile against bank transactions
         let bank_transactions = read_transactions(
             &Path::new("test/fixtures/bank_transactions.csv"),
             &repo.books.accounts().first().unwrap(),
@@ -285,19 +278,9 @@ mod tests {
             true // has_headers
         ).unwrap();
         
-        // Perform reconciliation
-        let reconciliation_results = repo.books.reconcile(account_id, bank_transactions).unwrap();
-        
-        // Verify we got results
+        let reconciliation_results = repo.books.match_transactions(account_id, bank_transactions).unwrap();
         assert!(!reconciliation_results.is_empty());
         
-        // Print some debug info
-        println!("Reconciliation results: {}", reconciliation_results.len());
-        for (i, result) in reconciliation_results.iter().enumerate() {
-            println!("Transaction {}: {:?}", i, result.status);
-        }
-        
-        // We should have some matched, some partial, some unmatched transactions
         let matched_count = reconciliation_results.iter()
             .filter(|r| matches!(r.status, accounts::books::ReconciliationMatchStatus::Matched { .. }))
             .count();
@@ -307,18 +290,9 @@ mod tests {
         let unmatched_count = reconciliation_results.iter()
             .filter(|r| matches!(r.status, accounts::books::ReconciliationMatchStatus::Unmatched))
             .count();
-            
-        println!("Matched: {}, Partial: {}, Unmatched: {}", matched_count, partial_count, unmatched_count);
         
-        // We should have at least some matches (exact date/amount/type matches)
-        assert!(matched_count > 0, "Should have at least some exact matches");
-        
-        // We should have some partial matches (2 out of 3 criteria match)
-        // Note: The current data may not produce partial matches due to specific date/amount patterns
-        // This is acceptable as the test demonstrates the reconciliation functionality
-        println!("Partial matches: {}", partial_count);
-        
-        // We should have some unmatched due to date differences
-        assert!(unmatched_count > 0, "Should have some unmatched due to date variations");
+        assert_eq!(3, matched_count, "Should have at least some exact matches");
+        assert_eq!(28, partial_count, "Should have some partial matches");
+        assert_eq!(3, unmatched_count, "Should have some unmatched due to date variations");
     }
 }
