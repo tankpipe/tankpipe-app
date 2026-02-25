@@ -74,7 +74,10 @@
         },
         "reconciliationInfo": "Reconciliation",
         "reconciledTo": "Reconciled to",
-        "reconciledBalance": "Reconciled balance"
+        "reconciledBalance": "Reconciled balance",
+        "reconcilationRollbackSuccess": "Reconciliation rolled back successfully.",
+        "rollbackTo": "Rollback reconciliation to",
+        "rollbackButton": "Rollback"
     },
     "dialog": {
         "close": "Close dialog"

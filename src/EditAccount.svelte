@@ -8,6 +8,7 @@
     import {config, formatAmount, formatDate} from './config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
+    import {DateInput} from 'date-picker-svelte'
 
     const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
 </script>
@@ -22,6 +23,7 @@
     let accountType = $state()
     let addButtonLabel = $state($_('buttons.add'))
     let transactions = $state([])
+    let rollbackDate = $state()
 
     onMount(() => {
         if ($page.mode === modes.EDIT) {
@@ -129,6 +131,29 @@
             close()
         }
     }
+
+    const rollbackReconciliation = async () => {
+        if (!rollbackDate) {
+            errors = new Errors()
+            errors.addError("rollback", $_('account.form.errors.rollbackDateRequired'))
+            return
+        }
+
+        // Convert Date to ISO string for backend
+        const rollbackDateString = rollbackDate.toISOString().split('T')[0]
+        
+        await invoke('rollback_reconciliation', { 
+            accountId: curAccount.id, 
+            toDate: {date: rollbackDateString} 
+        }).then(() => {
+            msg = $_('account.form.success.rollback')
+            loadAccounts()
+            close()
+        }, rejected)
+        
+        msg = $_('account.reconcilationRollbackSuccess')
+        loadAccounts()
+    }
 </script>
 
 {#if $accounts.length < 1 && $config.recent_files.length < 2}
@@ -179,6 +204,18 @@
         <div class="info-row">
                 <div class="info-label">{$_('account.reconciledBalance')}&nbsp;</div>
                 <div class="info-value">{formatAmount(curAccount.reconciliation_info.balance)}</div>              
+        </div>
+        <div class="info-row">&nbsp;</div>
+        <div class="rollback-row">
+            <div class="widget">
+                <label for="rollbackDate">{$_('account.rollbackTo')}</label>
+                <div class="date-input" id="rollbackDate">
+                    <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
+                </div>
+            </div>
+            <div class="widget">
+                <button class="og-button" onclick={rollbackReconciliation} disabled={!rollbackDate}>{$_('account.rollbackButton')}</button>
+            </div>
         </div>
         <div class="info-row">&nbsp;</div>
         <hr/>
@@ -314,6 +351,33 @@
         float: left;
         width: 100%;
         clear: both;
+    }
+
+    .rollback-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0px 0 0px 10px;
+        margin: 0 0 0 0;
+        float: left;
+        width: 100%;
+        clear: both;
+    }
+
+    .rollback-row .widget {
+        display: flex;
+        align-items: center;
+        padding: 5px 0px 5px 0px;
+    }
+
+    .rollback-row label {
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+
+    .rollback-row button {
+        min-height: 33px;
+        margin-bottom: 0px;
     }
 
     hr {

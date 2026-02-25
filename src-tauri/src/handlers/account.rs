@@ -1,7 +1,7 @@
 use accounts::account::Account;
 use uuid::Uuid;
 use crate::BooksState;
-use crate::account_display::NewAccount;
+use crate::account_display::{DateParam, NewAccount};
 use crate::handlers::error_handler;
 
 #[tauri::command]
@@ -49,6 +49,14 @@ pub fn reconcile_account_transactions(state: tauri::State<BooksState>, account_i
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.reconcile_account_transactions(account_id, transaction_ids))?;
     error_handler(mutex_guard.save())
+}
+
+#[tauri::command]
+pub fn rollback_reconciliation(state: tauri::State<BooksState>, account_id: Uuid, to_date: DateParam) -> Result<(), String> {
+    println!("Rollback account {} to date {}", account_id, to_date.date);
+    let mut mutex_guard = state.0.lock().unwrap();
+    error_handler(mutex_guard.books.rollback_reconciliation(account_id, to_date.date))?;
+    error_handler(mutex_guard.save())       
 }
 
 
