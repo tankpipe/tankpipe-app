@@ -43,6 +43,12 @@
             reconciliationStatus: null
         }))
 
+        const toDay = (dateValue) => {
+            const d = new Date(dateValue)
+            d.setHours(0, 0, 0, 0)
+            return d.getTime()
+        }
+
         // Insert each reconciliation result at the correct position
         // Work backwards through the array to avoid index shifting issues
         for (let i = unmatchedResults.length - 1; i >= 0; i--) {
@@ -57,17 +63,19 @@
                 }
             }
             
-            // For unmatched transactions, insert by date
-            const insertIndex = combined.findIndex((tx) => {
-                return new Date(getEntry(tx).date) >= new Date(reconTx.date)
+            // For unmatched transactions, insert after all transactions on the same date,
+            // or after the previous date if no same-day transactions exist.
+            const reconDay = toDay(reconTx.date)
+            const lastIndexOnOrBefore = combined.findLastIndex((tx) => {
+                const txEntry = getEntry(tx)
+                if (!txEntry) return false
+                return toDay(txEntry.date) <= reconDay
             })
-            
-            if (insertIndex === -1) {
-                // No later transaction, append to end
-                combined.push(reconTx)
+
+            if (lastIndexOnOrBefore === -1) {
+                combined.splice(0, 0, reconTx)
             } else {
-                // Insert at the correct position
-                combined.splice(insertIndex, 0, reconTx)
+                combined.splice(lastIndexOnOrBefore + 1, 0, reconTx)
             }
         }
 
