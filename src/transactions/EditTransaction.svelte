@@ -44,10 +44,6 @@
 
     })
 
-    const isAnyReconciled = (transaction) => {                
-        return transaction.entries.some(e => e.reconciled)
-    }
-
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}}]
     }
@@ -287,13 +283,13 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
-    {#if entries.some(e => e.reconciled)}
+    {#if entries.some(e => e.reconciled_status)}
     <div class="recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
     {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled)}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled_status)}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -338,15 +334,13 @@
                     <td class="money">
                         <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount} disabled={!editable(e)}>
                     </td>
-                    {#if e.reconciled}
-                    <td class="reconciled-cell">✓</td>
-                    {/if}
+                    <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
                 </tr>
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
                         <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
-                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')} disabled={entries[entries.length - 1].reconciled}><Icon icon="mdi:table-row-remove"  width="24"/></button>
+                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')} disabled={entries[entries.length - 1].reconciled_status}><Icon icon="mdi:table-row-remove"  width="24"/></button>
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
@@ -362,7 +356,7 @@
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled)}>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status)}>
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">

@@ -30,6 +30,7 @@
     let reconciliationResults = $state([])
     let reconciliationAccountId = $state(null)
     let isReconciliationMode = $state(false)
+    let manualReconciliationMode = $state(false)
     let chartValues = []
 
     $effect(() => {
@@ -40,6 +41,7 @@
         } else if (curAccount && curAccount.id !== previousAccountId) {
             console.log("curAccount changed", curAccount.id)
             isReconciliationMode = false
+            manualReconciliationMode = false
             reconciliationResults = []
             reconciliationAccountId = null
             topScroll = null
@@ -82,7 +84,7 @@
     }
 
     const isAllReconciled = (transaction) => {                
-        return transaction.entries.every(e => e.reconciled)
+        return transaction.entries.every(e => e.reconciled_status)
     }
 
     const selectTransaction = (transaction) => {
@@ -225,11 +227,13 @@
         reconciliationResults = results
         reconciliationAccountId = curAccount?.id ?? null
         isReconciliationMode = true
+        manualReconciliationMode = false
         page.set({view: $page.view, mode: modes.LIST})
     }
 
     const exitReconciliationMode = () => {
         isReconciliationMode = false
+        manualReconciliationMode = false
         reconciliationResults = []
         reconciliationAccountId = null
         loadTransactions()
@@ -241,6 +245,13 @@
         curAccount = $accounts.find(a => a.id === curAccount.id)
         loadTransactions()
     };   
+
+    const onManualReconciliationMode = () => {
+        manualReconciliationMode = !manualReconciliationMode;
+        isReconciliationMode = manualReconciliationMode;
+        reconciliationResults = [];
+        reconciliationAccountId = manualReconciliationMode ? (curAccount?.id ?? null) : null;
+    }
 
 </script>
 
@@ -256,6 +267,10 @@
         <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" onclick="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" onclick="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {#if curAccount && ! journalMode}
+        <button type="button" class="{manualReconciliationMode ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick={onManualReconciliationMode} title={$_('transactions.manualReconciliation')}
+        >
+            <Icon icon="mdi:check" width="24"/>
+        </button>
         <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
         {/if}
     </div>
@@ -288,7 +303,7 @@
 </div>
 {#if isReconciliationMode}
 <div class="reconciliation-header">
-    <div class="reconciliation-title">Reconciliation Results</div>
+    <div class="reconciliation-title">{$_('transactions.reconciliationHeader')}</div>
     <button class="exit-reconciliation" onclick={exitReconciliationMode}>
         <Icon icon="mdi:close" width="16"/>
     </button>
@@ -315,6 +330,7 @@
     transactions={transactions}
     reconciliationResults={reconciliationAccountId === curAccount?.id ? reconciliationResults : []}
     isReconciliationMode={reconciliationAccountId === curAccount?.id && isReconciliationMode}
+    manualReconciliationMode={manualReconciliationMode && reconciliationAccountId === curAccount?.id}
     onSelect={selectTransaction}
     loadAccounts={loadAccounts}
 />

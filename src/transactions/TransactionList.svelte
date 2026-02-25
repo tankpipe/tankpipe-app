@@ -7,7 +7,7 @@
     import Icon from '@iconify/svelte'
     import { Errors } from '../errors'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, onSelect, loadAccounts } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, manualReconciliationMode = false, onSelect, loadAccounts } = $props()
     let topScroll
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
@@ -170,8 +170,8 @@
         return entry.reconciled_status == 'Reconciled'
     }
 
-    const isAnyReconciled = (transaction) => {                
-        return transaction.entries.some(e => e.reconciled_status == 'Reconciled'   )
+    const noReconciledStatus = (transaction) => {                
+        return !transaction.entries.some(e => e.reconciled_status)
     }
 
     const hasReconciliationMatch = (entry) => {
@@ -233,7 +233,7 @@
     }
 
     const handleToggleSelected = (t) => {
-        if ( ! isAnyReconciled(t)) {
+        if (noReconciledStatus(t)) {
             toggleSelected(t)
             setCurrentScroll()
         }        
@@ -264,9 +264,14 @@
         <tbody>
         <tr>
             {#if $selector.showMultipleSelect}
-            <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions.filter(t => !isAnyReconciled(t))))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
+            <th onclick={(event) => stopPropagationHandler(event, () => toggleAllSelected(transactions.filter(t => noReconciledStatus(t))))}><input id="selectAll" type=checkbox checked={$selector.isSelectAll}></th>
             {/if}
-            <th class="justify-left">{$_('labels.date')}</th><th class="justify-left">{$_('labels.description')}</th><th>Debit</th><th>Credit</th>{#if !journalMode}<th>Balance</th>{/if}<th></th>
+            <th class="justify-left">{$_('labels.date')}</th>
+            <th class="justify-left">{$_('labels.description')}</th>
+            <th>Debit</th>
+            <th>Credit</th>
+            {#if !journalMode}<th>Balance</th>{/if}
+            <th></th>
         </tr>
         {#each displayTransactions() as t, i}
             {@const selected = isSelected(t)}
@@ -277,7 +282,7 @@
                 <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''}" 
                     onclick={!isReconciliationRow ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
                     id={t.id}><!--{t.id}-->
-                {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if ! isAnyReconciled(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
+                {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if noReconciledStatus(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
                     {#each t.entries as en}
@@ -303,6 +308,27 @@
                                 title={$_('transaction.reconcileTransactions')}
                             >✓</button>
                         </td>
+                {:else if manualReconciliationMode && !isReconciled(e)}
+                    <td class="reconciled-cell">
+                        <button
+                            class="recon-marker"
+                            onclick={(event) => stopPropagationHandler(event, async () => {
+                                if (!curAccount || !curAccount.id) return
+                                try {
+                                    await invoke('reconcile_account_transactions', {
+                                        accountId: curAccount.id,
+                                        transactionIds: [e.transaction_id]
+                                    })
+                                } catch (err) {
+                                    console.log(err)
+                                    errors = new Errors()
+                                    errors.addError("all", $_('transactions.error', { values: {error: err} }))
+                                }
+                                loadAccounts()
+                            })}
+                            title={$_('transaction.reconcileTransactions')}
+                        >✓</button>
+                    </td>
                 {:else if e.reconciled_status == 'Outstanding' }
                     <td class="reconciled-cell"><Icon icon="mdi:circle-small" width="16"/></td>
                 {:else}
@@ -321,7 +347,7 @@
             {#each sortedEntries as e}
             <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''}" onclick={() => selectTransaction(t)} id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}
-                <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if ! isAnyReconciled(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>
+                <td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if noReconciledStatus(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>
                 {/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">

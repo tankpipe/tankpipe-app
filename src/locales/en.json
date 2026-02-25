@@ -186,11 +186,13 @@
         "hideFilter": "Hide filter",
         "hideSelect": "Hide select transactions",
         "importTransactions": "Import transactions",
+        "manualReconciliation": "Manual reconciliation",
         "openCsv": "Open CSV file",
         "noTransactions": "No transactions",
         "showFilter": "Show filter",
         "showSelect": "Show select transactions",
-        "transactionsDeleted": "Transactions deleted."
+        "transactionsDeleted": "Transactions deleted.",
+        "reconciliationHeader": "Reconciliation"
     },
     "about": {
         "logo_alt": "Tankpipe logo",

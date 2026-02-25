@@ -128,9 +128,7 @@
                 <td class="money">
                     <input id="cramount" class="money-input" bind:value={e.crAmount} disabled/>
                 </td>
-                {#if e.reconciled}
-                    <td class="reconciled-cell"><Icon icon="mdi:check" width="16"/></td>
-                {/if}
+                <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}{e.reconciled_status}</td>
             </tr>
             {/each}
             <tr>

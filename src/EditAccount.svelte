@@ -148,7 +148,6 @@
         }).then(() => {
             msg = $_('account.form.success.rollback')
             loadAccounts()
-            close()
         }, rejected)
         
         msg = $_('account.reconcilationRollbackSuccess')
