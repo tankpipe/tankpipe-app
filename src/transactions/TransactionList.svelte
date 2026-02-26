@@ -13,6 +13,21 @@
     let msg = $state("")
     let mergeTransaction = $state(null)
     let mergeReconTransaction = $state(null)
+    let firstReconciledDate = $derived.by(() => {
+        if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
+            return null
+        }
+        const result = getEntry(reconciliationResults[0].transaction)
+        return result ? result.date : null
+    })
+
+    let lastReconciledDate = $derived.by(() => {
+        if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
+            return null
+        }
+        const result = getEntry(reconciliationResults[reconciliationResults.length - 1].transaction)
+        return result ? result.date : null
+    })
 
     let displayTransactions = $derived(() => {
         // If not in reconciliation mode or no reconciliation results, return normal transactions
@@ -309,6 +324,12 @@
         }
     }
 
+    const isOrphan = (t, e) => {
+        return isReconciliationMode && !manualReconciliationMode && !t.isReconciliationResult && 
+               !isReconciled(e) && !hasReconciliationMatch(e) && 
+               e.date >= firstReconciledDate && e.date <= lastReconciledDate 
+    }
+
 </script>
 {#if errors.getErrorMessages().length > 0 || msg && msg != ""}
 <div class="widget errors">
@@ -340,7 +361,7 @@
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-                <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''}" 
+                <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''} {isOrphan(t, e)? 'orphan-row' : ''}" 
                     onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
                     id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if noReconciledStatus(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
@@ -452,7 +473,7 @@
     }
 
     .projected {
-        color: #878787;
+        color: #999;
     }
 
     th {
@@ -666,6 +687,14 @@
     .reconciled-recon-row:hover td {
         cursor: default !important;
         color: #888 !important;
+    }
+
+    .orphan-row td {
+        border-bottom: 1px solid #52241d;        
+    }
+
+    .orphan-row td:last-child {
+        border: none;
     }
 
     .error-msg {

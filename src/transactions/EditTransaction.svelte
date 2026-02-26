@@ -61,6 +61,7 @@
 
         if (reconciliationSource?.isReconciliationResult) {
             untrack(() => fetched(reconciliationSource))
+            addButtonLabel = $_('buttons.add')
             return
         }
 
@@ -184,12 +185,11 @@
     }
 
     function resolved(result) {
-      msg = $_('transaction.errors.saved')
-      curTransaction = result
-      if ($page.mode === modes.EDIT) {
-        loadTransactions()
-        close()
-      }
+        msg = $_('transaction.errors.saved')
+        curTransaction = result
+        if ($page.mode === modes.EDIT || reconciliationSource?.isReconciliationResult) {
+            close()
+        }
     }
 
     const syncSecondEntry = () => {
