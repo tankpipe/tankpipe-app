@@ -156,7 +156,6 @@ pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account: Acc
     println!("reconcile_csv: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account.id, column_types, has_headers);
     let mutex_guard = state.0.lock().unwrap();
     let load_result = read_transactions(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
-    println!("load_result: {:?}", load_result);
 
     match load_result {
         Ok(transactions) => {

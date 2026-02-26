@@ -7,11 +7,12 @@
     import Icon from '@iconify/svelte'
     import { Errors } from '../errors'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, manualReconciliationMode = false, onSelect, loadAccounts } = $props()
-    let topScroll
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, manualReconciliationMode = false, onSelect, loadAccounts, topScroll, setTopScroll } = $props()
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
+    let mergeTransaction = $state(null)
+    let mergeReconTransaction = $state(null)
 
     let displayTransactions = $derived(() => {
         // If not in reconciliation mode or no reconciliation results, return normal transactions
@@ -83,23 +84,23 @@
     })
 
     $effect(() => {
-        if (!topScroll) {
+        if (topScroll === null || topScroll === undefined) {
             const closest = findClosestTransaction()
             if (closest) {
-                topScroll = getScrollPosition(closest.id)
+                setTopScroll(getScrollPosition(closest.id))
             }
         }
         scrollToPosition()
     });
 
     const setCurrentScroll = () => {
-        topScroll = document.getElementById("scroller").scrollTop
+        setTopScroll(document.getElementById("scroller").scrollTop)
     }
 
     const scrollToPosition = () => {
         const scroller = document.getElementById("scroller")
         if (scroller) {
-            scroller.scrollTo(0, topScroll)
+            scroller.scrollTo(0, topScroll ?? 0)
         }
     }
 
@@ -214,6 +215,7 @@
     }
 
     const reconcileTransactions = async (toEntry) => {
+        setCurrentScroll()
         if (!curAccount || !curAccount.id || !toEntry) return
 
         try {
@@ -232,6 +234,57 @@
         loadAccounts()        
     }
 
+    const mergeTransactions = (t) => {
+        setCurrentScroll()
+        if (t.isReconciliationResult) {
+            if (mergeReconTransaction && mergeReconTransaction.id == t.id) {
+                mergeReconTransaction = null
+            } else {
+                mergeReconTransaction = t
+            }
+        } else {
+            if (mergeTransaction && mergeTransaction.id == t.id) {
+                mergeTransaction = null
+            } else {
+                mergeTransaction = t
+            }
+        }
+        if (mergeTransaction && mergeReconTransaction) {
+            setCurrentScroll()
+            let editIntent = {
+                ...mergeTransaction,
+                prefillEdit: true,
+                editPatch: mergeReconTransaction,
+                targetTransactionId: mergeTransaction.id,
+                mergeAccountId: curAccount?.id
+            }
+            selectTransaction(editIntent)
+            mergeTransaction = null
+            mergeReconTransaction = null
+        }
+    }
+
+    const isMergeTarget = (t) => {
+        return mergeTransaction && mergeTransaction.id == t.id || mergeReconTransaction && mergeReconTransaction.id== t.id
+    }
+
+
+    const manualReconcile = (e) => async () => {
+        setCurrentScroll()
+        console.log("manualReconcile", e)
+        if (!curAccount || !curAccount.id) return
+        try {
+            await invoke('reconcile_account_transactions', {
+                accountId: curAccount.id,
+                transactionIds: [e.transaction_id]
+            })
+        } catch (err) {
+            console.log(err)
+            errors = new Errors()
+            errors.addError("all", $_('transactions.error', { values: {error: err} }))
+        }
+        loadAccounts()
+    }
     const sortEntries = (entries) => {
         return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
@@ -288,7 +341,7 @@
             {@const e =  getEntry(t)}
             {#if e}
                 <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''}" 
-                    onclick={!isReconciliationRow ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
+                    onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
                     id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if noReconciledStatus(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
@@ -302,10 +355,16 @@
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
-                {#if isReconciliationRow}
+                {#if (isReconciliationMode && !manualReconciliationMode && ((isReconciliationRow && t.reconciliationStatus == 'Unmatched') || (!isReconciliationRow && !isReconciled(e) && !hasReconciliationMatch(e))))}
+                    <td class="reconciled-cell">
+                        <button class={"merge-marker " + (isMergeTarget(t) ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
+                            {#if isMergeTarget(t)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
+                        </button>
+                    </td>
+                {:else if isReconciliationRow}
                     <td class="reconciled-cell"></td>
                 {:else if isReconciled(e) }
-                    <td class="reconciled-cell"><Icon icon="mdi:check" width="16"/></td>
+                    <td class="reconciled-cell"><div><Icon icon="mdi:check" width="16"/></div></td>
                 {:else if isReconciliationMode && canBeReconciled(e)}
                         <td class="reconciled-cell">
                             <button
@@ -314,28 +373,15 @@
                                 onmouseenter={() => hoveredReconIndex = i}
                                 onmouseleave={() => hoveredReconIndex = null}
                                 title={$_('transaction.reconcileTransactions')}
-                            >✓</button>
+                            ><Icon icon="mdi:check" width="16"/></button>
                         </td>
                 {:else if manualReconciliationMode && !isReconciled(e)}
                     <td class="reconciled-cell">
                         <button
-                            class="recon-marker"
-                            onclick={(event) => stopPropagationHandler(event, async () => {
-                                if (!curAccount || !curAccount.id) return
-                                try {
-                                    await invoke('reconcile_account_transactions', {
-                                        accountId: curAccount.id,
-                                        transactionIds: [e.transaction_id]
-                                    })
-                                } catch (err) {
-                                    console.log(err)
-                                    errors = new Errors()
-                                    errors.addError("all", $_('transactions.error', { values: {error: err} }))
-                                }
-                                loadAccounts()
-                            })}
+                            class="recon-marker "
+                            onclick={(event) => { event.stopPropagation(); manualReconcile(e)()}}
                             title={$_('transaction.reconcileTransactions')}
-                        >✓</button>
+                        ><Icon icon="mdi:check" width="16"/></button>
                     </td>
                 {:else if e.reconciled_status == 'Outstanding' }
                     <td class="reconciled-cell"><Icon icon="mdi:circle-small" width="16"/></td>
@@ -494,52 +540,73 @@
         font-weight: bold;
         padding: 0 0 4px 3px;
         text-align: center;
+        width: 30px;
+        height: 100%;
+    }
+
+    .reconciled-cell div {
+        margin-left: -10px;
+    }
+
+    .merge-marker {
+        width: 12px !important;
+        height: 12px !important;
+        background: transparent;
+        padding: 0 0 0 0px;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        margin-left: -10px;
+    }
+
+    .merge-marker:hover, .merge-marker-selected {
+        color: #74d965;
+    }
+
+    .merge-marker-selected {
+        margin-left: -10px;
     }
 
     .recon-marker {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 1px solid #666;
+        border: none;
         background: transparent;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0;
+        padding: 0 0 0 0px;
         cursor: pointer;
+        border-radius: 50%;
+        border: 1px solid #666;
         color: transparent;
-        font-size: 12px;
-        line-height: 12px;
+        width: 12px !important;
+        height: 12px !important;
+        margin-left: -10px;
     }
 
-    .recon-marker.past {
-        background: #4CAF50;
-        border-color: #4CAF50;
-        opacity: 0.5;
+    .reconciled-cell button {
+        width: 19px;
+        margin-left: -10px;
     }
 
-    .recon-marker.current {
-        background: #4CAF50;
-        border-color: #4CAF50;
-        box-shadow: 0 0 0 2px #222, 0 0 0 3px #4CAF50;
-    }
-
-    .recon-marker.future {
-        background: transparent;
-        border-color: #666;
-    }
 
     .recon-marker:hover {
-        border-color: #9be29f;
+        border-color: transparent;
+        border: none;
+        color: #74d965;
+        background: transparent;
+        box-shadow: none; 
+        width: 30px !important;
+        height: 24px !important;
     }
 
     .recon-marker.hover-highlight {
         border-color: transparent;
         background: transparent;
-        color: #4CAF50;
+        color: #74d965;
         box-shadow: none;
         font-weight: bold;
-        font-size: 14px;
+        width: 30px !important;
+        height: 24px !important;
     }
 
     .recon-check {

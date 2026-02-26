@@ -156,6 +156,8 @@
         await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
     }
 
+    let lastReconcileRequest = null
+
     const reconcileCsv = async () => {
         
         if (!path) {
@@ -171,6 +173,12 @@
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         
+        lastReconcileRequest = {
+            path: path,
+            accountId: curAccount.id,
+            columnTypes: updatedColumns,
+            hasHeaders: hasHeaderRow
+        }
         console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
         await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
     }
@@ -179,7 +187,7 @@
         msg = `Reconciliation complete: ${results.length} transactions processed`
         console.log('Reconciliation results:', results)
         if (onReconciliationResults) {
-            onReconciliationResults(results)
+            onReconciliationResults({results, request: lastReconcileRequest})
         }
     }
 

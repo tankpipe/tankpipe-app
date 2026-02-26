@@ -117,6 +117,7 @@
         "recorded": "Recorded",
         "reconciled": "Reconciled",
         "partiallyReconciled": "Partially reconciled",
+        "mergePrefill": "Update with reconciliation values",
         "reconcileTransaction": "Reconcile transaction",
         "reconcileTransactions": "Reconcile transactions",
         "schedule": "Schedule",

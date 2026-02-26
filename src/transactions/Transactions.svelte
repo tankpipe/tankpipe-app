@@ -19,16 +19,18 @@
     let { curAccount, journalMode = false } = $props()
 
     let curTransaction = $state({})
+    let editSource = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
     let previousAccountId
-    let topScroll
+    let topScroll = $state(null)
     let showFilter = $state(false)
     let descriptionFilter = $state("")
     let allTransactions = []
     let transactions = $derived([])
     let reconciliationResults = $state([])
     let reconciliationAccountId = $state(null)
+    let lastReconciliationRequest = $state(null)
     let isReconciliationMode = $state(false)
     let manualReconciliationMode = $state(false)
     let chartValues = []
@@ -54,7 +56,7 @@
         }
 
         if (!$page.isEditMode) {
-            if (!topScroll) {
+            if (topScroll === null) {
                 const closest = findClosestTransaction()
                 if (closest) {
                     topScroll = getScrollPosition(closest.id)
@@ -71,7 +73,7 @@
     const scrollToPosition = () => {
         const scroller = document.getElementById("scroller")
         if (scroller && !isEditMode($page)) {
-            document.getElementById("scroller").scrollTo(0, topScroll)
+            document.getElementById("scroller").scrollTo(0, topScroll ?? 0)
         }
     }
 
@@ -89,10 +91,19 @@
 
     const selectTransaction = (transaction) => {
         curTransaction = transaction
+        editSource = transaction?.prefillEdit
+            ? {
+                ...transaction.editPatch,
+                mergeAccountId: transaction.mergeAccountId,
+                targetTransactionId: transaction.targetTransactionId
+            }
+            : null
         
         // Route to view-only mode for reconciled transactions
         if (isAllReconciled(transaction)) {
             page.set({view: $page.view, mode: modes.VIEW})
+        } else if (transaction.isReconciliationResult) {
+            page.set({view: $page.view, mode: modes.NEW})
         } else {
             page.set({view: $page.view, mode: modes.EDIT})
         }
@@ -213,19 +224,24 @@
         filterList();
     }
 
-    const onCloseMultiEdit = () => {
-        loadTransactions()
+    const onCloseMultiEdit = async () => {
+        await loadTransactions()
+        await rerunReconciliationIfNeeded()
         page.set({view: $page.view, mode: modes.LIST})
     }
 
-    const onCloseEdit = () => {
-        loadTransactions()
+    const onCloseEdit = async () => {
+        await loadTransactions()
+        await rerunReconciliationIfNeeded()
         page.set({view: $page.view, mode: modes.LIST})
     }
 
-    const handleReconciliationResults = (results) => {
+    const handleReconciliationResults = (payload) => {
+        const results = Array.isArray(payload) ? payload : (payload?.results ?? [])
+        const request = Array.isArray(payload) ? null : (payload?.request ?? null)
         reconciliationResults = results
-        reconciliationAccountId = curAccount?.id ?? null
+        reconciliationAccountId = request?.accountId ?? curAccount?.id ?? null
+        lastReconciliationRequest = request
         isReconciliationMode = true
         manualReconciliationMode = false
         page.set({view: $page.view, mode: modes.LIST})
@@ -236,6 +252,7 @@
         manualReconciliationMode = false
         reconciliationResults = []
         reconciliationAccountId = null
+        lastReconciliationRequest = null
         loadTransactions()
     }
     
@@ -251,6 +268,26 @@
         isReconciliationMode = manualReconciliationMode;
         reconciliationResults = [];
         reconciliationAccountId = manualReconciliationMode ? (curAccount?.id ?? null) : null;
+    }
+
+    const rerunReconciliationIfNeeded = async () => {
+        if (!lastReconciliationRequest) return false
+        if (!curAccount || curAccount.id !== lastReconciliationRequest.accountId) return false
+        try {
+            const results = await invoke('reconcile_csv', {
+                path: lastReconciliationRequest.path,
+                account: curAccount,
+                columnTypes: lastReconciliationRequest.columnTypes,
+                hasHeaders: lastReconciliationRequest.hasHeaders
+            })
+            handleReconciliationResults({results, request: lastReconciliationRequest})
+            return true
+        } catch (err) {
+            console.log(err)
+            errors = new Errors()
+            errors.addError("all", $_('transactions.error', { values: {error: err} }))
+            return false
+        }
     }
 
 </script>
@@ -284,7 +321,7 @@
 <Transaction transactionId={curTransaction.id} onClose={onCloseEdit} />
 {/if}
 {#if isSingleEditMode($page)}
-<EditTransaction {loadTransactions} transactionId={curTransaction.id} onClose={onCloseEdit} />
+<EditTransaction {loadTransactions} transactionId={curTransaction.id} onClose={onCloseEdit} reconciliationSource={curTransaction} {editSource}/>
 {/if}
 {#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
@@ -333,6 +370,8 @@
     manualReconciliationMode={manualReconciliationMode && reconciliationAccountId === curAccount?.id}
     onSelect={selectTransaction}
     loadAccounts={loadAccounts}
+    topScroll={topScroll}
+    setTopScroll={(value) => (topScroll = value)}
 />
 {/if}
 
@@ -467,7 +506,7 @@
         align-items: center;
         background-color: #2a2a2a;
         padding: 10px 15px;
-        margin: 10px 30px 10px 0;
+        margin: 10px 35px 10px 0;
         border-radius: 5px;
         border-left: 4px solid #4CAF50;
     }

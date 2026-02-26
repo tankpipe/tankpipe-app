@@ -1,5 +1,6 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
+    import { untrack } from 'svelte'
     import {Errors} from '../errors'
     import Select from '../Select.svelte'
     import Icon from '@iconify/svelte'
@@ -9,8 +10,9 @@
     import {config, dateFormat} from '../config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
+    
 
-    let { loadTransactions, transactionId, onClose } = $props()
+    let { loadTransactions, transactionId, onClose, reconciliationSource, editSource } = $props()
 
     let curTransaction = $state({})
 
@@ -26,21 +28,43 @@
     let recorded = $state(false)
     let entries =  $state([])
     $inspect(entries)
+    let pendingEditPatch = $state(null)
+    $inspect(pendingEditPatch)
+    let prefillHint = $state("")
+
+    const isEditMode = $derived($page.mode === modes.EDIT)
+
+    const initNewTransaction = () => {
+        curTransaction = {id: zeros, status:"Recorded"}
+        
+        let date = new Date()
+        entries = [
+            {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
+            {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
+        ]
+        
+        addButtonLabel = "Add"
+        simpleAllowed = true
+    }
 
     $effect(() => {
 
-        if ($page.mode === modes.EDIT) {
-            fetchTransaction(transactionId)
-        } else {
-            curTransaction = {id: zeros, status:"Recorded"}
-            let date = new Date()
-            entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
-            ]
-            addButtonLabel = "Add"
-            simpleAllowed = true
+        if (isEditMode) {
+            if (editSource) {
+                pendingEditPatch = editSource
+                fetchTransaction(transactionId)
+            } else {
+                fetchTransaction(transactionId)
+            }
+            return
         }
+
+        if (reconciliationSource?.isReconciliationResult) {
+            untrack(() => fetched(reconciliationSource))
+            return
+        }
+
+        untrack(() => initNewTransaction())
 
     })
 
@@ -195,10 +219,10 @@
 
     function fetched(result) {
         console.log("fetched ", result)
-        Object.assign(curTransaction, result)
+        const txEntries = (result?.entries || []).map(e => ({...e}))
+        curTransaction = {...result, entries: txEntries}
         addButtonLabel = $_('buttons.update')
-        entries.splice(0)
-        entries.push(...curTransaction.entries)
+        entries = txEntries.map(e => ({...e}))
 
         entries.forEach(e => {
             e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
@@ -219,7 +243,108 @@
         }
 
         recorded = curTransaction.status != "Projected"
+        if (pendingEditPatch) {            
+            const targetId = pendingEditPatch.targetTransactionId ?? pendingEditPatch.id
+            if (targetId === curTransaction.id) {
+                applyEditPatch(pendingEditPatch)
+                pendingEditPatch = null
+                prefillHint = $_('transaction.mergePrefill')
+            }
+        }
         calculateTotals()
+    }
+
+    const applyEditPatch = (patch) => {
+        const patchAccountId = patch?.mergeAccountId
+        const patchEntry = patchAccountId
+            ? (patch.entries?.find(e => e.account_id == patchAccountId) || patch.entries?.[0])
+            : patch.entries?.[0]
+        if (!patchEntry) return
+
+        const targetEntry = patchAccountId
+            ? (entries.find(e => e.account_id == patchAccountId) || entries[0])
+            : entries[0]
+        if (!targetEntry) return
+        const original = {
+            date: targetEntry.date,
+            realTime: targetEntry.realDate ? targetEntry.realDate.getTime() : null,
+            description: targetEntry.description,
+            amount: targetEntry.amount,
+            drAmount: targetEntry.drAmount,
+            crAmount: targetEntry.crAmount
+        }
+
+        const patchDate = patchEntry.date
+        const patchDescription = patchEntry.description
+        const patchAmount = patchEntry.amount
+        const patchBalance = patchEntry.balance
+
+        const applyToEntry = (entry) => {
+            if (patchDate) {
+                entry.date = patchDate
+                entry.realDate = new Date(patchDate)
+            }
+            if (patchDescription !== undefined) {
+                entry.description = patchDescription
+            }
+            if (patchAmount !== undefined) {
+                entry.amount = patchAmount
+                if (entry.entry_type === "Credit") {
+                    entry.crAmount = patchAmount
+                    entry.drAmount = ''
+                } else if (entry.entry_type === "Debit") {
+                    entry.drAmount = patchAmount
+                    entry.crAmount = ''
+                }
+            }
+            if (patchBalance !== undefined) {
+                entry.balance = patchBalance
+            }
+        }
+
+        applyToEntry(targetEntry)
+
+        entries.forEach(entry => {
+            if (entry === targetEntry) return
+            if (patchDate) {
+                const matchesDate =
+                    entry.date === original.date ||
+                    (original.realTime !== null &&
+                        entry.realDate &&
+                        entry.realDate.getTime() === original.realTime)
+                if (matchesDate) {
+                    entry.date = patchDate
+                    entry.realDate = new Date(patchDate)
+                }
+            }
+            if (patchDescription !== undefined && entry.description === original.description) {
+                entry.description = patchDescription
+            }
+            if (patchAmount !== undefined) {
+                const matchesAmount = entry.amount == original.amount
+                const matchesDr = entry.drAmount == original.drAmount
+                const matchesCr = entry.crAmount == original.crAmount
+                if (matchesAmount || matchesDr || matchesCr) {
+                    entry.amount = patchAmount
+                    if (entry.entry_type === "Credit") {
+                        entry.crAmount = patchAmount
+                        entry.drAmount = ''
+                    } else if (entry.entry_type === "Debit") {
+                        entry.drAmount = patchAmount
+                        entry.crAmount = ''
+                    }
+                }
+            }
+        })
+
+        if (!compoundMode) {
+            syncSecondEntry()
+        }
+        simpleAllowed = canBeSimple(entries)
+        if (!simpleAllowed) {
+            compoundMode = true
+        }
+        entries = [...entries]
     }
 
     function rejected(result) {
@@ -285,6 +410,9 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
     {#if entries.some(e => e.reconciled_status)}
     <div class="recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
+    {/if}
+    {#if prefillHint}
+    <div class="recon-msg"><span>{prefillHint}</span></div>
     {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
