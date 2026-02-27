@@ -359,11 +359,46 @@
         const isReconciliationRow = isReconciliationMode && t.isReconciliationResult
         return isReconciliationMode && !manualReconciliationMode && 
                ((isReconciliationRow && t.reconciliationStatus != 'Matched' && t.reconciliationStatus != 'PartialMatch') || 
-                (!isReconciliationRow && !isReconciled(e))) &&
+                (!isReconciliationRow && !isReconciled(e)  && !canBeReconciled(e))) &&
                new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime()  && 
                new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
     }
 
+    const getReconciledCellContent = (t, e, i) => {
+        if (isReconciled(e)) {
+            return { type: 'reconciled' }
+        }
+
+        if (isReconciliationMode && canBeReconciled(e)) {
+            return {
+                type: 'reconcilable',
+                isHovered: hoveredReconIndex !== null && i <= hoveredReconIndex
+            }
+        }
+
+        if (mergeTarget(t, e)) {
+            return {
+                type: 'merge',
+                isSelected: isMergeTarget(t)
+            }
+        }
+        
+        if (isReconciliationMode && t.isReconciliationResult) {
+            return { type: 'reconciliation-empty' }
+        }
+        
+        if (manualReconciliationMode && !isReconciled(e)) {
+            return { type: 'manual-reconcile' }
+        }
+        
+        if (e.reconciled_status == 'Outstanding') {
+            return { type: 'outstanding' }
+        }
+        
+        return { type: 'empty' }
+    }
+
+    
 </script>
 {#if errors.getErrorMessages().length > 0 || msg && msg != ""}
 <div class="widget errors">
@@ -395,6 +430,7 @@
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
+                {@const reconciledContent = getReconciledCellContent(t, e, i)}
                 <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''} {isOrphan(t, e)? 'orphan-row' : ''}" 
                     onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
                     id={t.id}><!--{t.id}-->
@@ -410,39 +446,31 @@
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
-                {#if mergeTarget(t, e)}
-                    <td class="reconciled-cell">
-                        <button class={"merge-marker " + (isMergeTarget(t) ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
-                            {#if isMergeTarget(t)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
+                <td class="reconciled-cell">
+                    {#if reconciledContent.type === 'merge'}
+                        <button class={"merge-marker " + (reconciledContent.isSelected ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
+                            {#if reconciledContent.isSelected}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
                         </button>
-                    </td>
-                {:else if isReconciliationRow}
-                    <td class="reconciled-cell"></td>
-                {:else if isReconciled(e) }
-                    <td class="reconciled-cell"><div><Icon icon="mdi:check" width="16"/></div></td>
-                {:else if isReconciliationMode && canBeReconciled(e)}
-                        <td class="reconciled-cell">
-                            <button
-                                class={"recon-marker " + (hoveredReconIndex !== null && i <= hoveredReconIndex ? " hover-highlight" : "")}
-                                onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
-                                onmouseenter={() => hoveredReconIndex = i}
-                                onmouseleave={() => hoveredReconIndex = null}
-                                title={$_('transaction.reconcileTransactions')}
-                            ><Icon icon="mdi:check" width="16"/></button>
-                        </td>
-                {:else if manualReconciliationMode && !isReconciled(e)}
-                    <td class="reconciled-cell">
+                    {:else if reconciledContent.type === 'reconciled'}
+                        <div><Icon icon="mdi:check" width="16"/></div>
+                    {:else if reconciledContent.type === 'reconcilable'}
+                        <button
+                            class={"recon-marker " + (reconciledContent.isHovered ? " hover-highlight" : "")}
+                            onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
+                            onmouseenter={() => hoveredReconIndex = i}
+                            onmouseleave={() => hoveredReconIndex = null}
+                            title={$_('transaction.reconcileTransactions')}
+                        ><Icon icon="mdi:check" width="16"/></button>
+                    {:else if reconciledContent.type === 'manual-reconcile'}
                         <button
                             class="recon-marker "
                             onclick={(event) => { event.stopPropagation(); manualReconcile(e)()}}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
-                    </td>
-                {:else if e.reconciled_status == 'Outstanding' }
-                    <td class="reconciled-cell"><Icon icon="mdi:circle-small" width="16"/></td>
-                {:else}
-                    <td class="reconciled-cell"></td>
-                {/if}
+                    {:else if reconciledContent.type === 'outstanding'}
+                        <Icon icon="mdi:circle-small" width="16"/>
+                    {/if}
+                </td>
             </tr>
             {#if isReconciliationMode && ! hasReconciliationMatch(e)}
             <tr>
