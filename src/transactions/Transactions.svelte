@@ -30,6 +30,7 @@
     let transactions = $derived([])
     let reconciliationResults = $state([])
     let reconciliationAccountId = $state(null)
+    // Keep the last reconciliation request so we can rerun it if needed (as changes are made)
     let lastReconciliationRequest = $state(null)
     let isReconciliationMode = $state(false)
     let manualReconciliationMode = $state(false)
@@ -236,12 +237,11 @@
         page.set({view: $page.view, mode: modes.LIST})
     }
 
-    const handleReconciliationResults = (payload) => {
-        const results = Array.isArray(payload) ? payload : (payload?.results ?? [])
-        const request = Array.isArray(payload) ? null : (payload?.request ?? null)
-        reconciliationResults = results
-        reconciliationAccountId = request?.accountId ?? curAccount?.id ?? null
-        lastReconciliationRequest = request
+    const handleReconciliationResults = (results, request) => {        
+        reconciliationResults = results ?? []
+        const safeRequest = request ?? null
+        lastReconciliationRequest = safeRequest
+        reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null        
         isReconciliationMode = true
         manualReconciliationMode = false
         page.set({view: $page.view, mode: modes.LIST})
@@ -280,7 +280,7 @@
                 columnTypes: lastReconciliationRequest.columnTypes,
                 hasHeaders: lastReconciliationRequest.hasHeaders
             })
-            handleReconciliationResults({results, request: lastReconciliationRequest})
+            handleReconciliationResults(results, lastReconciliationRequest)
             return true
         } catch (err) {
             console.log(err)

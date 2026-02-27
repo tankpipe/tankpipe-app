@@ -187,7 +187,7 @@
         msg = `Reconciliation complete: ${results.length} transactions processed`
         console.log('Reconciliation results:', results)
         if (onReconciliationResults) {
-            onReconciliationResults({results, request: lastReconcileRequest})
+            onReconciliationResults(results, lastReconcileRequest)
         }
     }
 
