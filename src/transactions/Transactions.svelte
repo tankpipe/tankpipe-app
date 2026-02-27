@@ -421,7 +421,7 @@
     .chart {
         float: right;
         color: #c0c0c0;
-        margin: 0 15px 5px 10px;
+        margin: 0 30px 5px 10px;
         display: flex;
         padding-right: 13px;
         width: 105px;

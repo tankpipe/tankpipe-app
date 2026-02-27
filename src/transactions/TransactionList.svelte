@@ -13,6 +13,7 @@
     let msg = $state("")
     let mergeTransaction = $state(null)
     let mergeReconTransaction = $state(null)
+    
     let firstReconciledDate = $derived.by(() => {
         if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
             return null
@@ -330,6 +331,16 @@
                e.date >= firstReconciledDate && e.date <= lastReconciledDate 
     }
 
+    const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
+    const mergeTarget = (t, e) => {
+        const isReconciliationRow = isReconciliationMode && t.isReconciliationResult
+        return isReconciliationMode && !manualReconciliationMode && 
+               ((isReconciliationRow && t.reconciliationStatus != 'Matched' && t.reconciliationStatus != 'PartialMatch') || 
+                (!isReconciliationRow && !isReconciled(e))) &&
+               new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime()  && 
+               new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
+    }
+
 </script>
 {#if errors.getErrorMessages().length > 0 || msg && msg != ""}
 <div class="widget errors">
@@ -376,7 +387,7 @@
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
-                {#if (isReconciliationMode && !manualReconciliationMode && ((isReconciliationRow && t.reconciliationStatus == 'Unmatched') || (!isReconciliationRow && !isReconciled(e) && !hasReconciliationMatch(e))))}
+                {#if mergeTarget(t, e)}
                     <td class="reconciled-cell">
                         <button class={"merge-marker " + (isMergeTarget(t) ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
                             {#if isMergeTarget(t)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
@@ -506,10 +517,6 @@
         color: #e3e3e3;
     }
 
-    .single-entry td {
-        /* background-color: #34391a; */
-    }
-    
     .money {
         text-align: right !important;
         min-width: 92px;
@@ -562,6 +569,7 @@
         padding: 0 0 4px 3px;
         text-align: center;
         width: 30px;
+        min-width: 30px;
         height: 100%;
     }
 
