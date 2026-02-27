@@ -7,7 +7,7 @@
     import Icon from '@iconify/svelte'
     import { Errors } from '../errors'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, manualReconciliationMode = false, onSelect, loadAccounts, topScroll, setTopScroll } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, manualReconciliationMode = false, onSelect, loadAccounts, topScroll, setTopScroll, descriptionFilter = "" } = $props()
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
@@ -38,6 +38,7 @@
 
         // Filter reconciliation results that need to be displayed
         const unmatchedResults = reconciliationResults
+            .filter(result => filterMatchTransaction(result.transaction))
             .map(result => {
                 const transaction = result.transaction
                 
@@ -98,6 +99,28 @@
 
         return combined
     })
+    
+    const filterTransactions = (list) => {
+        if (!descriptionFilter || descriptionFilter === "") return list
+        const filterValue = descriptionFilter.toLowerCase()
+        return list.filter(t => {
+            if (journalMode) {
+                return t.entries.some(e => e.description?.toLowerCase().includes(filterValue))
+            }
+            const entry = getEntry(t)
+            return entry?.description?.toLowerCase().includes(filterValue)
+        })
+    }
+
+    const filterMatchTransaction = (transaction) => {
+        if (!descriptionFilter || descriptionFilter === "") return true
+        const filterValue = descriptionFilter.toLowerCase()
+        if (journalMode) {
+            return transaction.entries.some(e => e.description?.toLowerCase().includes(filterValue))
+        }
+        const entry = getEntry(transaction)
+        return entry?.description?.toLowerCase().includes(filterValue)        
+    }
 
     $effect(() => {
         if (topScroll === null || topScroll === undefined) {

@@ -372,6 +372,7 @@
     loadAccounts={loadAccounts}
     topScroll={topScroll}
     setTopScroll={(value) => (topScroll = value)}
+    descriptionFilter={descriptionFilter}
 />
 {/if}
 
