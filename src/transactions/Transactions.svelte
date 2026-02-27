@@ -276,7 +276,7 @@
         try {
             const results = await invoke('reconcile_csv', {
                 path: lastReconciliationRequest.path,
-                account: curAccount,
+                accountId: curAccount.id,
                 columnTypes: lastReconciliationRequest.columnTypes,
                 hasHeaders: lastReconciliationRequest.hasHeaders
             })

@@ -11,6 +11,7 @@ use crate::handlers::{error_handler};
 use crate::money_repo::Repo;
 use crate::reader::{check_csv_format, read_headers, read_rows, read_transactions, ColumnTypes};
 use crate::csv_check::CsvCheck;
+use uuid::Uuid;
 
 
 #[tauri::command]
@@ -120,14 +121,14 @@ fn process_csv_with_column_types(path: &String, column_types: ColumnTypes) -> Re
 }
 
 #[tauri::command]
-pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, save_mapping: bool, has_headers: bool) -> Result<(), String> {
-    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{}", path, account.id, column_types, save_mapping, has_headers);
+pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, save_mapping: bool, has_headers: bool) -> Result<(), String> {
+    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{}", path, account_id, column_types, save_mapping, has_headers);
     let mut mutex_guard = state.0.lock().unwrap();
     
     // Remove Balance from column types as it is calculated dynamically
     let column_types: Vec<String> = column_types.into_iter().filter(|c| c != "balance").collect();
     
-    let load_result = read_transactions(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
+    let load_result = read_transactions(&path, account_id, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
 
     match load_result {
         Ok(transactions) => {
@@ -139,9 +140,9 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
             }
             error_handler(mutex_guard.save())?;
             if save_mapping {
-                let current_mapping = mutex_guard.config.get_csv_mapping(account.id);
+                let current_mapping = mutex_guard.config.get_csv_mapping(account_id);
                 if current_mapping.is_none() || current_mapping.unwrap() != column_types {
-                    mutex_guard.config.set_csv_mapping(account.id, column_types);
+                    mutex_guard.config.set_csv_mapping(account_id, column_types);
                     error_handler(mutex_guard.save_config())?;
                 }
             }
@@ -152,14 +153,14 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account: Accoun
 }
 
 #[tauri::command]
-pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account: Account, column_types: Vec<String>, has_headers: bool) -> Result<Vec<accounts::books::ReconciliationResult>, String> {
-    println!("reconcile_csv: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account.id, column_types, has_headers);
+pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool) -> Result<Vec<accounts::books::ReconciliationResult>, String> {
+    println!("reconcile_csv: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account_id, column_types, has_headers);
     let mutex_guard = state.0.lock().unwrap();
-    let load_result = read_transactions(&path, &account, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
+    let load_result = read_transactions(&path, account_id, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
 
     match load_result {
         Ok(transactions) => {
-            let reconciliation_result = mutex_guard.books.match_transactions(account.id, transactions);
+            let reconciliation_result = mutex_guard.books.match_transactions(account_id, transactions);
             match reconciliation_result {
                 Ok(results) => Ok(results),
                 Err(e) => Err(e.error),
@@ -245,7 +246,7 @@ mod tests {
         
         let manual_transactions = read_transactions(
             &Path::new("test/fixtures/bank_transactions_manual.csv"),
-            &repo.books.accounts().first().unwrap(),
+            repo.books.accounts().first().unwrap().id,
             &"%Y-%m-%d", // Default date format
             &ColumnTypes::from_vec(vec![
                 "date".to_string(),
@@ -264,7 +265,7 @@ mod tests {
         
         let bank_transactions = read_transactions(
             &Path::new("test/fixtures/bank_transactions.csv"),
-            &repo.books.accounts().first().unwrap(),
+            repo.books.accounts().first().unwrap().id,
             &"%Y-%m-%d", // Default date format
             &ColumnTypes::from_vec(vec![
                 "date".to_string(),

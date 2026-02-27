@@ -116,7 +116,6 @@
 
     function importCompleted(result) {
         console.log(result)
-        fileDialogShown = false
         onClose()
     }
 
@@ -152,8 +151,8 @@
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         
-        console.log('Calling import_csv with:', {path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
-        await invoke('import_csv', {path: path, account: curAccount, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
+        await invoke('import_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
     }
 
     let lastReconcileRequest = null
@@ -179,8 +178,8 @@
             columnTypes: updatedColumns,
             hasHeaders: hasHeaderRow
         }
-        console.log('Calling reconcile_csv with:', {path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
-        await invoke('reconcile_csv', {path: path, account: curAccount, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
+        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
+        await invoke('reconcile_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
     }
 
     const reconciliationCompleted = (results) => {
@@ -192,7 +191,6 @@
     }
 
     const close = () => {
-        fileDialogShown = false
         onClose()
     }
 
