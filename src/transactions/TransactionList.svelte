@@ -100,18 +100,6 @@
         return combined
     })
     
-    const filterTransactions = (list) => {
-        if (!descriptionFilter || descriptionFilter === "") return list
-        const filterValue = descriptionFilter.toLowerCase()
-        return list.filter(t => {
-            if (journalMode) {
-                return t.entries.some(e => e.description?.toLowerCase().includes(filterValue))
-            }
-            const entry = getEntry(t)
-            return entry?.description?.toLowerCase().includes(filterValue)
-        })
-    }
-
     const filterMatchTransaction = (transaction) => {
         if (!descriptionFilter || descriptionFilter === "") return true
         const filterValue = descriptionFilter.toLowerCase()
