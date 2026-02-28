@@ -385,10 +385,6 @@
                 }
             }
         
-            if (t.isReconciliationResult) {
-                return { type: 'reconciliation-empty' }
-            }
-
         } else if (reconciliationMode === RM.MANUAL) {
             return { type: 'manual-reconcile' }
         }
@@ -450,11 +446,7 @@
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
                 <td class="reconciled-cell" onclick={(event) => stopPropagationHandler(event, () => {})}>
-                    {#if reconciledContent.type === 'merge'}
-                        <button class={"merge-marker " + (reconciledContent.isSelected ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
-                            {#if reconciledContent.isSelected}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
-                        </button>
-                    {:else if reconciledContent.type === 'reconciled'}
+                    {#if reconciledContent.type === 'reconciled'}
                         <div><Icon icon="mdi:check" width="16"/></div>
                     {:else if reconciledContent.type === 'reconcilable'}
                         <button
@@ -463,7 +455,11 @@
                             onmouseenter={() => hoveredReconIndex = i}
                             onmouseleave={() => hoveredReconIndex = null}
                             title={$_('transaction.reconcileTransactions')}
-                        ><Icon icon="mdi:check" width="16"/></button>
+                        ><Icon icon="mdi:check" width="16"/></button>    
+                    {:else if reconciledContent.type === 'merge'}
+                        <button class={"merge-marker " + (reconciledContent.isSelected ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
+                            {#if reconciledContent.isSelected}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
+                        </button>                    
                     {:else if reconciledContent.type === 'manual-reconcile'}
                         <button
                             class="recon-marker "
