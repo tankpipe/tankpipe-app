@@ -449,7 +449,7 @@
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconciledContent.type === 'outstanding'}
-                        <Icon icon="mdi:circle-small" width="16"/>
+                        <div><Icon icon="mdi:circle-small" width="16"/></div>
                     {/if}
                 </td>
             </tr>
