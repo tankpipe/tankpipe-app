@@ -143,7 +143,8 @@
         page.set({view: $page.view, mode: modes.NEW})
     }
 
-    function evaluationResult(result) {
+    function evaluationResult(result) {        
+        topScroll = null
         page.set({view: $page.view, mode: modes.LOAD})
     }
 
@@ -250,7 +251,7 @@
 <div class="account-heading">
     {#if isListMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); reconciliationMode = ReconciliationMode.NONE; reconciliationResults = []; reconciliationAccountId = null}}/>
+        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); reconciliationMode = RM.NONE; reconciliationResults = []; reconciliationAccountId = null}}/>
     </div>
     <div class="toolbar">
         <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>

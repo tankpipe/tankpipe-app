@@ -106,9 +106,16 @@
 
     $effect(() => {
         if (topScroll === null || topScroll === undefined) {
-            const closest = findClosestTransaction()
-            if (closest) {
-                setTopScroll(getScrollPosition(closest.id))
+            let targetTransaction
+            
+            if (reconciliationMode === RM.GUIDED) {
+                targetTransaction = findLastReconciledTransaction()
+            } else {
+                targetTransaction = findClosestTransaction()
+            }
+            
+            if (targetTransaction) {
+                setTopScroll(getScrollPosition(targetTransaction.id))
             }
         }
         scrollToPosition()
@@ -136,6 +143,21 @@
     const selectTransaction = (transaction) => {
         setCurrentScroll()
         onSelect(transaction)
+    }
+
+    const findLastReconciledTransaction = () => {
+        const transactionsToCheck = displayTransactions() ?? []
+
+        for (let i = transactionsToCheck.length - 1; i >= 0; i--) {
+            const t = transactionsToCheck[i]
+            const entry = getEntry(t)
+            if (!t.isReconciliationResult && entry && entry.reconciled_status) {
+                return t
+            }
+        }
+
+        console.log("No reconciled transactions found")
+        return null
     }
 
     const findClosestTransaction = () => {
