@@ -6,33 +6,27 @@
     import { invoke } from "@tauri-apps/api/core"
     import Icon from '@iconify/svelte'
     import { Errors } from '../errors'
+    import { ReconciliationMode as RM } from './reconciliation.js'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], isReconciliationMode = false, manualReconciliationMode = false, onSelect, loadAccounts, topScroll, setTopScroll, descriptionFilter = "" } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, topScroll, setTopScroll, descriptionFilter = "" } = $props()
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
     let mergeTransaction = $state(null)
     let mergeReconTransaction = $state(null)
     
-    let firstReconciledDate = $derived.by(() => {
-        if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
-            return null
-        }
-        const result = getEntry(reconciliationResults[0].transaction)
-        return result ? result.date : null
+    let firstReconciledDate = $derived.by(() => {        
+        return reconciliationResults && reconciliationResults.length > 0 ? getEntry(reconciliationResults[0].transaction).date : null
     })
 
     let lastReconciledDate = $derived.by(() => {
-        if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
-            return null
-        }
-        const result = getEntry(reconciliationResults[reconciliationResults.length - 1].transaction)
-        return result ? result.date : null
+        return reconciliationResults && reconciliationResults.length > 0 ? getEntry(reconciliationResults[reconciliationResults.length - 1].transaction).date : null       
     })
 
     let displayTransactions = $derived(() => {
+        console.log("displayTransactions", reconciliationMode)
         // If not in reconciliation mode or no reconciliation results, return normal transactions
-        if (!isReconciliationMode || reconciliationResults.length === 0 || journalMode) {
+        if (reconciliationMode !== RM.GUIDED || reconciliationResults.length === 0 || journalMode) {
             return transactions
         }
 
@@ -210,15 +204,12 @@
         return !transaction.entries.some(e => e.reconciled_status)
     }
 
-    const hasReconciliationMatch = (entry) => {
-        if (!isReconciliationMode || reconciliationResults.length === 0) {
-            return false
-        }
-
-        return reconciliationResults.some(result =>
-            result.matched_transaction_id === entry.transaction_id &&
-            result.status !== 'Unmatched'
-        )
+    const hasReconciliationMatch = (entry) => {        
+        return reconciliationResults && 
+        reconciliationResults.some(result =>
+                result.matched_transaction_id === entry.transaction_id &&
+                result.status !== 'Unmatched'
+            )
     }
 
     const reconcilationTargetAlreadyReconciled = (transaction) => {
@@ -295,6 +286,7 @@
         }
         loadAccounts()
     }
+
     const sortEntries = (entries) => {
         return entries.toSorted((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
@@ -320,7 +312,7 @@
     }
        
     const isOrphan = (t, e) => {
-        return isReconciliationMode && !manualReconciliationMode && !t.isReconciliationResult && 
+        return reconciliationMode === RM.GUIDED && !t.isReconciliationResult && 
                !isReconciled(e) && !hasReconciliationMatch(e) && 
                e.date >= firstReconciledDate && e.date <= lastReconciledDate 
     }
@@ -328,7 +320,7 @@
     /* START Reconciled Cell content functions */ 
 
     const canBeReconciled = (entry) => {
-        if (!isReconciliationMode || reconciliationResults.length === 0) {
+        if (reconciliationMode !== RM.GUIDED || reconciliationResults.length === 0) {
             return false
         }
 
@@ -355,7 +347,7 @@
             return { type: 'reconciled' }
         }
 
-        if (isReconciliationMode) {
+        if (reconciliationMode === RM.GUIDED) {
 
             if (canBeReconciled(e)) {
                 return {
@@ -375,7 +367,7 @@
                 return { type: 'reconciliation-empty' }
             }
 
-        } else if (manualReconciliationMode) {
+        } else if (reconciliationMode === RM.MANUAL) {
             return { type: 'manual-reconcile' }
         }
         
@@ -415,7 +407,7 @@
         </tr>
         {#each displayTransactions() as t, i}
             {@const selected = isSelected(t)}
-            {@const isReconciliationRow = isReconciliationMode && t.isReconciliationResult}
+            {@const isReconciliationRow = reconciliationMode === RM.GUIDED && t.isReconciliationResult}
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
@@ -461,7 +453,7 @@
                     {/if}
                 </td>
             </tr>
-            {#if isReconciliationMode && ! hasReconciliationMatch(e)}
+            {#if reconciliationMode === RM.GUIDED && ! hasReconciliationMatch(e)}
             <tr>
                 <td colspan="7" class="divider-row"></td>
             </tr>

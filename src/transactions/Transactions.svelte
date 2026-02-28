@@ -15,6 +15,7 @@
     import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from '../selector'
     import { chartOptions } from '../chart-options'
     import TransactionList from './TransactionList.svelte'
+    import { ReconciliationMode as RM } from './reconciliation.js'
 
     let { curAccount, journalMode = false } = $props()
 
@@ -32,8 +33,7 @@
     let reconciliationAccountId = $state(null)
     // Keep the last reconciliation request so we can rerun it if needed (as changes are made)
     let lastReconciliationRequest = $state(null)
-    let isReconciliationMode = $state(false)
-    let manualReconciliationMode = $state(false)
+    let reconciliationMode = $state(RM.NONE)
     let chartValues = []
 
     $effect(() => {
@@ -43,8 +43,7 @@
             curAccount = $accounts[0]
         } else if (curAccount && curAccount.id !== previousAccountId) {
             console.log("curAccount changed", curAccount.id)
-            isReconciliationMode = false
-            manualReconciliationMode = false
+            reconciliationMode = RM.NONE
             reconciliationResults = []
             reconciliationAccountId = null
             topScroll = null
@@ -242,14 +241,12 @@
         const safeRequest = request ?? null
         lastReconciliationRequest = safeRequest
         reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null        
-        isReconciliationMode = true
-        manualReconciliationMode = false
+        reconciliationMode = RM.GUIDED
         page.set({view: $page.view, mode: modes.LIST})
     }
 
     const exitReconciliationMode = () => {
-        isReconciliationMode = false
-        manualReconciliationMode = false
+        reconciliationMode = RM.NONE
         reconciliationResults = []
         reconciliationAccountId = null
         lastReconciliationRequest = null
@@ -264,10 +261,9 @@
     };   
 
     const onManualReconciliationMode = () => {
-        manualReconciliationMode = !manualReconciliationMode;
-        isReconciliationMode = false;
+        reconciliationMode = reconciliationMode === RM.MANUAL ? RM.NONE : RM.MANUAL;
         reconciliationResults = [];
-        reconciliationAccountId = manualReconciliationMode ? (curAccount?.id ?? null) : null;
+        reconciliationAccountId = reconciliationMode === RM.MANUAL ? (curAccount?.id ?? null) : null;
     }
 
     const rerunReconciliationIfNeeded = async () => {
@@ -295,7 +291,7 @@
 <div class="account-heading">
     {#if isListMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); isReconciliationMode = false; reconciliationResults = []; reconciliationAccountId = null}}/>
+        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); reconciliationMode = ReconciliationMode.NONE; reconciliationResults = []; reconciliationAccountId = null}}/>
     </div>
     <div class="toolbar">
         <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
@@ -304,7 +300,7 @@
         <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" onclick="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" onclick="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {#if curAccount && ! journalMode}
-        <button type="button" class="{manualReconciliationMode ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick={onManualReconciliationMode} title={$_('transactions.manualReconciliation')}
+        <button type="button" class="{reconciliationMode === RM.MANUAL ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick={onManualReconciliationMode} title={$_('transactions.manualReconciliation')}
         >
             <Icon icon="mdi:check" width="24"/>
         </button>
@@ -338,7 +334,7 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
-{#if isReconciliationMode}
+{#if reconciliationMode === RM.GUIDED}
 <div class="reconciliation-header">
     <div class="reconciliation-title">{$_('transactions.reconciliationHeader')}</div>
     <button class="exit-reconciliation" onclick={exitReconciliationMode}>
@@ -366,8 +362,7 @@
     {journalMode}
     transactions={transactions}
     reconciliationResults={reconciliationAccountId === curAccount?.id ? reconciliationResults : []}
-    isReconciliationMode={reconciliationAccountId === curAccount?.id && isReconciliationMode}
-    manualReconciliationMode={manualReconciliationMode && reconciliationAccountId === curAccount?.id}
+    reconciliationMode={reconciliationAccountId === curAccount?.id ? reconciliationMode : RM.NONE}
     onSelect={selectTransaction}
     loadAccounts={loadAccounts}
     topScroll={topScroll}
