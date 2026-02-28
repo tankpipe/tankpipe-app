@@ -265,7 +265,7 @@
 
     const onManualReconciliationMode = () => {
         manualReconciliationMode = !manualReconciliationMode;
-        isReconciliationMode = manualReconciliationMode;
+        isReconciliationMode = false;
         reconciliationResults = [];
         reconciliationAccountId = manualReconciliationMode ? (curAccount?.id ?? null) : null;
     }

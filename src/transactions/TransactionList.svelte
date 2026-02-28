@@ -221,17 +221,6 @@
         )
     }
 
-    const canBeReconciled = (entry) => {
-        if (!isReconciliationMode || reconciliationResults.length === 0) {
-            return false
-        }
-
-        return reconciliationResults.some(result =>
-            result.matched_transaction_id === entry.transaction_id &&
-           (result.status == 'Matched' || result.status == 'PartialMatch')
-        )
-    }
-
     const reconcilationTargetAlreadyReconciled = (transaction) => {
         if (!transaction || !transaction.targetTransactionId) return false
         
@@ -277,7 +266,6 @@
             }
         }
         if (mergeTransaction && mergeReconTransaction) {
-            setCurrentScroll()
             let editIntent = {
                 ...mergeTransaction,
                 prefillEdit: true,
@@ -290,11 +278,6 @@
             mergeReconTransaction = null
         }
     }
-
-    const isMergeTarget = (t) => {
-        return mergeTransaction && mergeTransaction.id == t.id || mergeReconTransaction && mergeReconTransaction.id== t.id
-    }
-
 
     const manualReconcile = (e) => async () => {
         setCurrentScroll()
@@ -335,21 +318,36 @@
             console.error('Handler is not a function:', handler)
         }
     }
-
+       
     const isOrphan = (t, e) => {
         return isReconciliationMode && !manualReconciliationMode && !t.isReconciliationResult && 
                !isReconciled(e) && !hasReconciliationMatch(e) && 
                e.date >= firstReconciledDate && e.date <= lastReconciledDate 
     }
 
+    /* START Reconciled Cell content functions */ 
+
+    const canBeReconciled = (entry) => {
+        if (!isReconciliationMode || reconciliationResults.length === 0) {
+            return false
+        }
+
+        return reconciliationResults.some(result =>
+            result.matched_transaction_id === entry.transaction_id &&
+           (result.status == 'Matched' || result.status == 'PartialMatch')
+        )
+    }
+
     const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
-    const mergeTarget = (t, e) => {
-        const isReconciliationRow = isReconciliationMode && t.isReconciliationResult
-        return isReconciliationMode && !manualReconciliationMode && 
-               ((isReconciliationRow && t.reconciliationStatus != 'Matched' && t.reconciliationStatus != 'PartialMatch') || 
-                (!isReconciliationRow && !isReconciled(e)  && !canBeReconciled(e))) &&
+    const showMergeOption = (t, e) => {
+        return ((t.isReconciliationResult && t.reconciliationStatus != 'Matched' && t.reconciliationStatus != 'PartialMatch') || 
+                (!t.isReconciliationResult && !isReconciled(e)  && !canBeReconciled(e))) &&
                new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime()  && 
                new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
+    }
+
+    const isMergeTarget = (t) => {
+        return mergeTransaction && mergeTransaction.id == t.id || mergeReconTransaction && mergeReconTransaction.id== t.id
     }
 
     const getReconciledCellContent = (t, e, i) => {
@@ -357,25 +355,27 @@
             return { type: 'reconciled' }
         }
 
-        if (isReconciliationMode && canBeReconciled(e)) {
-            return {
-                type: 'reconcilable',
-                isHovered: hoveredReconIndex !== null && i <= hoveredReconIndex
-            }
-        }
+        if (isReconciliationMode) {
 
-        if (mergeTarget(t, e)) {
-            return {
-                type: 'merge',
-                isSelected: isMergeTarget(t)
+            if (canBeReconciled(e)) {
+                return {
+                    type: 'reconcilable',
+                    isHovered: hoveredReconIndex !== null && i <= hoveredReconIndex
+                }
             }
-        }
+
+            if (showMergeOption(t, e)) {
+                return {
+                    type: 'merge',
+                    isSelected: isMergeTarget(t)
+                }
+            }
         
-        if (isReconciliationMode && t.isReconciliationResult) {
-            return { type: 'reconciliation-empty' }
-        }
-        
-        if (manualReconciliationMode && !isReconciled(e)) {
+            if (t.isReconciliationResult) {
+                return { type: 'reconciliation-empty' }
+            }
+
+        } else if (manualReconciliationMode) {
             return { type: 'manual-reconcile' }
         }
         
@@ -386,6 +386,7 @@
         return { type: 'empty' }
     }
 
+    /* END Reconciled Cell content functions */ 
     
 </script>
 {#if errors.getErrorMessages().length > 0 || msg && msg != ""}
@@ -434,7 +435,7 @@
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
-                <td class="reconciled-cell">
+                <td class="reconciled-cell" onclick={(event) => stopPropagationHandler(event, () => {})}>
                     {#if reconciledContent.type === 'merge'}
                         <button class={"merge-marker " + (reconciledContent.isSelected ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
                             {#if reconciledContent.isSelected}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
@@ -610,6 +611,7 @@
         width: 30px;
         min-width: 30px;
         height: 100%;
+        cursor: default !important;
     }
 
     .reconciled-cell div {
