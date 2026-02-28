@@ -342,10 +342,6 @@
     /* START Reconciled Cell content functions */ 
 
     const canBeReconciled = (entry) => {
-        if (reconciliationMode !== RM.GUIDED || reconciliationResults.length === 0) {
-            return false
-        }
-
         return reconciliationResults.some(result =>
             result.matched_transaction_id === entry.transaction_id &&
            (result.status == 'Matched' || result.status == 'PartialMatch')
