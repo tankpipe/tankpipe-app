@@ -54,35 +54,11 @@
             loadTransactions()
             previousAccountId = curAccount.id
         }
-
-        if (!$page.isEditMode) {
-            if (topScroll === null) {
-                const closest = findClosestTransaction()
-                if (closest) {
-                    topScroll = getScrollPosition(closest.id)
-                }
-            }
-            scrollToPosition()
-        }
+       
     });
 
     const setCurrentScroll = () => {
         topScroll = document.getElementById("scroller").scrollTop
-    }
-
-    const scrollToPosition = () => {
-        const scroller = document.getElementById("scroller")
-        if (scroller && !isEditMode($page)) {
-            document.getElementById("scroller").scrollTo(0, topScroll ?? 0)
-        }
-    }
-
-    const getScrollPosition = (id) => {
-        var myElement = document.getElementById(id);
-        if (myElement) {
-            return myElement.offsetTop;
-        }
-        return 0
     }
 
     const isAllReconciled = (transaction) => {                
@@ -157,23 +133,6 @@
     const chartBalance = (balance) => {
         return curAccount.account_type == "Liability" ? balance * -1 : balance
     }
-
-    const findClosestTransaction = () => {
-        const today = new Date().setUTCHours(0,0,0,0)
-        let tDate
-
-        if (transactions) {
-            for (const t of transactions) {
-                tDate = new Date(t.entries[0].date)
-                if (tDate >= today) {
-                    return t
-                }
-            }
-        }
-
-        return null
-    }
-
 
     const getEntry = (transaction) => {
         return transaction.entries.find(e => e.account_id == curAccount.id)
