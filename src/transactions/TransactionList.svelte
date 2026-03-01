@@ -346,61 +346,55 @@
                e.date >= firstReconciledDate && e.date <= lastReconciledDate 
     }
 
-    /* START Reconciled Cell content functions */ 
+    const isHovered = (i) => hoveredReconIndex !== null && i <= hoveredReconIndex    
+
+    const isSelectedForMerge = (t_id) => {
+        return mergeTransaction && mergeTransaction.id == t_id || mergeReconTransaction && mergeReconTransaction.id== t_id
+    }
+
+    const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
+    const inMergeWindow = (e) => {
+        return new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime() && 
+               new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
+    }
 
     const transactionCanBeReconciled = (t) => {
         return !t.isReconciliationResult && 
             (t.reconciliationStatus == 'Matched' || 
-            (t.reconciliationStatus == 'PartialMatch' && !isMergeTarget(t.matchedReconciliationId)))
+            (t.reconciliationStatus == 'PartialMatch' && !isSelectedForMerge(t.matchedReconciliationId)))
     }
 
-    const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
-
-    const showMergeOption = (t, e) => {
-        return (t.reconciliationStatus != 'Matched') &&
-               new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime() && 
-               new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
-    }
-
-    const isMergeTarget = (t_id) => {
-        return mergeTransaction && mergeTransaction.id == t_id || mergeReconTransaction && mergeReconTransaction.id== t_id
-    }
-
-    const getReconciledCellContent = (t, e, i) => {
-        if (isReconciled(e)) {
-            return { type: 'reconciled' }
+    /**
+     * Determines what type of widget to display in the reconciliation column.
+     */
+    const getReconciledCellType = (t, e) => {
+        if (e.reconciled_status == 'Reconciled') {
+            return 'reconciled'
         }
 
         if (reconciliationMode === RM.GUIDED) {
 
             if (transactionCanBeReconciled(t)) {
-                return {
-                    type: 'reconcilable',
-                    isHovered: hoveredReconIndex !== null && i <= hoveredReconIndex
-                }
+                return 'reconcilable'
             }
 
-            if (showMergeOption(t, e)) {
-                return {
-                    type: 'merge',
-                    isSelected: isMergeTarget(t.id)
-                }
+            if (t.reconciliationStatus != 'Matched' && inMergeWindow(e)) {
+                return 'merge'                    
             }
         
         } else if (reconciliationMode === RM.MANUAL) {
-            return { type: 'manual-reconcile' }
+            return 'manual-reconcile'
         }
         
         if (e.reconciled_status == 'Outstanding') {
-            return { type: 'outstanding' }
+            return 'outstanding'
         }
         
-        return { type: 'empty' }
+        return 'empty'
     }
-
-    /* END Reconciled Cell content functions */ 
-    
+   
 </script>
+
 {#if errors.getErrorMessages().length > 0 || msg && msg != ""}
 <div class="widget errors">
     {#each errors.getErrorMessages() as e}
@@ -431,7 +425,7 @@
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-                {@const reconciledContent = getReconciledCellContent(t, e, i)}
+                {@const reconciledContent = getReconciledCellType(t, e)}
                 <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''} {isOrphan(t, e)? 'orphan-row' : ''}" 
                     onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
                     id={t.id}><!--{t.id}-->
@@ -448,27 +442,27 @@
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
                 <td class="reconciled-cell" onclick={(event) => stopPropagationHandler(event, () => {})}>
-                    {#if reconciledContent.type === 'reconciled'}
+                    {#if reconciledContent === 'reconciled'}
                         <div><Icon icon="mdi:check" width="16"/></div>
-                    {:else if reconciledContent.type === 'reconcilable'}
+                    {:else if reconciledContent === 'reconcilable'}
                         <button
-                            class={"recon-marker " + (reconciledContent.isHovered ? " hover-highlight" : "")}
+                            class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
                             onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
                             onmouseenter={() => hoveredReconIndex = i}
                             onmouseleave={() => hoveredReconIndex = null}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>    
-                    {:else if reconciledContent.type === 'merge'}
-                        <button class={"merge-marker " + (reconciledContent.isSelected ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
-                            {#if reconciledContent.isSelected}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
+                    {:else if reconciledContent === 'merge'}
+                        <button class={"merge-marker " + (isSelectedForMerge(t.id) ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
+                            {#if isSelectedForMerge(t.id)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
                         </button>                    
-                    {:else if reconciledContent.type === 'manual-reconcile'}
+                    {:else if reconciledContent === 'manual-reconcile'}
                         <button
                             class="recon-marker "
                             onclick={(event) => { event.stopPropagation(); manualReconcile(e)()}}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
-                    {:else if reconciledContent.type === 'outstanding'}
+                    {:else if reconciledContent === 'outstanding'}
                         <div><Icon icon="mdi:circle-small" width="16"/></div>
                     {/if}
                 </td>
