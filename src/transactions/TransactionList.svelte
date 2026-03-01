@@ -451,8 +451,8 @@
                     {:else if reconciledContent === 'reconcilable'}
                         <button
                             class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
-                            onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
-                            onmouseenter={() => hoveredReconIndex = i}
+                            onclick={(event) => stopPropagationHandler(event, () => {if (t.reconciliationStatus == 'Matched') reconcileTransactions(e)})}
+                            onmouseenter={() => {if (t.reconciliationStatus == 'Matched') hoveredReconIndex = i}}
                             onmouseleave={() => hoveredReconIndex = null}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>    
@@ -670,13 +670,7 @@
 
 
     .recon-marker:hover {
-        border-color: transparent;
-        border: none;
-        color: #74d965;
-        background: transparent;
-        box-shadow: none; 
-        width: 30px !important;
-        height: 24px !important;
+        cursor: default
     }
 
     .recon-marker.hover-highlight {
