@@ -30,12 +30,14 @@
             return transactions
         }
 
+        let targetsToReconciliationMap = new Map()
+
         // Filter reconciliation results that need to be displayed
         const unmatchedResults = reconciliationResults
             .filter(result => filterMatchTransaction(result.transaction))
             .map(result => {
                 const transaction = result.transaction
-                
+                targetsToReconciliationMap.set(result.matched_transaction_id, result)                
                 // Extract date from first entry (like existing transactions do)
                 return {
                     ...transaction,
@@ -47,14 +49,19 @@
                     targetTransactionId: result.matched_transaction_id
                 }
             })
+        
+        console.log("a5f03039-cde0-475e-b30c-c31a94da9c3c", targetsToReconciliationMap.get("a5f03039-cde0-475e-b30c-c31a94da9c3c"))
+        console.log("targetsToReconciliationMap", targetsToReconciliationMap)
 
         // Start with existing transactions in their original order
         let combined = transactions.map(tx => ({
             ...tx,
             isReconciliationResult: false,
-            reconciliationStatus: null
+            reconciliationStatus: targetsToReconciliationMap.get(tx.id)?.status ?? null,
+            matchedReconciliationId: targetsToReconciliationMap.get(tx.id)?.matched_transaction_id ?? null
         }))
 
+        console.log("combined", combined)
         const toDay = (dateValue) => {
             const d = new Date(dateValue)
             d.setHours(0, 0, 0, 0)
@@ -341,17 +348,14 @@
 
     /* START Reconciled Cell content functions */ 
 
-    const canBeReconciled = (entry) => {
-        return reconciliationResults.some(result =>
-            result.matched_transaction_id === entry.transaction_id &&
-           (result.status == 'Matched' || result.status == 'PartialMatch')
-        )
+    const transactionCanBeReconciled = (t) => {
+        return !t.isReconciliationResult && (t.reconciliationStatus == 'Matched' || t.reconciliationStatus == 'PartialMatch')
     }
 
     const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
     const showMergeOption = (t, e) => {
         return ((t.isReconciliationResult && t.reconciliationStatus != 'Matched' && t.reconciliationStatus != 'PartialMatch') || 
-                (!t.isReconciliationResult && !isReconciled(e)  && !canBeReconciled(e))) &&
+                (!t.isReconciliationResult && e.reconciled_status != 'Reconciled'  && !transactionCanBeReconciled(t))) &&
                new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime()  && 
                new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
     }
@@ -367,7 +371,7 @@
 
         if (reconciliationMode === RM.GUIDED) {
 
-            if (canBeReconciled(e)) {
+            if (transactionCanBeReconciled(t)) {
                 return {
                     type: 'reconcilable',
                     isHovered: hoveredReconIndex !== null && i <= hoveredReconIndex
