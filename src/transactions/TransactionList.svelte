@@ -58,7 +58,7 @@
             ...tx,
             isReconciliationResult: false,
             reconciliationStatus: targetsToReconciliationMap.get(tx.id)?.status ?? null,
-            matchedReconciliationId: targetsToReconciliationMap.get(tx.id)?.matched_transaction_id ?? null
+            matchedReconciliationId: targetsToReconciliationMap.get(tx.id)?.transaction?.id ?? null
         }))
 
         console.log("combined", combined)
@@ -349,19 +349,21 @@
     /* START Reconciled Cell content functions */ 
 
     const transactionCanBeReconciled = (t) => {
-        return !t.isReconciliationResult && (t.reconciliationStatus == 'Matched' || t.reconciliationStatus == 'PartialMatch')
+        return !t.isReconciliationResult && 
+            (t.reconciliationStatus == 'Matched' || 
+            (t.reconciliationStatus == 'PartialMatch' && !isMergeTarget(t.matchedReconciliationId)))
     }
 
     const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
+
     const showMergeOption = (t, e) => {
-        return ((t.isReconciliationResult && t.reconciliationStatus != 'Matched' && t.reconciliationStatus != 'PartialMatch') || 
-                (!t.isReconciliationResult && e.reconciled_status != 'Reconciled'  && !transactionCanBeReconciled(t))) &&
-               new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime()  && 
+        return (t.reconciliationStatus != 'Matched') &&
+               new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime() && 
                new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
     }
 
-    const isMergeTarget = (t) => {
-        return mergeTransaction && mergeTransaction.id == t.id || mergeReconTransaction && mergeReconTransaction.id== t.id
+    const isMergeTarget = (t_id) => {
+        return mergeTransaction && mergeTransaction.id == t_id || mergeReconTransaction && mergeReconTransaction.id== t_id
     }
 
     const getReconciledCellContent = (t, e, i) => {
@@ -381,7 +383,7 @@
             if (showMergeOption(t, e)) {
                 return {
                     type: 'merge',
-                    isSelected: isMergeTarget(t)
+                    isSelected: isMergeTarget(t.id)
                 }
             }
         
