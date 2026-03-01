@@ -364,6 +364,10 @@
             (t.reconciliationStatus == 'PartialMatch' && !isSelectedForMerge(t.matchedReconciliationId)))
     }
 
+    const availableForMerge = (t, e) => {
+        return t.reconciliationStatus != 'Matched' && inMergeWindow(e) && !reconcilationTargetAlreadyReconciled(t)
+    }
+
     /**
      * Determines what type of widget to display in the reconciliation column.
      */
@@ -378,7 +382,7 @@
                 return 'reconcilable'
             }
 
-            if (t.reconciliationStatus != 'Matched' && inMergeWindow(e)) {
+            if (availableForMerge(t, e)) {
                 return 'merge'                    
             }
         
