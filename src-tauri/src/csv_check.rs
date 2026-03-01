@@ -14,7 +14,7 @@ pub struct CsvCheck {
 
 impl CsvCheck {
     pub fn create_new(column_types: ColumnTypes, header_row: Vec<String>, sample_rows: Vec<Vec<String>>, reverse_cr_dr_default: bool) -> CsvCheck {
-        let reversed = reverse_cr_dr_default && column_types.has_column(ColumnType::Debit) || column_types.has_column(ColumnType::Credit);
+        let reversed = reverse_cr_dr_default && (column_types.has_column(ColumnType::Debit) || column_types.has_column(ColumnType::Credit));
         CsvCheck {
             column_types: column_types.clone(),
             header_row: header_row,
