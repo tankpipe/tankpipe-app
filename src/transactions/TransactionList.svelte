@@ -8,97 +8,61 @@
     import { Errors } from '../errors'
     import { ReconciliationMode as RM } from './reconciliation.js'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, topScroll, setTopScroll, descriptionFilter = "" } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, rerunReconciliationIfNeeded, topScroll, setTopScroll, descriptionFilter = "" } = $props()
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
     let mergeTransaction = $state(null)
     let mergeReconTransaction = $state(null)
     
-    let firstReconciledDate = $derived.by(() => {        
-        return reconciliationResults && reconciliationResults.length > 0 ? getEntry(reconciliationResults[0].transaction).date : null
+    let firstReconciledDate = $derived.by(() => {     
+        return displayTransactions().find(t => t.isReconciliationResult)?.date ?? null
     })
 
     let lastReconciledDate = $derived.by(() => {
-        return reconciliationResults && reconciliationResults.length > 0 ? getEntry(reconciliationResults[reconciliationResults.length - 1].transaction).date : null       
+       return displayTransactions().findLast(t => t.isReconciliationResult)?.date ?? null
     })
 
     let displayTransactions = $derived(() => {
         console.log("displayTransactions", reconciliationMode)
-        // If not in reconciliation mode or no reconciliation results, return normal transactions
+        
         if (reconciliationMode !== RM.GUIDED || reconciliationResults.length === 0 || journalMode) {
             return transactions
         }
 
         let targetsToReconciliationMap = new Map()
+        let previousTransaction = null
 
         // Filter reconciliation results that need to be displayed
-        const unmatchedResults = reconciliationResults
-            .filter(result => filterMatchTransaction(result.transaction))
-            .map(result => {
+        let results = reconciliationResults            
+            .map(abstractResult => {
+                let isReconciliation = abstractResult.Reconciliation !== undefined
+                let result = isReconciliation ? abstractResult.Reconciliation : abstractResult.Original
                 const transaction = result.transaction
                 targetsToReconciliationMap.set(result.matched_transaction_id, result)                
                 // Extract date from first entry (like existing transactions do)
-                return {
+                let item = {
                     ...transaction,
                     date: getEntry(transaction).date,
-                    isReconciliationResult: true,
+                    isReconciliationResult: isReconciliation,
                     reconciliationStatus: result.status,
                     balance: result.balance,
-                    // Store target transaction ID for matched/partial matches
-                    targetTransactionId: result.matched_transaction_id
                 }
-            })
-        
-        console.log("a5f03039-cde0-475e-b30c-c31a94da9c3c", targetsToReconciliationMap.get("a5f03039-cde0-475e-b30c-c31a94da9c3c"))
-        console.log("targetsToReconciliationMap", targetsToReconciliationMap)
 
-        // Start with existing transactions in their original order
-        let combined = transactions.map(tx => ({
-            ...tx,
-            isReconciliationResult: false,
-            reconciliationStatus: targetsToReconciliationMap.get(tx.id)?.status ?? null,
-            matchedReconciliationId: targetsToReconciliationMap.get(tx.id)?.transaction?.id ?? null
-        }))
-
-        console.log("combined", combined)
-        const toDay = (dateValue) => {
-            const d = new Date(dateValue)
-            d.setHours(0, 0, 0, 0)
-            return d.getTime()
-        }
-
-        // Insert each reconciliation result at the correct position
-        // Work backwards through the array to avoid index shifting issues
-        for (let i = unmatchedResults.length - 1; i >= 0; i--) {
-            const reconTx = unmatchedResults[i]
-            
-            // For matched/partial matched transactions, insert immediately after target
-            if (reconTx.targetTransactionId) {
-                const targetIndex = combined.findIndex(tx => tx.id === reconTx.targetTransactionId)
-                if (targetIndex !== -1) {
-                    combined.splice(targetIndex + 1, 0, reconTx)
-                    continue
+                if (isReconciliation) {
+                    item.targetTransactionId = result.matched_transaction_id
+                    if (previousTransaction?.id === result.matched_transaction_id) {
+                        item.targetReconciledStatus = getEntry(previousTransaction)?.reconciled_status
+                    } 
+                } else {
+                    item.matchedReconciliationId = result.matched_reconciliation_id
+                    previousTransaction = transaction
                 }
-            }
-            
-            // For unmatched transactions, insert after all transactions on the same date,
-            // or after the previous date if no same-day transactions exist.
-            const reconDay = toDay(reconTx.date)
-            const lastIndexOnOrBefore = combined.findLastIndex((tx) => {
-                const txEntry = getEntry(tx)
-                if (!txEntry) return false
-                return toDay(txEntry.date) <= reconDay
+
+                return item
             })
 
-            if (lastIndexOnOrBefore === -1) {
-                combined.splice(0, 0, reconTx)
-            } else {
-                combined.splice(lastIndexOnOrBefore + 1, 0, reconTx)
-            }
-        }
-
-        return combined
+        return results.filter(filterMatchTransaction)
     })
     
     const filterMatchTransaction = (transaction) => {
@@ -233,41 +197,35 @@
         return !transaction.entries.some(e => e.reconciled_status)
     }
 
-    const hasReconciliationMatch = (entry) => {        
-        return reconciliationResults && 
-        reconciliationResults.some(result =>
-                result.matched_transaction_id === entry.transaction_id &&
-                result.status !== 'Unmatched'
-            )
-    }
-
     const reconcilationTargetAlreadyReconciled = (transaction) => {
-        if (!transaction || !transaction.targetTransactionId) return false
-        
-        const targetTransaction = transactions.find(t => t.id === transaction.targetTransactionId)
-        if (!targetTransaction) return false
-        
-        return isReconciled(getEntry(targetTransaction))
+        return transaction.isReconciliationResult && transaction.targetReconciledStatus == 'Reconciled'
     }
 
     const reconcileTransactions = async (toEntry) => {
         setCurrentScroll()
         if (!curAccount || !curAccount.id || !toEntry) return
 
-        try {
-            const transactionIds = reconciliationResults
-                .slice(0, reconciliationResults.findIndex(result => result.matched_transaction_id === toEntry.transaction_id) + 1)
-                .filter(result => result.status == 'Matched' || result.status == 'PartialMatch')
-                .map(result => result.matched_transaction_id)
+        const displayTxns = displayTransactions()
+        const transactionIds = displayTxns
+            .slice(0, displayTxns.findIndex(t => t.isReconciliationResult && t.targetTransactionId === toEntry.transaction_id) + 1)
+            .filter(t => t.isReconciliationResult && t.targetReconciledStatus != 'Reconciled' && (t.reconciliationStatus == 'Matched' || t.reconciliationStatus == 'PartialMatch'))
+            .map(t => t.targetTransactionId)
 
-            await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds})            
-        } catch (err) {
-            console.log(err)
-            errors = new Errors()
-            errors.addError("all", $_('transactions.error', { values: {error: err} }))
-            showErrors(errors)
+        console.log("reconciling", transactionIds)
+        await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds}).then(resolvedReconcile, rejectedReconcile)            
+        await loadAccounts()
+        if (rerunReconciliationIfNeeded) {
+            await rerunReconciliationIfNeeded()
         }
-        loadAccounts()        
+    }
+
+    const resolvedReconcile = () => {}
+
+    const rejectedReconcile = (result) => {
+        console.log(result)
+        errors = new Errors()
+        errors.addError("all", $_('transactions.error', { values: {error: result} }))
+        showErrors(errors)
     }
 
     const mergeTransactions = (t) => {
@@ -342,7 +300,7 @@
        
     const isOrphan = (t, e) => {
         return reconciliationMode === RM.GUIDED && !t.isReconciliationResult && 
-               !isReconciled(e) && !hasReconciliationMatch(e) && 
+               !isReconciled(e) && t.reconciliationStatus === 'Unmatched' && 
                e.date >= firstReconciledDate && e.date <= lastReconciledDate 
     }
 
@@ -471,7 +429,7 @@
                     {/if}
                 </td>
             </tr>
-            {#if reconciliationMode === RM.GUIDED && ! hasReconciliationMatch(e)}
+            {#if reconciliationMode === RM.GUIDED && (t.isReconciliationResult || t.matchedReconciliationId === null)}
             <tr>
                 <td colspan="7" class="divider-row"></td>
             </tr>

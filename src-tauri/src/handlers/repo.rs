@@ -153,14 +153,14 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uui
 }
 
 #[tauri::command]
-pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool) -> Result<Vec<accounts::books::ReconciliationResult>, String> {
-    println!("reconcile_csv: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account_id, column_types, has_headers);
+pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool) -> Result<Vec<accounts::books::ReconciliationItem>, String> {
+    println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account_id, column_types, has_headers);
     let mutex_guard = state.0.lock().unwrap();
     let load_result = read_transactions(&path, account_id, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
 
     match load_result {
         Ok(transactions) => {
-            let reconciliation_result = mutex_guard.books.match_transactions(account_id, transactions);
+            let reconciliation_result = mutex_guard.books.prepare_reconciliation(account_id, transactions);
             match reconciliation_result {
                 Ok(results) => Ok(results),
                 Err(e) => Err(e.error),
@@ -278,21 +278,33 @@ mod tests {
             true // has_headers
         ).unwrap();
         
-        let reconciliation_results = repo.books.match_transactions(account_id, bank_transactions).unwrap();
+        let reconciliation_results = repo.books.prepare_reconciliation(account_id, bank_transactions).unwrap();
         assert!(!reconciliation_results.is_empty());
         
         let matched_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status, accounts::books::ReconciliationMatchStatus::Matched { .. }))
+            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::Matched { .. }))
             .count();
         let partial_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status, accounts::books::ReconciliationMatchStatus::PartialMatch { .. }))
+            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::PartialMatch { .. }))
+            .count();
+        let mismatch_count = reconciliation_results.iter()
+            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::Mismatch { .. }))
             .count();
         let unmatched_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status, accounts::books::ReconciliationMatchStatus::Unmatched))
+            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::Unmatched))
+            .count();
+        let reconciliation_count = reconciliation_results.iter()
+            .filter(|r| matches!(r, accounts::books::ReconciliationItem::Reconciliation { .. }))
+            .count();
+        let original_count = reconciliation_results.iter()
+            .filter(|r| matches!(r, accounts::books::ReconciliationItem::Original { .. }))
             .count();
         
-        assert_eq!(3, matched_count, "Should have at least some exact matches");
-        assert_eq!(28, partial_count, "Should have some partial matches");
-        assert_eq!(3, unmatched_count, "Should have some unmatched due to date variations");
+        assert_eq!(6, matched_count, "Should have at least some exact matches");
+        assert_eq!(56, partial_count, "Should have some partial matches");
+        assert_eq!(30, mismatch_count, "Should have some mismatches");
+        assert_eq!(5, unmatched_count, "Should have some unmatched due to date variations");
+        assert_eq!(49, reconciliation_count);
+        assert_eq!(48, original_count);
     }
 }

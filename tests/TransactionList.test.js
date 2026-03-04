@@ -104,21 +104,47 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
     // Create reconciliation results - the matched_transaction_id should match an entry's transaction_id
     const reconciliationResults = [
         {
-            transaction: {
-                ...unreconciledTransaction,
-                // Ensure reconciliation result transaction has an entry that matches curAccount
-                entries: [
-                    {
-                        ...unreconciledTransaction.entries[0],
-                        account_id: account_data[0].id, // Match current account ID
-                        account: account_data[0]
-                    },
-                    ...unreconciledTransaction.entries.slice(1)
-                ]
-            },
-            matched_transaction_id: transaction_data[2].id, // Use the actual transaction ID
-            status: 'Matched',
-            balance: 100
+            Original:{
+                transaction: reconciledTransaction,
+                matched_reconciliation_id: null, 
+                status: 'Unmatched',
+                balance: 100
+            }
+        },
+        {
+            Original:{
+                transaction: outstandingTransaction,
+                matched_reconciliation_id: null, 
+                status: 'Unmatched',
+                balance: 100
+            }
+        },
+        {
+            Original:{
+                transaction: unreconciledTransaction,
+                matched_reconciliation_id: unreconciledTransaction.id, 
+                status: 'Matched',
+                balance: 100
+            }
+        },
+        {
+            Reconciliation:{
+                transaction: {
+                    ...unreconciledTransaction,
+                    // Ensure reconciliation result transaction has an entry that matches curAccount
+                    entries: [
+                        {
+                            ...unreconciledTransaction.entries[0],
+                            account_id: account_data[0].id, // Match current account ID
+                            account: account_data[0]
+                        },
+                        ...unreconciledTransaction.entries.slice(1)
+                    ]
+                },
+                matched_transaction_id: transaction_data[2].id, // Use the actual transaction ID
+                status: 'Matched',
+                balance: 100
+            }
         }
     ];
 

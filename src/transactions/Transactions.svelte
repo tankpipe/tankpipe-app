@@ -325,6 +325,7 @@
     reconciliationMode={reconciliationAccountId === curAccount?.id ? reconciliationMode : RM.NONE}
     onSelect={selectTransaction}
     loadAccounts={loadAccounts}
+    rerunReconciliationIfNeeded={rerunReconciliationIfNeeded}
     topScroll={topScroll}
     setTopScroll={(value) => (topScroll = value)}
     descriptionFilter={descriptionFilter}
