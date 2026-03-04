@@ -1,0 +1,49 @@
+Date,Description,Amount,Type,Category,Balance
+02/01/2024,Paycheck,3500.00,Credit,Income,3500.00
+03/01/2024,Rent,-1200.00,Debit,Housing,2300.00
+04/01/2024,Kroger,-85.43,Debit,Groceries,2214.57
+06/01/2024,Shell Gas,-45.67,Debit,Auto,2168.90
+08/01/2024,Netflix,-15.99,Debit,Entertainment,2152.91
+09/01/2024,Starbucks Coffee,-4.75,Debit,Food,2148.16
+11/01/2024,Electric Bill,-125.50,Debit,Utilities,2022.66
+14/01/2024,Olive Garden Dinner,-32.80,Debit,Dining,1989.86
+17/01/2024,Walgreens,-18.25,Debit,Medical,1971.61
+19/01/2024,ATM,-100.00,Debit,Cash,1871.61
+21/01/2024,Internet,-59.99,Debit,Utilities,1811.62
+24/01/2024,Gym,-29.99,Debit,Fitness,1781.63
+27/01/2024,Freelance Work,450.00,Credit,Income,2231.63
+31/01/2024,Safeway,-92.15,Debit,Groceries,2139.48
+02/02/2024,Phone Bill,-45.00,Debit,Utilities,2094.48
+04/02/2024,Amazon Order,-67.89,Debit,Shopping,2026.59
+06/02/2024,Chevron Gas,-38.42,Debit,Auto,1988.17
+08/02/2024,Panera,-28.50,Debit,Dining,1959.67
+11/02/2024,Insurance,-180.00,Debit,Insurance,1779.67
+14/02/2024,Dunkin,-5.25,Debit,Coffee,1774.42
+17/02/2024,Target,-156.78,Debit,Shopping,1617.64
+19/02/2024,Water Bill,-35.60,Debit,Utilities,1582.04
+20/02/2024,Doctor Visit,-75.00,Debit,Medical,1507.04
+24/02/2024,Salary,3500.00,Credit,Income,5007.04
+27/02/2024,Whole Foods,-88.92,Debit,Groceries,4918.12
+01/03/2024,Rent Payment,-1200.00,Debit,Housing,3718.12
+04/03/2024,BP Gas,-41.23,Debit,Auto,3676.89
+06/03/2024,Spotify,-9.99,Debit,Entertainment,3666.90
+09/03/2024,Chipotle,-45.60,Debit,Dining,3621.30
+11/03/2024,GAP Clothes,-89.99,Debit,Clothing,3531.31
+14/03/2024,CVS,-22.40,Debit,Medical,3508.91
+17/03/2024,Aldi,-95.67,Debit,Groceries,3413.24
+19/03/2024,Electric,-117.75,Debit,Utilities,3294.49
+21/03/2024,ATM Cash,-150.00,Debit,Cash,3144.49
+24/03/2024,Coffee,-4.50,Debit,Food,3139.99
+27/03/2024,Freelance,325.00,Credit,Income,3464.99
+31/03/2024,Cell Phone,-45.00,Debit,Utilities,3419.99
+02/04/2024,Exxon Gas,-39.85,Debit,Auto,3380.14
+04/04/2024,Publix,-78.34,Debit,Groceries,3301.80
+09/04/2024,Netflix Subscription,-15.99,Debit,Entertainment,3247.06
+11/04/2024,Target Store,-134.56,Debit,Shopping,3112.50
+14/04/2024,Car Insurance,-180.00,Debit,Insurance,2932.50
+17/04/2024,Gym Membership,-29.99,Debit,Fitness,2902.51
+19/04/2024,Water,-35.60,Debit,Utilities,2866.91
+21/04/2024,Amazon,-89.45,Debit,Shopping,2777.46
+24/04/2024,Paycheck,3500.00,Credit,Income,6277.46
+27/04/2024,Trader Joes,-102.28,Debit,Groceries,6175.18
+29/04/2024,Applebees,-52.30,Debit,Dining,6122.88

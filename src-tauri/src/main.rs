@@ -62,6 +62,9 @@ fn main() {
             account::add_account,
             account::update_account,
             account::delete_account,
+            account::reconcile_account_transaction,
+            account::reconcile_account_transactions,
+            account::rollback_reconciliation,
             schedule::schedules,
             schedule::get_schedule,
             schedule::add_schedule,
@@ -89,6 +92,7 @@ fn main() {
             repo::initialise,
             repo::load_with_path,
             repo::load_config,
+            repo::reconcile_csv,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

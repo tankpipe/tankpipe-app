@@ -120,6 +120,7 @@ impl Repo {
             Some(id) => {                
                 if id == self.books.id {
                     let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+                    println!("Saved books to {:?}", self.config.current_file.clone().unwrap().path.clone());
                     Ok(())
                 } else {
                     Err(BooksError::from_str("Current books id does not match the file path books id"))

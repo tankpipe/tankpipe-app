@@ -1,13 +1,12 @@
 import { render } from '@testing-library/svelte'
-import EditMultipleTransactions from '../src/EditMultipleTransactions.svelte'
+import EditMultipleTransactions from '../src/transactions/EditMultipleTransactions.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page.js'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
-import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale } from 'svelte-i18n'
 import '../src/i18n'
-import { config, dateFormat } from '../src/config'
+import { config } from '../src/config'
 
 locale.set('en')
 accounts.set(account_data)

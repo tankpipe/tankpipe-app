@@ -1,16 +1,18 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import {Errors} from './errors.js'
-    import Select from './Select.svelte'
+    import { untrack } from 'svelte'
+    import {Errors} from '../errors'
+    import Select from '../Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes, views} from './page.js'
-    import {settings} from './settings.js'
-    import {accounts} from './accounts'
-    import {config, dateFormat} from './config.js'
+    import {page, modes, views} from '../page'
+    import {settings} from '../settings'
+    import {accounts} from '../accounts'
+    import {config, dateFormat} from '../config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
+    
 
-    let { loadTransactions, curEntry, onClose } = $props()
+    let { loadTransactions, transactionId, onClose, reconciliationSource, editSource } = $props()
 
     let curTransaction = $state({})
 
@@ -26,21 +28,44 @@
     let recorded = $state(false)
     let entries =  $state([])
     $inspect(entries)
+    let pendingEditPatch = $state(null)
+    $inspect(pendingEditPatch)
+    let prefillHint = $state("")
+
+    const isEditMode = $derived($page.mode === modes.EDIT)
+
+    const initNewTransaction = () => {
+        curTransaction = {id: zeros, status:"Recorded"}
+        
+        let date = new Date()
+        entries = [
+            {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
+            {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
+        ]
+        
+        addButtonLabel = "Add"
+        simpleAllowed = true
+    }
 
     $effect(() => {
 
-        if ($page.mode === modes.EDIT) {
-            fetchTransaction(curEntry.transaction_id)
-        } else {
-            curTransaction = {id: zeros, status:"Recorded"}
-            let date = new Date()
-            entries = [
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
-                {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
-            ]
-            addButtonLabel = "Add"
-            simpleAllowed = true
+        if (isEditMode) {
+            if (editSource) {
+                pendingEditPatch = editSource
+                fetchTransaction(transactionId)
+            } else {
+                fetchTransaction(transactionId)
+            }
+            return
         }
+
+        if (reconciliationSource?.isReconciliationResult) {
+            untrack(() => fetched(reconciliationSource))
+            addButtonLabel = $_('buttons.add')
+            return
+        }
+
+        untrack(() => initNewTransaction())
 
     })
 
@@ -49,7 +74,7 @@
     }
 
     const handleRemoveClick = () => {
-        if (entries.length > 2) {
+        if (entries.length > 2 && ! entries[entries.length - 1].reconciled) {
             entries = [...entries.slice(0, entries.length - 1)]
         }
     }
@@ -160,12 +185,11 @@
     }
 
     function resolved(result) {
-      msg = $_('transaction.errors.saved')
-      curTransaction = result
-      if ($page.mode === modes.EDIT) {
-        loadTransactions()
-        close()
-      }
+        msg = $_('transaction.errors.saved')
+        curTransaction = result
+        if ($page.mode === modes.EDIT || reconciliationSource?.isReconciliationResult) {
+            close()
+        }
     }
 
     const syncSecondEntry = () => {
@@ -184,16 +208,21 @@
             (entries.length == 2 &&
             entries[0].description === entries[1].description &&
             entries[0].amount === entries[1].amount &&
-            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime())
+            entries[0].realDate && entries[0].realDate.getTime() == entries[1].realDate.getTime() &&
+            ! entries.some(e => e.reconciled_status && (e.reconciled_status == "Reconciled" || e.reconciled_status == "Outstanding")))
         )
+    }
+
+    const editable = (e) => {
+        return !(e.reconciled_status && (e.reconciled_status == "Reconciled" || e.reconciled_status == "Outstanding"))
     }
 
     function fetched(result) {
         console.log("fetched ", result)
-        Object.assign(curTransaction, result)
+        const txEntries = (result?.entries || []).map(e => ({...e}))
+        curTransaction = {...result, entries: txEntries}
         addButtonLabel = $_('buttons.update')
-        entries.splice(0)
-        entries.push(...curTransaction.entries)
+        entries = txEntries.map(e => ({...e}))
 
         entries.forEach(e => {
             e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
@@ -214,7 +243,108 @@
         }
 
         recorded = curTransaction.status != "Projected"
+        if (pendingEditPatch) {            
+            const targetId = pendingEditPatch.targetTransactionId ?? pendingEditPatch.id
+            if (targetId === curTransaction.id) {
+                applyEditPatch(pendingEditPatch)
+                pendingEditPatch = null
+                prefillHint = $_('transaction.mergePrefill')
+            }
+        }
         calculateTotals()
+    }
+
+    const applyEditPatch = (patch) => {
+        const patchAccountId = patch?.mergeAccountId
+        const patchEntry = patchAccountId
+            ? (patch.entries?.find(e => e.account_id == patchAccountId) || patch.entries?.[0])
+            : patch.entries?.[0]
+        if (!patchEntry) return
+
+        const targetEntry = patchAccountId
+            ? (entries.find(e => e.account_id == patchAccountId) || entries[0])
+            : entries[0]
+        if (!targetEntry) return
+        const original = {
+            date: targetEntry.date,
+            realTime: targetEntry.realDate ? targetEntry.realDate.getTime() : null,
+            description: targetEntry.description,
+            amount: targetEntry.amount,
+            drAmount: targetEntry.drAmount,
+            crAmount: targetEntry.crAmount
+        }
+
+        const patchDate = patchEntry.date
+        const patchDescription = patchEntry.description
+        const patchAmount = patchEntry.amount
+        const patchBalance = patchEntry.balance
+
+        const applyToEntry = (entry) => {
+            if (patchDate) {
+                entry.date = patchDate
+                entry.realDate = new Date(patchDate)
+            }
+            if (patchDescription !== undefined) {
+                entry.description = patchDescription
+            }
+            if (patchAmount !== undefined) {
+                entry.amount = patchAmount
+                if (entry.entry_type === "Credit") {
+                    entry.crAmount = patchAmount
+                    entry.drAmount = ''
+                } else if (entry.entry_type === "Debit") {
+                    entry.drAmount = patchAmount
+                    entry.crAmount = ''
+                }
+            }
+            if (patchBalance !== undefined) {
+                entry.balance = patchBalance
+            }
+        }
+
+        applyToEntry(targetEntry)
+
+        entries.forEach(entry => {
+            if (entry === targetEntry) return
+            if (patchDate) {
+                const matchesDate =
+                    entry.date === original.date ||
+                    (original.realTime !== null &&
+                        entry.realDate &&
+                        entry.realDate.getTime() === original.realTime)
+                if (matchesDate) {
+                    entry.date = patchDate
+                    entry.realDate = new Date(patchDate)
+                }
+            }
+            if (patchDescription !== undefined && entry.description === original.description) {
+                entry.description = patchDescription
+            }
+            if (patchAmount !== undefined) {
+                const matchesAmount = entry.amount == original.amount
+                const matchesDr = entry.drAmount == original.drAmount
+                const matchesCr = entry.crAmount == original.crAmount
+                if (matchesAmount || matchesDr || matchesCr) {
+                    entry.amount = patchAmount
+                    if (entry.entry_type === "Credit") {
+                        entry.crAmount = patchAmount
+                        entry.drAmount = ''
+                    } else if (entry.entry_type === "Debit") {
+                        entry.drAmount = patchAmount
+                        entry.crAmount = ''
+                    }
+                }
+            }
+        })
+
+        if (!compoundMode) {
+            syncSecondEntry()
+        }
+        simpleAllowed = canBeSimple(entries)
+        if (!simpleAllowed) {
+            compoundMode = true
+        }
+        entries = [...entries]
     }
 
     function rejected(result) {
@@ -278,10 +408,16 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
+    {#if entries.some(e => e.reconciled_status)}
+    <div class="recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
+    {/if}
+    {#if prefillHint}
+    <div class="recon-msg"><span>{prefillHint}</span></div>
+    {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled_status)}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -290,7 +426,7 @@
                 <tbody>
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" /></div></td>
+                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" closeOnSelection={true}/></div></td>
                     <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount}></td>
                 </tr>
@@ -317,21 +453,22 @@
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" /></div></td>
-                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled={!editable(e)} closeOnSelection={true}/></div></td>
+                    <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description} disabled={!editable(e)}></td>
+                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={!editable(e)}/></div></td>
                     <td class="money">
-                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>
+                        <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount} disabled={!editable(e)}>
                     </td>
                     <td class="money">
-                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>
+                        <input id="cramount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount} disabled={!editable(e)}>
                     </td>
+                    <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
                 </tr>
                 {/each}
                 <tr>
                     <td><div class="toolbar bottom-toolbar">
                         <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('buttons.addRow')}><Icon icon="mdi:table-row-plus-after"  width="24"/></button>
-                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')}><Icon icon="mdi:table-row-remove"  width="24"/></button>
+                        <button class="toolbar-icon" class:greyed={entries.length <= 2} onclick="{handleRemoveClick}" title={$_('buttons.removeRow')} disabled={entries[entries.length - 1].reconciled_status}><Icon icon="mdi:table-row-remove"  width="24"/></button>
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
@@ -347,7 +484,7 @@
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="recorded" type=checkbox bind:checked={recorded}>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status)}>
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="widget buttons">
@@ -356,10 +493,10 @@
         </div>
         <div class="widget errors">
             {#each errors.getErrorMessages() as e}
-            <div class="error-msg">{e}</div>
+            <div class="error-msg selectable-text">{e}</div>
             {/each}
             {#if msg}
-            <div class="success-msg">{msg}</div>
+            <div class="success-msg selectable-text">{msg}</div>
             {/if}
         </div>
     </div>
@@ -523,5 +660,26 @@
         float: left;
     }
 
+    .recon-msg {
+        color: #daae3e;
+        float: left;
+        margin: 0px 0px 0px 20px;        
+        display: flex;
+        align-items: center;
+    }
+
+    .recon-msg span {
+        padding-top: 5px;
+        font-size: 0.85em;
+    }
+
+    .reconciled-cell {
+        background-color: #444 !important;
+        color: #ccc;
+        font-size: .8em;
+        font-weight: bold;
+        padding: 0 0 4px 3px;
+        text-align: center;
+    }
 
 </style>

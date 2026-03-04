@@ -67,5 +67,34 @@
         ],
         "schedule_id": null,
         "status": "Recorded"
+    },
+    {
+        "id": "8a7b2c3d-4e5f-6789-0123-456789abcdef",
+        "entries": [
+            {
+                "account": {"account_type": "Expense", "balance": "0", "id": "c1d2e3f4-5678-90ab-cdef-1234567890ab", "name": "Expense Account", "starting_balance": "0"},
+                "account_id": "c1d2e3f4-5678-90ab-cdef-1234567890ab",
+                "amount": "75",
+                "balance": 75,
+                "date": "2023-01-22",
+                "description": "Office supplies purchase",
+                "id": "e5f6a7b8-c9d0-1234-5678-9abcdef01234",
+                "transaction_id": "8a7b2c3d-4e5f-6789-0123-456789abcdef",
+                "entry_type": "Debit"
+            },
+            {
+                "account": {"account_type": "Asset", "balance": "0", "id": "9b533d4d-452e-43bc-8d86-c88102eb9319", "name": "Account 1", "starting_balance": "0"},
+                "account_id": "9b533d4d-452e-43bc-8d86-c88102eb9319",
+                "amount": "75",
+                "balance": 75,
+                "date": "2023-01-22",
+                "description": "Office supplies purchase",
+                "id": "f8g9h0i1-j2k3-4567-8901-23456789abcd",
+                "transaction_id": "8a7b2c3d-4e5f-6789-0123-456789abcdef",
+                "entry_type": "Credit"
+            }
+        ],
+        "schedule_id": null,
+        "status": "Projected"
     }
 ]

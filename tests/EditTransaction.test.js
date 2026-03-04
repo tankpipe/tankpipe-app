@@ -1,5 +1,5 @@
 import { render } from '@testing-library/svelte'
-import EditTransaction from '../src/EditTransaction.svelte'
+import EditTransaction from '../src/transactions/EditTransaction.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page'
 import account_data from './data/account_data.json'

@@ -70,8 +70,14 @@
             "success": {
                 "deleted": "Account deleted.",
                 "saved": "Account saved."
-            }
-        }
+            }            
+        },
+        "reconciliationInfo": "Reconciliation",
+        "reconciledTo": "Reconciled to",
+        "reconciledBalance": "Reconciled balance",
+        "reconcilationRollbackSuccess": "Reconciliation rolled back successfully.",
+        "rollbackTo": "Rollback reconciliation to",
+        "rollbackButton": "Rollback"
     },
     "dialog": {
         "close": "Close dialog"
@@ -107,7 +113,13 @@
         "delete": "Delete transaction",
         "edit": "Edit Transaction",
         "new": "New Transaction",
+        "view": "Transaction",
         "recorded": "Recorded",
+        "reconciled": "Reconciled",
+        "partiallyReconciled": "Partially reconciled",
+        "mergePrefill": "Update with reconciliation values",
+        "reconcileTransaction": "Reconcile transaction",
+        "reconcileTransactions": "Reconcile transactions",
         "schedule": "Schedule",
         "errors": {
             "accountRequired": "Account is required",
@@ -175,11 +187,13 @@
         "hideFilter": "Hide filter",
         "hideSelect": "Hide select transactions",
         "importTransactions": "Import transactions",
-        "openCsv": "Open CSV for import",
+        "manualReconciliation": "Manual reconciliation",
+        "openCsv": "Open CSV file",
         "noTransactions": "No transactions",
         "showFilter": "Show filter",
         "showSelect": "Show select transactions",
-        "transactionsDeleted": "Transactions deleted."
+        "transactionsDeleted": "Transactions deleted.",
+        "reconciliationHeader": "Reconciliation"
     },
     "about": {
         "logo_alt": "Tankpipe logo",
@@ -204,10 +218,12 @@
         "no_data": "No data was read",
         "has_header": "Has header row",
         "import_date_format": "Import date format",
+        "reverse_dr_cr": "Debit/Credit columns reversed by default",
         "save_mappings": "Remember for next time",
         "required_columns_mapped": "Required columns mapped",
         "columns": "Columns",
-        "sample_data": "CSV data"
+        "sample_data": "CSV data",
+        "reconcileTransactions": "Reconcile transactions"
     },
     "modifier": {
         "title": "Modifier",

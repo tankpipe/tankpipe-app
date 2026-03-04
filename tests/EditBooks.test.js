@@ -2,7 +2,7 @@ import { render } from '@testing-library/svelte'
 import EditBooks from '../src/EditBooks.svelte'
 import {page, views, modes} from '../src/page'
 import { mockIPC } from "@tauri-apps/api/mocks"
-import { init } from 'svelte-i18n'
+import { locale, init } from 'svelte-i18n'
 import { vi } from 'vitest'
 import account_data from './data/account_data.json'
 import '../src/i18n'
@@ -22,6 +22,8 @@ init({
     fallbackLocale: 'en',
     initialLocale: 'en',
 });
+
+locale.set('en')
 
 it('is displayed correctly', async () => {
     await new Promise(r => setTimeout(r));

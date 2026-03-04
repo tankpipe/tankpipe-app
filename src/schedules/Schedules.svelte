@@ -81,11 +81,15 @@
     }
 
     const edit = () => {
-        page.set({view: views.SCHEDULES, mode: modes.EDIT})
+        if (curSchedule && curSchedule.id) {
+            page.set({view: views.SCHEDULES, mode: modes.EDIT})
+        }
     }
 
     const view = () => {
-        page.set({view: views.SCHEDULES, mode: modes.VIEW})
+        if (curSchedule && curSchedule.id) {
+            page.set({view: views.SCHEDULES, mode: modes.VIEW})
+        }
     }
 
 
@@ -131,6 +135,7 @@
     }
 
     const handleAddClick = () => {
+        curSchedule = undefined
         page.set({view: views.SCHEDULES, mode: modes.NEW})
     }
 

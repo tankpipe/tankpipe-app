@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 
-use crate::reader::ColumnTypes;
+use crate::reader::{ColumnType, ColumnTypes};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct CsvCheck {
@@ -9,15 +9,18 @@ pub struct CsvCheck {
     pub header_row: Vec<String>,
     pub sample_rows: Vec<Vec<String>>,
     pub mapping_exists: bool,
+    pub dr_cr_reversed: bool,
 }
 
 impl CsvCheck {
-    pub fn create_new(column_types: ColumnTypes, header_row: Vec<String>, sample_rows: Vec<Vec<String>>) -> CsvCheck {
+    pub fn create_new(column_types: ColumnTypes, header_row: Vec<String>, sample_rows: Vec<Vec<String>>, reverse_cr_dr_default: bool) -> CsvCheck {
+        let reversed = reverse_cr_dr_default && (column_types.has_column(ColumnType::Debit) || column_types.has_column(ColumnType::Credit));
         CsvCheck {
-            column_types: column_types,
+            column_types: column_types.clone(),
             header_row: header_row,
             sample_rows: sample_rows,
             mapping_exists: false,
+            dr_cr_reversed: reversed,
         }
     }
 
@@ -27,6 +30,7 @@ impl CsvCheck {
             header_row: self.header_row,
             sample_rows: self.sample_rows,
             mapping_exists: mapping_exists,
+            dr_cr_reversed: self.dr_cr_reversed,
         }
     }
 }

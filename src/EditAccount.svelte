@@ -1,25 +1,29 @@
-<script>
+<script module>
     import {Errors} from './errors.js'
     import {onMount} from "svelte"
     import Select from './Select.svelte'
     import Icon from '@iconify/svelte'
     import {page, modes} from './page.js'
     import {accounts} from './accounts.js'
-    import {config} from './config.js'
+    import {config, formatAmount, formatDate} from './config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-
-    export let close
-    export let curAccount
-    export let loadAccounts
-    export let initialize = false
+    import {DateInput} from 'date-picker-svelte'
 
     const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
+</script>
 
-    let msg = ""
-    let errors = new Errors()
-    let name, startingBalance, accountType
-    let addButtonLabel = $_('buttons.add')
+<script>
+    let { close, curAccount, loadAccounts, initialize = false } = $props()
+
+    let msg = $state("")
+    let errors = $state(new Errors())
+    let name = $state()
+    let startingBalance = $state()
+    let accountType = $state()
+    let addButtonLabel = $state($_('buttons.add'))
+    let transactions = $state([])
+    let rollbackDate = $state()
 
     onMount(() => {
         if ($page.mode === modes.EDIT) {
@@ -27,6 +31,7 @@
             startingBalance = curAccount.starting_balance
             accountType = matchAccountType(curAccount.account_type)
             addButtonLabel = $_('buttons.update')
+            console.log(curAccount)
         } else {
             addButtonLabel = $_('buttons.add')
             startingBalance = "0"
@@ -34,12 +39,11 @@
         }
     })
 
-    $: {
+    $effect(() => {
         if (curAccount && curAccount.id) loadTransactions()
-    }
+    })
 
-    let transactions = []
-    export const loadTransactions = async () => {
+    const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
         transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
@@ -110,6 +114,7 @@
         console.log(account)
         await invoke('update_account', {account: account}).then(resolved, rejected)
         loadAccounts()
+        close()
     }
 
     function deleteResolved(result) {
@@ -126,6 +131,25 @@
             close()
         }
     }
+
+    const rollbackReconciliation = async () => {
+        if (!rollbackDate) {
+            errors = new Errors()
+            errors.addError("rollback", $_('account.form.errors.rollbackDateRequired'))
+            return
+        }
+
+        // Convert Date to ISO string for backend
+        const rollbackDateString = rollbackDate.toISOString().split('T')[0]
+        
+        await invoke('rollback_reconciliation', { 
+            accountId: curAccount.id, 
+            toDate: {date: rollbackDateString} 
+        }).then(() => {
+            msg = $_('account.form.success.rollback')            
+        }, rejected)
+        loadAccounts()
+    }
 </script>
 
 {#if $accounts.length < 1 && $config.recent_files.length < 2}
@@ -136,7 +160,7 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('account.form.title.edit') : $_('account.form.title.new')}</div>
     <div class="toolbar toolbar-right">
         {#if transactions.length < 1}
-        <button class="toolbar-icon" on:click="{deleteAccount(curAccount)}" title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick={deleteAccount(curAccount)} title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {/if}
     </div>
     <div class="form-row">
@@ -162,10 +186,36 @@
             {/if}
         </div>
         <div class="widget buttons">
-            <button class="og-button" on:click={onCancel}>{$_('buttons.close')}</button>
-            <button class="og-button" on:click={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
+            <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
-    </div>
+    </div>    
+    {#if curAccount && curAccount.reconciliation_info}               
+        <hr/>
+        <div class="info-title">{$_('account.reconciliationInfo')}</div>
+        <div class="info-row">
+                <div class="info-label">{$_('account.reconciledTo')}&nbsp;</div>
+                <div class="info-value">{formatDate(curAccount.reconciliation_info.date)}</div>              
+        </div>
+        <div class="info-row">
+                <div class="info-label">{$_('account.reconciledBalance')}&nbsp;</div>
+                <div class="info-value">{formatAmount(curAccount.reconciliation_info.balance)}</div>              
+        </div>
+        <div class="info-row">&nbsp;</div>
+        <div class="rollback-row">
+            <div class="widget">
+                <label for="rollbackDate">{$_('account.rollbackTo')}</label>
+                <div class="date-input" id="rollbackDate">
+                    <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
+                </div>
+            </div>
+            <div class="widget">
+                <button class="og-button" onclick={rollbackReconciliation} disabled={!rollbackDate}>{$_('account.rollbackButton')}</button>
+            </div>
+        </div>
+        <div class="info-row">&nbsp;</div>
+        <hr/>
+    {/if}
 </div>
 
 <style>
@@ -266,6 +316,71 @@
 
     .description-input {
         width: 400px;
+    }
+
+    .info-row {
+        padding: 5px 0 0px 10px;
+        margin: 0 0 0 0;
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear: both;
+    }
+
+    .info-label {
+        font-size: 0.75em;
+        color: #aaa;
+    }
+
+    .info-value {
+        font-size: 0.75em;
+        color: #aaa;
+    }
+    
+    .info-title {
+        white-space: nowrap;
+        font-weight: 200;
+        font-size: 1em;
+        color: #757575;
+        margin-bottom: 10px;
+        display: inline-flex;
+        float: left;
+        width: 100%;
+        clear: both;
+    }
+
+    .rollback-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0px 0 0px 10px;
+        margin: 0 0 0 0;
+        float: left;
+        width: 100%;
+        clear: both;
+    }
+
+    .rollback-row .widget {
+        display: flex;
+        align-items: center;
+        padding: 5px 0px 5px 0px;
+    }
+
+    .rollback-row label {
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+
+    .rollback-row button {
+        min-height: 33px;
+        margin-bottom: 0px;
+    }
+
+    hr {
+        border-style: none;
+        border: 1px solid #363636;
+        margin-left: -20px;
+        width: 100vw;
     }
 
 </style>

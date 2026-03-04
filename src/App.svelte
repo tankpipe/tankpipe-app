@@ -2,7 +2,7 @@
     import Accounts from './Accounts.svelte'
     import Schedules from './schedules/Schedules.svelte'
     import Modifiers from './schedules/Modifiers.svelte'
-    import Transactions from './Transactions.svelte'
+    import Transactions from './transactions/Transactions.svelte'
     import Settings from './Settings.svelte'
     import {page, modes, views} from './page.js'
     import {initialiseBooks, initialiseFailed} from'./events'
@@ -184,7 +184,7 @@
         margin: 40px 20px 0px 20px;
         min-width: 200px;
     }
-
+    
     .app {
         background-color: #444;
         height: 100%;
@@ -286,6 +286,13 @@
         float: left;
     }
    
+    :global(.selectable-text) {
+        -webkit-user-select: all; /* Chrome/Safari */
+        -moz-user-select: all; /* Firefox */
+        -ms-user-select: all; /* IE10+ */
+        -o-user-select: all;
+        user-select: all;
+    }
 
     @media (min-width: 640px) {
         main {

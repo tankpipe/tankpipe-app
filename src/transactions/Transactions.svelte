@@ -1,31 +1,39 @@
 <script>
     import EditTransaction from './EditTransaction.svelte'
-    import Select from './Select.svelte'
+    import Transaction from './Transaction.svelte'
+    import Select from '../Select.svelte'
     import Icon from '@iconify/svelte'
-    import { Errors } from './errors'
-    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from './page'
-    import { settings } from './settings'
-    import { accounts } from './accounts'
+    import { Errors } from '../errors'
+    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../page'
+    import { settings } from '../settings'
+    import { accounts, updateAccounts } from '../accounts'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte'
     import { _ } from 'svelte-i18n'
     import Importer from './Importer.svelte'
-    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
-    import { chartOptions } from './chart-options'
+    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from '../selector'
+    import { chartOptions } from '../chart-options'
     import TransactionList from './TransactionList.svelte'
+    import { ReconciliationMode as RM } from './reconciliation.js'
 
     let { curAccount, journalMode = false } = $props()
 
-    let curEntry = $state({})
+    let curTransaction = $state({})
+    let editSource = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
-    let previousAccount
-    let topScroll
+    let previousAccountId
+    let topScroll = $state(null)
     let showFilter = $state(false)
     let descriptionFilter = $state("")
     let allTransactions = []
     let transactions = $derived([])
+    let reconciliationResults = $state([])
+    let reconciliationAccountId = $state(null)
+    // Keep the last reconciliation request so we can rerun it if needed (as changes are made)
+    let lastReconciliationRequest = $state(null)
+    let reconciliationMode = $state(RM.NONE)
     let chartValues = []
 
     $effect(() => {
@@ -33,49 +41,48 @@
             curAccount = {}
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
-        } else if (curAccount && curAccount !== previousAccount) {
+        } else if (curAccount && curAccount.id !== previousAccountId) {
+            console.log("curAccount changed", curAccount.id)
+            reconciliationMode = RM.NONE
+            reconciliationResults = []
+            reconciliationAccountId = null
             topScroll = null
             transactions = []
             clearSelected()
             errors = new Errors()
             msg = ""
             loadTransactions()
-            previousAccount = curAccount
+            previousAccountId = curAccount.id
         }
-
-        if (!$page.isEditMode) {
-            if (!topScroll) {
-                const closest = findClosestTransaction()
-                if (closest) {
-                    topScroll = getScrollPosition(closest.id)
-                }
-            }
-            scrollToPosition()
-        }
+       
     });
 
     const setCurrentScroll = () => {
         topScroll = document.getElementById("scroller").scrollTop
     }
 
-    const scrollToPosition = () => {
-        const scroller = document.getElementById("scroller")
-        if (scroller && !isEditMode($page)) {
-            document.getElementById("scroller").scrollTo(0, topScroll)
-        }
+    const isAllReconciled = (transaction) => {                
+        return transaction.entries.every(e => e.reconciled_status)
     }
 
-    const getScrollPosition = (id) => {
-        var myElement = document.getElementById(id);
-        if (myElement) {
-            return myElement.offsetTop;
+    const selectTransaction = (transaction) => {
+        curTransaction = transaction
+        editSource = transaction?.prefillEdit
+            ? {
+                ...transaction.editPatch,
+                mergeAccountId: transaction.mergeAccountId,
+                targetTransactionId: transaction.targetTransactionId
+            }
+            : null
+        
+        // Route to view-only mode for reconciled transactions
+        if (isAllReconciled(transaction)) {
+            page.set({view: $page.view, mode: modes.VIEW})
+        } else if (transaction.isReconciliationResult) {
+            page.set({view: $page.view, mode: modes.NEW})
+        } else {
+            page.set({view: $page.view, mode: modes.EDIT})
         }
-        return 0
-    }
-
-    const selectTransaction = (entry) => {
-        curEntry = entry
-        page.set({view: $page.view, mode: modes.EDIT})
     }
 
     const editTransactions = () => {
@@ -96,7 +103,7 @@
     }
 
     export const loadTransactions = async () => {
-        console.log("loadTransactions: " + curAccount)
+        console.log("loadTransactions for", curAccount?.id)
 
         if (!curAccount || !curAccount.id) {
             allTransactions = await invoke("all_transactions", {})
@@ -104,6 +111,7 @@
             allTransactions = await invoke("transactions", { accountId: curAccount.id })
         }
 
+        console.log("allTransactions", allTransactions)
         chartValues = []
         if (!journalMode) {
             for (const t of allTransactions) {
@@ -116,35 +124,15 @@
     }
 
     const filterList = () => {
-        console.log("filterList")
         transactions = allTransactions.filter(
             t => descriptionFilter == "" ||
             (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||
             (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase())))
-
-        console.log("filterList: " + transactions.length)
     }
 
     const chartBalance = (balance) => {
         return curAccount.account_type == "Liability" ? balance * -1 : balance
     }
-
-    const findClosestTransaction = () => {
-        const today = new Date().setUTCHours(0,0,0,0)
-        let tDate
-
-        if (transactions) {
-            for (const t of transactions) {
-                tDate = new Date(t.entries[0].date)
-                if (tDate >= today) {
-                    return t
-                }
-            }
-        }
-
-        return null
-    }
-
 
     const getEntry = (transaction) => {
         return transaction.entries.find(e => e.account_id == curAccount.id)
@@ -155,7 +143,8 @@
         page.set({view: $page.view, mode: modes.NEW})
     }
 
-    function evaluationResult(result) {
+    function evaluationResult(result) {        
+        topScroll = null
         page.set({view: $page.view, mode: modes.LOAD})
     }
 
@@ -195,14 +184,66 @@
         filterList();
     }
 
-    const onCloseMultiEdit = () => {
-        loadTransactions()
+    const onCloseMultiEdit = async () => {
+        await loadTransactions()
+        await rerunReconciliationIfNeeded()
         page.set({view: $page.view, mode: modes.LIST})
     }
 
-    const onCloseEdit = () => {
-        loadTransactions()
+    const onCloseEdit = async () => {
+        await loadTransactions()
+        await rerunReconciliationIfNeeded()
         page.set({view: $page.view, mode: modes.LIST})
+    }
+
+    const handleReconciliationResults = (results, request) => {        
+        reconciliationResults = results ?? []
+        const safeRequest = request ?? null
+        lastReconciliationRequest = safeRequest
+        reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null        
+        reconciliationMode = RM.GUIDED
+        page.set({view: $page.view, mode: modes.LIST})
+    }
+
+    const exitReconciliationMode = () => {
+        reconciliationMode = RM.NONE
+        reconciliationResults = []
+        reconciliationAccountId = null
+        lastReconciliationRequest = null
+        loadTransactions()
+    }
+    
+    const loadAccounts = async () => {
+        let result = await invoke('accounts')
+        updateAccounts(result)
+        curAccount = $accounts.find(a => a.id === curAccount.id)
+        loadTransactions()
+    };   
+
+    const onManualReconciliationMode = () => {
+        reconciliationMode = reconciliationMode === RM.MANUAL ? RM.NONE : RM.MANUAL;
+        reconciliationResults = [];
+        reconciliationAccountId = reconciliationMode === RM.MANUAL ? (curAccount?.id ?? null) : null;
+    }
+
+    const rerunReconciliationIfNeeded = async () => {
+        if (!lastReconciliationRequest) return false
+        if (!curAccount || curAccount.id !== lastReconciliationRequest.accountId) return false
+        try {
+            const results = await invoke('reconcile_csv', {
+                path: lastReconciliationRequest.path,
+                accountId: curAccount.id,
+                columnTypes: lastReconciliationRequest.columnTypes,
+                hasHeaders: lastReconciliationRequest.hasHeaders
+            })
+            handleReconciliationResults(results, lastReconciliationRequest)
+            return true
+        } catch (err) {
+            console.log(err)
+            errors = new Errors()
+            errors.addError("all", $_('transactions.error', { values: {error: err} }))
+            return false
+        }
     }
 
 </script>
@@ -210,7 +251,7 @@
 <div class="account-heading">
     {#if isListMode($page)}
     <div class="account">
-        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true}/>
+        <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); reconciliationMode = RM.NONE; reconciliationResults = []; reconciliationAccountId = null}}/>
     </div>
     <div class="toolbar">
         <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
@@ -218,7 +259,11 @@
         <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" onclick="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" onclick="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
-        {#if curAccount}
+        {#if curAccount && ! journalMode}
+        <button type="button" class="{reconciliationMode === RM.MANUAL ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick={onManualReconciliationMode} title={$_('transactions.manualReconciliation')}
+        >
+            <Icon icon="mdi:check" width="24"/>
+        </button>
         <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
         {/if}
     </div>
@@ -227,14 +272,18 @@
     {/if}
     {/if}
 </div>
+
+{#if isViewMode($page)}
+<Transaction transactionId={curTransaction.id} onClose={onCloseEdit} />
+{/if}
 {#if isSingleEditMode($page)}
-<EditTransaction {loadTransactions} {curEntry} onClose={onCloseEdit} />
+<EditTransaction {loadTransactions} transactionId={curTransaction.id} onClose={onCloseEdit} reconciliationSource={curTransaction} {editSource}/>
 {/if}
 {#if isMultiEditMode($page)}
 <EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
 {/if}
 {#if $page.mode == modes.LOAD}
-<Importer {curAccount} onClose={onCloseEdit} />
+<Importer {curAccount} onClose={onCloseEdit} onReconciliationResults={handleReconciliationResults} />
 {/if}
 {#if isListMode($page)}
 <div class="widget errors">
@@ -245,6 +294,14 @@
     <div class="success-msg">{msg}</div>
     {/if}
 </div>
+{#if reconciliationMode === RM.GUIDED}
+<div class="reconciliation-header">
+    <div class="reconciliation-title">{$_('transactions.reconciliationHeader')}</div>
+    <button class="exit-reconciliation" onclick={exitReconciliationMode}>
+        <Icon icon="mdi:close" width="16"/>
+    </button>
+</div>
+{/if}
 {#if showFilter}
 <div class="" id="filter">
     <table>
@@ -260,7 +317,19 @@
     </table>
 </div>
 {/if}
-<TransactionList {curAccount} {journalMode} transactions={transactions} onSelect={selectTransaction} />
+<TransactionList
+    {curAccount}
+    {journalMode}
+    transactions={transactions}
+    reconciliationResults={reconciliationAccountId === curAccount?.id ? reconciliationResults : []}
+    reconciliationMode={reconciliationAccountId === curAccount?.id ? reconciliationMode : RM.NONE}
+    onSelect={selectTransaction}
+    loadAccounts={loadAccounts}
+    rerunReconciliationIfNeeded={rerunReconciliationIfNeeded}
+    topScroll={topScroll}
+    setTopScroll={(value) => (topScroll = value)}
+    descriptionFilter={descriptionFilter}
+/>
 {/if}
 
 <style>
@@ -309,9 +378,9 @@
     .chart {
         float: right;
         color: #c0c0c0;
-        margin: 0 0 5px 10px;
+        margin: 0 30px 5px 10px;
         display: flex;
-        padding-right: 9px;
+        padding-right: 13px;
         width: 105px;
     }
 
@@ -385,7 +454,41 @@
 
     :global(.single-button:hover) {
         cursor: pointer;
-        color: #F0F0F0;
+        color: #e0e0e0;
+    }
+
+    .reconciliation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #2a2a2a;
+        padding: 10px 15px;
+        margin: 10px 35px 10px 0;
+        border-radius: 5px;
+        border-left: 4px solid #4CAF50;
+    }
+
+    .reconciliation-title {
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    .exit-reconciliation {
+        background-color: #555;
+        border: none;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9em;
+    }
+
+    .exit-reconciliation:hover {
+        background-color: #666;
     }
 
     .error-msg {

@@ -1,4 +1,4 @@
-use accounts::account::{Transaction, Entry, Account, TransactionStatus, Side};
+use accounts::account::{Transaction, Entry, TransactionStatus, Side};
 use accounts::books::{BooksError};
 use csv::StringRecord;
 use rust_decimal::prelude::*;
@@ -92,14 +92,14 @@ impl Index<usize> for ColumnTypes {
     }
 }
 
-pub fn check_csv_format<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
-    let columns = read_columns(path)?;
+pub fn check_csv_format<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
+    let columns = read_columns(path, reverse_dr_cr)?;
     //validate_columns(&columns)?;
     Ok(columns)
 }
 
-pub fn read_rows<P: AsRef<Path>>(path: &P) -> Result<Vec<Vec<String>>, BooksError> {
-    let columns = read_columns(path)?;
+pub fn read_rows<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<Vec<Vec<String>>, BooksError> {
+    let columns = read_columns(path, reverse_dr_cr)?;
     let _ = validate_columns(&columns);
     let rdr = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -123,8 +123,8 @@ pub fn read_rows<P: AsRef<Path>>(path: &P) -> Result<Vec<Vec<String>>, BooksErro
      }
 }
 
-pub fn read_transations <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str, columns: &ColumnTypes, has_headers: bool) -> Result<Vec<Transaction>, BooksError> {
-    println!("read_transations : {:?}", columns);
+pub fn read_transactions <P: AsRef<Path>>(path: &P, account_id: Uuid, fmt: &str, columns: &ColumnTypes, has_headers: bool) -> Result<Vec<Transaction>, BooksError> {
+    println!("read_transactions : {:?}", columns);
     validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
         .has_headers(has_headers)
@@ -136,15 +136,16 @@ pub fn read_transations <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str,
 
             for result in reader.deserialize() {
                 match result {
-                    Ok(item) => {
-                        transactions.push(to_transaction(&columns, item, account, fmt)?);
-
-                    },
-                    Err(e) => {
-                        println!("Skipping row as unabled to process. Error: {:?}", e)
-                    },
+                    Ok(item) => transactions.push(to_transaction(&columns, item, account_id, fmt)?),
+                    Err(e) => println!("Skipping row as unabled to process. Error: {:?}", e)
                 }
             }
+            
+            if transactions_are_reversed(&transactions, account_id) {
+                println!("Detected reversed transaction order, reversing...");
+                transactions.reverse();
+            }
+            
             Ok(transactions)
         },
         Err(e) => {
@@ -153,20 +154,31 @@ pub fn read_transations <P: AsRef<Path>>(path: &P, account: &Account, fmt: &str,
      }
 }
 
-fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account: &Account, fmt: &str) -> Result<Transaction, BooksError> {
+fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account_id: Uuid, fmt: &str) -> Result<Transaction, BooksError> {
     let date = parse_date_str(get_value(&row, columns, ColumnType::Date)?, fmt)?;
     let (amount, entry_type) = determine_amount(&row, columns)?;
+    let balance = get_balance(&row, columns)?;
     let entry = Entry{
         id: Uuid::new_v4(),
         transaction_id: Uuid::new_v4(),
         date: date,
         description: get_value(&row, columns, ColumnType::Description)?.to_string(),
-        account_id: account.id,
+        account_id: account_id,
         entry_type,
         amount: amount.abs(),
-        balance: None
+        balance,
+        reconciled_status: None,
     };
     Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
+}
+
+fn get_balance(row: &Vec<String>, columns: &ColumnTypes) -> Result<Option<Decimal>, BooksError> {
+    let balance = if columns.has_column(ColumnType::Balance) {
+        Some(parse_money_str(get_value(row, columns, ColumnType::Balance)?).unwrap())
+    } else {
+        None
+    };
+    Ok(balance)
 }
 
 fn determine_amount(row: &Vec<String>, columns: &ColumnTypes) -> Result<(Decimal, Side), BooksError> {
@@ -193,7 +205,6 @@ fn get_value(row: &Vec<String>, columns: &ColumnTypes, column: ColumnType) -> Re
     }
 }
 
-
 pub fn balance_impact(amount: Decimal) -> Side {
     if amount.ge(&dec!(0)) {
         Side::Debit
@@ -218,10 +229,8 @@ pub fn read_headers<P: AsRef<Path>>(path: &P) -> Result<Vec<String> , BooksError
     }
 }
 
-
-
-
-pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError> {
+/// Read and auto detect column types from CSV file headers.
+pub fn read_columns<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
     let rdr = csv::ReaderBuilder::new()
         .has_headers(true)
         .from_path(path);
@@ -229,7 +238,7 @@ pub fn read_columns<P: AsRef<Path>>(path: &P) -> Result<ColumnTypes, BooksError>
     match rdr {
         Ok(mut reader) => {
             let headers = reader.headers().unwrap();
-            detect_columns(headers, true)
+            detect_columns(headers, reverse_dr_cr)
         },
         Err(e) => {
             return Err(BooksError{ error: format!("Unable to read csv file. {}", e).to_string() })
@@ -265,6 +274,37 @@ fn validate_columns(columns: &ColumnTypes) -> Result<(), BooksError> {
     }
 
     return Err(BooksError{ error: "Header row should include one each of Date, Description, [Debit, Credit | Amount].".to_string()})
+}
+
+/// Detect if transactions are in reverse chronological order (newest first)
+pub fn transactions_are_reversed(transactions: &[Transaction], account_id: Uuid) -> bool {
+    if transactions.len() < 2 {
+        return false;
+    }
+    
+    // Check if dates are generally decreasing (newest to oldest)
+    let mut decreasing_count = 0;
+    let mut total_comparisons = 0;
+    let mut currently_decreasing = false;
+    
+    for window in transactions.windows(2) {
+        if let (Some(first_entry), Some(second_entry)) = (
+            window[0].find_entry_by_account(&account_id),
+            window[1].find_entry_by_account(&account_id)
+        ) {
+            if first_entry.date > second_entry.date || (first_entry.date == second_entry.date && currently_decreasing) {
+                decreasing_count += 1;
+                currently_decreasing = true;
+            } else {
+                currently_decreasing = false;
+            }
+            total_comparisons += 1;
+        }
+    }
+    
+    // If more than 70% of comparisons show decreasing dates, consider it reversed
+    println!("decreasing_count: {}, total_comparisons: {}", decreasing_count, total_comparisons);
+    total_comparisons > 0 && (decreasing_count as f64 / total_comparisons as f64) > 0.7
 }
 
 fn parse_money_str(amount: String) -> Result<Decimal, BooksError> {
@@ -316,13 +356,12 @@ fn parse_transaction_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error
 
 
 #[cfg(test)]
-
 mod tests {
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
     use csv::StringRecord;
     use rust_decimal_macros::dec;
-    use crate::reader::{balance_impact, read_columns, read_transations, ColumnType};
+    use crate::reader::{balance_impact, read_columns, read_transactions, ColumnType};
 
     use super::{parse_date_str, detect_columns};
 
@@ -338,8 +377,8 @@ mod tests {
     #[test]
     fn test_reader_file_not_found() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
-        let result = read_transations(&String::from("no_such_file.csv"), &account, "%d/%m/%Y", &columns, true);
+        let columns = read_columns(&"test.csv", true).unwrap();
+        let result = read_transactions(&String::from("no_such_file.csv"), account.id, "%d/%m/%Y", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to read csv file. No such file or directory (os error 2)", result.unwrap_err().error);
     }
@@ -376,8 +415,8 @@ mod tests {
     #[test]
     fn test_reader() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
-        let transactions = read_transations(&String::from("test.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
+        let columns = read_columns(&"test.csv", true).unwrap();
+        let transactions = read_transactions(&String::from("test.csv"), account.id, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
@@ -390,18 +429,17 @@ mod tests {
     #[test]
     fn test_invalid_date() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test.csv").unwrap();
-        let result = read_transations(&String::from("test.csv"), &account, "%Y-%M-%D", &columns, true);
+        let columns = read_columns(&"test.csv", true).unwrap();
+        let result = read_transactions(&String::from("test.csv"), account.id, "%Y-%M-%D", &columns, true);
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
-
     }
 
     #[test]
     fn test_reader_dr_cr() {
         let account = Account::create_new("Savings Account 1", AccountType::Asset);
-        let columns = read_columns(&"test_dr_cr.csv").unwrap();
-        let transactions = read_transations(&String::from("test_dr_cr.csv"), &account, "%d/%m/%Y", &columns, true).unwrap();
+        let columns = read_columns(&"test_dr_cr.csv", true).unwrap();
+        let transactions = read_transactions(&String::from("test_dr_cr.csv"), account.id, "%d/%m/%Y", &columns, true).unwrap();
         assert_eq!(4, transactions.len());
         assert_eq!("Rent received", transactions[0].entries[0].description);
         assert_eq!(dec!(1200), transactions[0].entries[0].amount);
@@ -411,9 +449,24 @@ mod tests {
         assert_eq!(Side::Credit, transactions[1].entries[0].entry_type);
     }
 
+     #[test]
+    fn test_reader_dr_cr_no_reverse() {
+        let account = Account::create_new("Savings Account 1", AccountType::Asset);
+        let columns = read_columns(&"test_dr_cr.csv", false).unwrap();
+        let transactions = read_transactions(&String::from("test_dr_cr.csv"), account.id, "%d/%m/%Y", &columns, true).unwrap();
+        assert_eq!(4, transactions.len());
+        assert_eq!("Rent received", transactions[0].entries[0].description);
+        assert_eq!(dec!(1200), transactions[0].entries[0].amount);
+        assert_eq!(Side::Credit, transactions[0].entries[0].entry_type);
+        assert_eq!(account.id, transactions[0].entries[0].account_id);
+        assert_eq!(dec!(500), transactions[1].entries[0].amount);
+        assert_eq!(Side::Debit, transactions[1].entries[0].entry_type);
+    }
+
+
     #[test]
     fn test_read_columns() {
-        let columns = read_columns(&"test.csv").unwrap();
+        let columns = read_columns(&"test.csv", false).unwrap();
         assert_eq!(4, columns.len());
         assert_eq!(ColumnType::Date, columns[0]);
         assert_eq!(ColumnType::Description, columns[1]);
@@ -424,11 +477,6 @@ mod tests {
     #[test]
     fn test_balance_impact() {
         let _asset_account = Account::create_new("Savings Account 1", AccountType::Asset);
-        assert_eq!(Side::Debit, balance_impact(dec!(100)));
-        assert_eq!(Side::Debit, balance_impact(dec!(0)));
-        assert_eq!(Side::Credit, balance_impact(dec!(-100)));
-
-        let _credit_account = Account::create_new("Credit Card", AccountType::Liability);
         assert_eq!(Side::Debit, balance_impact(dec!(100)));
         assert_eq!(Side::Debit, balance_impact(dec!(0)));
         assert_eq!(Side::Credit, balance_impact(dec!(-100)));
