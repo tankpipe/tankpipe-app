@@ -1,5 +1,5 @@
 <script>
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'

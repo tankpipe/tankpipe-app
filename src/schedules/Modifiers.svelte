@@ -7,7 +7,7 @@
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
     import { Errors  } from '../errors'
-    import Spinner from '../Spinner.svelte'
+    import Spinner from '../components/Spinner.svelte'
     import {config} from '../config.js'
 
 

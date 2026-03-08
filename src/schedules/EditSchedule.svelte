@@ -1,7 +1,7 @@
 <script>
     import {Errors} from '../errors.js'
     import {onMount} from "svelte"
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import {page, modes} from '../page.js'
     import Icon from '@iconify/svelte'
     import {accounts} from '../accounts.js'

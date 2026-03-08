@@ -11,7 +11,7 @@
     import { selector } from '../selector';
     import { Errors  } from '../errors';
     import DateInput from 'date-picker-svelte/DateInput.svelte';
-    import Spinner from '../Spinner.svelte';
+    import Spinner from '../components/Spinner.svelte';
 
     let curSchedule = $state()
     let schedules = $state([])

@@ -2,7 +2,7 @@
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from '../errors'
     import {onMount} from "svelte"
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import {accounts} from '../accounts'
     import {config, dateFormat} from '../config'

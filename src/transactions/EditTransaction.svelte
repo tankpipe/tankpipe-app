@@ -2,7 +2,7 @@
     import {DateInput} from 'date-picker-svelte'
     import { untrack } from 'svelte'
     import {Errors} from '../errors'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import {page, modes, views} from '../page'
     import {settings} from '../settings'

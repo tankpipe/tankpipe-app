@@ -1,6 +1,6 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import { _ } from 'svelte-i18n'
     import { onMount } from 'svelte';
     import { periods } from '../dates.js'

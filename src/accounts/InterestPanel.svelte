@@ -1,6 +1,6 @@
 <script module>
     import {Errors} from '../errors.js'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import {accounts} from '../accounts.js'
     import {config, formatDate, dateFormat} from '../config.js'

@@ -1,7 +1,7 @@
 <script>
     import EditTransaction from './EditTransaction.svelte'
     import Transaction from './Transaction.svelte'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import { Errors } from '../errors'
     import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../page'

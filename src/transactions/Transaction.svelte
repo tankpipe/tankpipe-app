@@ -1,6 +1,6 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import {page, modes, views} from '../page.js'
     import {accounts} from '../accounts'

@@ -12,13 +12,13 @@
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
-    import Dialog from './Dialog.svelte'
+    import Dialog from './components/Dialog.svelte'
     import About from './About.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import NetAssets from './NetAssets.svelte'
     import { _, waitLocale, isLoading } from 'svelte-i18n'
     import './i18n'
-    import ErrorMsg from './ErrorMsg.svelte'
+    import ErrorMsg from './components/ErrorMsg.svelte'
     import { updateConfig } from './config'
 
     export let curAccount = null

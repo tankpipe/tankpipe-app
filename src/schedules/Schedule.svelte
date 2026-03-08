@@ -8,7 +8,7 @@
     import { _ } from 'svelte-i18n'
     import TransactionList from '../transactions/TransactionList.svelte'
     import { onMount } from 'svelte';
-    import Spinner from '../Spinner.svelte';
+    import Spinner from '../components/Spinner.svelte';
 
     let { close, edit, curSchedule } = $props()
 

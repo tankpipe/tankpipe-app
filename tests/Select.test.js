@@ -1,5 +1,5 @@
 import { render } from '@testing-library/svelte'
-import Select from '../src/Select.svelte'
+import Select from '../src/components/Select.svelte'
 
 it('is displayed correctly', async () => {
 
