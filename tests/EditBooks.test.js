@@ -1,5 +1,5 @@
 import { render } from '@testing-library/svelte'
-import EditBooks from '../src/EditBooks.svelte'
+import EditBooks from '../src/views/EditBooks.svelte'
 import {page, views, modes} from '../src/stores/page.js'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale, init } from 'svelte-i18n'

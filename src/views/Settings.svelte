@@ -1,8 +1,8 @@
 <script>
-    import {settings} from './stores/settings.js'
-    import {config} from './stores/config.js'
-    import {hasBooks} from './stores/context.js'
-    import Select from './components/Select.svelte';
+    import {settings} from '../stores/settings.js'
+    import {config} from '../stores/config.js'
+    import {hasBooks} from '../stores/context.js'
+    import Select from '../components/Select.svelte';
     import { invoke } from '@tauri-apps/api/core'
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
