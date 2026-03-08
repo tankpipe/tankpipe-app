@@ -1,9 +1,9 @@
 <script module>
-    import {Errors} from './errors.js'
-    import Select from './Select.svelte'
+    import {Errors} from '../errors.js'
+    import Select from '../Select.svelte'
     import Icon from '@iconify/svelte'
-    import {accounts} from './accounts.js'
-    import {config, formatDate, dateFormat} from './config.js'
+    import {accounts} from '../accounts.js'
+    import {config, formatDate, dateFormat} from '../config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import {DateInput} from 'date-picker-svelte'

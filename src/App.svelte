@@ -1,5 +1,5 @@
 <script>
-    import Accounts from './Accounts.svelte'
+    import Accounts from './accounts/Accounts.svelte'
     import Schedules from './schedules/Schedules.svelte'
     import Modifiers from './schedules/Modifiers.svelte'
     import Transactions from './transactions/Transactions.svelte'

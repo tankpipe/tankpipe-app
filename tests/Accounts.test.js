@@ -1,5 +1,5 @@
 import { render, waitFor } from '@testing-library/svelte'
-import Accounts from '../src/Accounts.svelte'
+import Accounts from '../src/accounts/Accounts.svelte'
 import {accounts} from '../src/accounts.js'
 import {page, views, modes} from '../src/page'
 import {setHasBooks} from '../src/context'
