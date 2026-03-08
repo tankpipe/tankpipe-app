@@ -20,6 +20,9 @@ const formatAmount = (amount) => {
 }
 
 const formatDate = (inDate) => {
+        if (inDate == null || inDate === "" || inDate === "null") {
+            return ""
+        }
         const date = new Date(inDate)
 
         switch (get(config).display_date_format) {

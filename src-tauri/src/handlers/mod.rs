@@ -2,6 +2,7 @@ pub mod account;
 pub mod transaction;
 pub mod schedule;
 pub mod modifier;
+pub mod interest;
 pub mod repo;
 
 pub fn error_handler(x: Result<(), accounts::books::BooksError>) -> Result<(), String> {

@@ -77,7 +77,8 @@
         "reconciledBalance": "Reconciled balance",
         "reconcilationRollbackSuccess": "Reconciliation rolled back successfully.",
         "rollbackTo": "Rollback reconciliation to",
-        "rollbackButton": "Rollback"
+        "rollbackButton": "Rollback",
+        "interestInfo": "Interest"
     },
     "dialog": {
         "close": "Close dialog"
@@ -242,5 +243,24 @@
         "increase": "% increase.",
         "decrease": "% decrease.",
         "percent": "%"
+    },
+    "interest": {
+        "title": "Interest",
+        "paidType": "Paid",
+        "calculatedType": "Calculated",
+        "interestRate": "Interest Rate",
+        "paidToDate": "Paid To Date",
+        "interestAccount": "Interest Account",
+        "startDate": "Start",
+        "endDate": "End",
+        "description": "Description",
+        "paidFrequency": "Paid frequency",
+        "paidDay": "Paid day",
+        "paidEvery": "Paid every",
+        "paidOn": "on day",
+        "rate": "Rate",
+        "saved": "Interest details updated",
+        "addTerms": "Add an interest entry",
+        "removeTerms": "Remove the last interest entry"
     }
 }
