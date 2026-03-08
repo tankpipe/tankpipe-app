@@ -1,6 +1,6 @@
-import { page, views, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from '../src/page'
+import { page, views, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode } from '../src/stores/page.js'
 import { locale } from 'svelte-i18n'
-import '../src/i18n'
+import '../src/utils/i18n'
 
 locale.set('en')
 

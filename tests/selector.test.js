@@ -1,4 +1,4 @@
-import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from '../src/selector'
+import { selector, toggleSelected, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from '../src/transactions/selector'
 import { get } from 'svelte/store'
 
 const mockTransaction1 = {

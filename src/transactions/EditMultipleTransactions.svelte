@@ -1,11 +1,11 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import {Errors} from '../errors'
+    import {Errors} from '../utils/errors'
     import {onMount} from "svelte"
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import {accounts} from '../accounts'
-    import {config, dateFormat} from '../config'
+    import {accounts} from '../stores/accounts'
+    import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 

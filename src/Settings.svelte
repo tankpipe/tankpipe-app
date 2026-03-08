@@ -1,7 +1,7 @@
 <script>
-    import {settings} from './settings.js'
-    import {config} from './config.js'
-    import {hasBooks} from './context.js'
+    import {settings} from './stores/settings.js'
+    import {config} from './stores/config.js'
+    import {hasBooks} from './stores/context.js'
     import Select from './components/Select.svelte';
     import { invoke } from '@tauri-apps/api/core'
 

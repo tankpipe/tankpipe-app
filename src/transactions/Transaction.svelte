@@ -2,9 +2,9 @@
     import {DateInput} from 'date-picker-svelte'
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes, views} from '../page.js'
-    import {accounts} from '../accounts'
-    import {config, dateFormat} from '../config.js'
+    import {page, modes, views} from '../stores/page.js'
+    import {accounts} from '../stores/accounts'
+    import {config, dateFormat} from '../stores/config.js'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 

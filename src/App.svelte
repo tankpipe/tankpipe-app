@@ -4,11 +4,11 @@
     import Modifiers from './schedules/Modifiers.svelte'
     import Transactions from './transactions/Transactions.svelte'
     import Settings from './Settings.svelte'
-    import {page, modes, views} from './page.js'
+    import {page, modes, views} from './stores/page.js'
     import {initialiseBooks, initialiseFailed} from'./events'
-    import {accounts, updateAccounts} from './accounts'
-    import {initializeContext, context} from './context'
-    import {config} from './config'
+    import {accounts, updateAccounts} from './stores/accounts'
+    import {initializeContext, context} from './stores/context'
+    import {config} from './stores/config'
     import EditBooks from './EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
@@ -17,9 +17,9 @@
     import { invoke } from '@tauri-apps/api/core'
     import NetAssets from './NetAssets.svelte'
     import { _, waitLocale, isLoading } from 'svelte-i18n'
-    import './i18n'
+    import './utils/i18n'
     import ErrorMsg from './components/ErrorMsg.svelte'
-    import { updateConfig } from './config'
+    import { updateConfig } from './stores/config'
 
     export let curAccount = null
 

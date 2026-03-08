@@ -1,9 +1,9 @@
 <script>
-    import EditAccount from "./EditAccount.svelte"
+    import EditAccount from "./accounts/EditAccount.svelte"
     import Icon from '@iconify/svelte'
-    import {page, isEditMode, modes, views} from "../stores/page"
-    import {context} from '../stores/context'
-    import {accounts} from '../stores/accounts'
+    import {page, isEditMode, modes, views} from "./stores/page"
+    import {context} from './stores/context'
+    import {accounts} from './stores/accounts'
     import {onMount} from 'svelte'
     import { _ } from 'svelte-i18n'
 

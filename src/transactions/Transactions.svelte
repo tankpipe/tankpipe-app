@@ -3,17 +3,17 @@
     import Transaction from './Transaction.svelte'
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import { Errors } from '../errors'
-    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../page'
-    import { settings } from '../settings'
-    import { accounts, updateAccounts } from '../accounts'
+    import { Errors } from '../utils/errors'
+    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
+    import { settings } from '../stores/settings'
+    import { accounts, updateAccounts } from '../stores/accounts'
     import { invoke } from "@tauri-apps/api/core"
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte'
     import { _ } from 'svelte-i18n'
     import Importer from './Importer.svelte'
-    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from '../selector'
-    import { chartOptions } from '../chart-options'
+    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
+    import { chartOptions } from './chart-options'
     import TransactionList from './TransactionList.svelte'
     import { ReconciliationMode as RM } from './reconciliation.js'
 

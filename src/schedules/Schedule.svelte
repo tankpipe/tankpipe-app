@@ -1,9 +1,9 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import {Errors} from '../errors.js'
+    import {Errors} from '../utils/errors.js'
     import Icon from '@iconify/svelte'
     import {generate} from './generate.js'
-    import {config} from '../config.js'
+    import {config} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import TransactionList from '../transactions/TransactionList.svelte'

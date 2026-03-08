@@ -1,12 +1,12 @@
 import { render } from '@testing-library/svelte'
 import EditMultipleTransactions from '../src/transactions/EditMultipleTransactions.svelte'
-import {accounts} from '../src/accounts.js'
-import {page, views, modes} from '../src/page.js'
+import {accounts} from '../src/stores/accounts.js'
+import {page, views, modes} from '../src/stores/page.js'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
 import { locale } from 'svelte-i18n'
-import '../src/i18n'
-import { config } from '../src/config'
+import '../src/utils/i18n'
+import { config } from '../src/stores/config.js'
 
 locale.set('en')
 accounts.set(account_data)

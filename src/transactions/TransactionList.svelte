@@ -1,11 +1,11 @@
 <script>
-    import { config } from '../config.js'
-    import { accounts } from '../accounts'
+    import { config } from '../stores/config.js'
+    import { accounts } from '../stores/accounts.js'
     import { _ } from 'svelte-i18n'
-    import { selector, toggleSelected, toggleAllSelected, isSelected } from '../selector.js'
+    import { selector, toggleSelected, toggleAllSelected, isSelected } from './selector.js'
     import { invoke } from "@tauri-apps/api/core"
     import Icon from '@iconify/svelte'
-    import { Errors } from '../errors'
+    import { Errors } from '../utils/errors.js'
     import { ReconciliationMode as RM } from './reconciliation.js'
 
     let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, rerunReconciliationIfNeeded, topScroll, setTopScroll, descriptionFilter = "" } = $props()

@@ -3,7 +3,7 @@
     import Select from '../components/Select.svelte'
     import { _ } from 'svelte-i18n'
     import { onMount } from 'svelte';
-    import { periods } from '../dates.js'
+    import { periods } from '../utils/dates.js'
 
     let { 
         frequency =$bindable(), 

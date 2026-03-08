@@ -1,12 +1,12 @@
 import { render } from '@testing-library/svelte'
 import Schedules from '../src/schedules/Schedules.svelte'
-import {page, views, modes} from '../src/page'
+import {page, views, modes} from '../src/stores/page.js'
 import schedules_data from './data/schedules_data.json'
-import {accounts} from '../src/accounts.js'
+import {accounts} from '../src/stores/accounts.js'
 import account_data from './data//account_data.json'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale } from 'svelte-i18n'
-import '../src/i18n'
+import '../src/utils/i18n'
 
 locale.set('en')
 

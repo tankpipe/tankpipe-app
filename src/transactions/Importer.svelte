@@ -3,10 +3,10 @@
     import Icon from '@iconify/svelte'
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
-    import { Errors } from '../errors'
-    import { page } from '../page'
-    import { config } from '../config.js'
-    import { accounts } from '../accounts'
+    import { Errors } from '../utils/errors'
+    import { page } from '../stores/page'
+    import { config } from '../stores/config.js'
+    import { accounts } from '../stores/accounts'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 

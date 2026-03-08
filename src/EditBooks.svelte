@@ -1,10 +1,10 @@
 <script>
-    import {Errors} from './errors.js'
+    import {Errors} from './utils/errors.js'
     import {onMount} from "svelte"
-    import {page, modes, views} from "./page"
-    import {accounts} from './accounts'
-    import {context} from './context.js';
-    import {config} from './config'
+    import {page, modes, views} from "./stores/page.js"
+    import {accounts} from './stores/accounts.js'
+    import {context} from './stores/context.js';
+    import {config} from './stores/config.js'
     import {loadConfig} from './events.js'
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'

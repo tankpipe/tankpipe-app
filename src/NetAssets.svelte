@@ -1,8 +1,8 @@
 <!-- NetAssets.svelte -->
 <script>
-    import {page, modes, views} from "./page"
-    import {config} from './config'
-    import {accounts} from './accounts'
+    import {page, modes, views} from "./stores/page"
+    import {config} from './stores/config'
+    import {accounts} from './stores/accounts'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
 
