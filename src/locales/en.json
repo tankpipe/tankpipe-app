@@ -261,6 +261,7 @@
         "rate": "Rate",
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
-        "removeTerms": "Remove the last interest entry"
+        "removeTerms": "Remove the last interest entry",
+        "descriptionDefault": "Interest"
     }
 }

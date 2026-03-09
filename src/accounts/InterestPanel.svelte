@@ -18,6 +18,8 @@
     let curInterestTerms = $state()
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
+    const CALCULATED_TYPES = [{id:"Daily", name:"Daily - End of day balance"}, {id:"Monthly", name:"Monthly - Average daily balance"}, {id:"Monthly", name:"Minimum monthly balance"}]
+    const PAID_PERIODS = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}]
 
     $effect(() => {
         if (curAccount && curAccount.id) {
@@ -249,20 +251,20 @@
         </div>            
         <div class="widget">
             <label for="calculatedType">{$_('interest.calculatedType')}</label>
-            <Select id="calculatedType" bind:item={curInterestTerms.calculated} items={[{id:"Daily", name:"Daily"}, {id:"Monthly", name:"Monthly"}]} none={false} valueField="id" inError={interestErrors.isInError("calculatedType")} flat={true}/>
+            <Select id="calculatedType" bind:item={curInterestTerms.calculated} items={CALCULATED_TYPES} none={false} valueField="id" inError={interestErrors.isInError("calculatedType")} flat={true}/>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
             {$_('interest.paidEvery')}&nbsp;<input id="amount" class="number-input" type="number" class:error={interestErrors.isInError("frequency")} bind:value={curInterestTerms.paid_frequency}>
-            &nbsp;<Select bind:item={curInterestTerms.paid_period} items={[{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}]} none={false} valueField="value" inError={interestErrors.isInError("paidType")} flat={true}/>
+            &nbsp;<Select bind:item={curInterestTerms.paid_period} items={PAID_PERIODS} none={false} valueField="value" inError={interestErrors.isInError("paidType")} flat={true}/>
             {$_('interest.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" bind:value={curInterestTerms.paid_day} placeholder="1"/>
         </div>
     </div>
     <div class="form-row">
         <div class="widget">
             <label for="description">{$_('interest.description')}</label>
-            <input id="description" bind:value={curInterestTerms.description} placeholder=""/>
+            <input id="description" bind:value={curInterestTerms.description} placeholder={$_('interest.descriptionDefault')}/>
         </div>
         <div class="widget">
             <label for="interest_account_id">{$_('interest.interestAccount')}</label>

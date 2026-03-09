@@ -169,7 +169,7 @@ fn to_transaction(columns: &ColumnTypes, row: Vec<String>, account_id: Uuid, fmt
         balance,
         reconciled_status: None,
     };
-    Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, schedule_id: None })
+    Ok(Transaction{ id: entry.transaction_id, entries: vec![entry], status: TransactionStatus::Recorded, source_type: None, source_id: None })
 }
 
 fn get_balance(row: &Vec<String>, columns: &ColumnTypes) -> Result<Option<Decimal>, BooksError> {
