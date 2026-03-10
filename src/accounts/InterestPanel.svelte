@@ -14,7 +14,7 @@
 
     let interestMsg = $state("")
     let interestErrors = $state(new Errors())
-    let interestInfo = $state()
+    let interest = $state()
     let curInterestTerms = $state()
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -23,7 +23,7 @@
 
     $effect(() => {
         if (curAccount && curAccount.id) {
-            loadInterestInfoInternal()
+            loadInterestInternal()
         }
     })
 
@@ -42,16 +42,16 @@
         interest_account_id: null
     }
 
-    const loadInterestInfoInternal = async () => {
-        console.log("loadInterestInfo: " + curAccount.id)
-        if (curAccount.interest_info_id) {
-            await invoke('get_interest_info', {interestInfoId: curAccount.interest_info_id}).then(
+    const loadInterestInternal = async () => {
+        console.log("loadInterest: " + curAccount.id)
+        if (curAccount.interest_id) {
+            await invoke('get_interest', {interestId: curAccount.interest_id}).then(
                 (result) => {
                     console.log(result)
-                    interestInfo = result
+                    interest = result
                     
-                    if (interestInfo.terms && interestInfo.terms.length > 0) {
-                        interestInfo.terms.forEach((term) => {
+                    if (interest.terms && interest.terms.length > 0) {
+                        interest.terms.forEach((term) => {
                             if (term.end_date === "null") {
                                 term.end_date = null
                             }
@@ -62,20 +62,20 @@
                     }
                 },
                 (error) => {
-                    console.error("Error loading interest info:", error)
-                    interestErrors.addError("interestInfo", $_('errors.genericError', { values: { 0: error } }))
+                    console.error("Error loading interest:", error)
+                    interestErrors.addError("interest", $_('errors.genericError', { values: { 0: error } }))
                 }
             )
         } else {
-            interestInfo = null
+            interest = null
         }
     }
 
-    const saveInterestInfo = async () => {
+    const saveInterest = async () => {
         interestErrors = new Errors()
         interestMsg = ""
 
-        interestInfo.terms.forEach((terms, i) => {
+        interest.terms.forEach((terms, i) => {
             if (!terms.realStartDate) {
                 interestErrors.addError(i + "_startDate", $_('interest.errors.startDateRequired'))
             }
@@ -90,13 +90,13 @@
         
         if (!interestErrors.hasErrors()) {
             const interestData = {
-                id: interestInfo.id,
-                paid_to_date: interestInfo.paid_to_date ? interestInfo.paid_to_date : "null",
+                id: interest.id,
+                paid_to_date: interest.paid_to_date ? interest.paid_to_date : "null",
                 account_id: curAccount.id,
                 terms: []
             }
 
-            interestInfo.terms.forEach((terms) => {
+            interest.terms.forEach((terms) => {
                 let startDate = terms.realStartDate ? terms.realStartDate : new Date(terms.start_date)
                 let startDateStr = startDate.getFullYear()+ "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate()
                 let endDate = terms.realEndDate ? terms.realEndDate : null
@@ -116,24 +116,24 @@
                 })
             })
             
-            if (interestInfo && interestInfo.id) {
-                await invoke('update_interest_info', {interestInfo: interestData}).then(interestResolved, interestRejected)
+            if (interest && interest.id) {
+                await invoke('update_interest', {interest: interestData}).then(interestResolved, interestRejected)
             } else {
                 interestData.id = zeros
-                await invoke('add_interest_info', {interestInfo: interestData}).then(interestAddResolved, interestRejected)
+                await invoke('add_interest', {interest: interestData}).then(interestAddResolved, interestRejected)
             }
         }
     }
 
     async function interestResolved(result) {
         interestMsg = $_('interest.saved')
-        await loadInterestInfoInternal()
+        await loadInterestInternal()
     }
 
     async function interestAddResolved(result) {
         interestMsg = $_('interest.saved')
         await loadAccounts()
-        await loadInterestInfoInternal()
+        await loadInterestInternal()
     }
 
     function interestRejected(result) {
@@ -146,15 +146,15 @@
     }
 
     const addTerms = () => {
-        if (!interestInfo) { 
-            interestInfo = {
-                ...interestInfo,
+        if (!interest) { 
+            interest = {
+                ...interest,
                 terms: []
             }
         }
         
-        if(interestInfo.terms && interestInfo.terms.length > 0) {
-            const lastTerm = interestInfo.terms[interestInfo.terms.length - 1]
+        if(interest.terms && interest.terms.length > 0) {
+            const lastTerm = interest.terms[interest.terms.length - 1]
             curInterestTerms = {
                 ...lastTerm,
                 id: zeros
@@ -163,12 +163,12 @@
             curInterestTerms = Object.assign({}, EMPTY_TERMS)
         }
         
-        interestInfo.terms.push(curInterestTerms)                       
+        interest.terms.push(curInterestTerms)                       
     }
 
     const deleteLastTerms = () => {        
-        if (interestInfo && interestInfo.terms && interestInfo.terms.length > 0) {
-            interestInfo.terms.pop()
+        if (interest && interest.terms && interest.terms.length > 0) {
+            interest.terms.pop()
             curInterestTerms = null
         }
     }
@@ -177,26 +177,26 @@
         curInterestTerms = null
     }
     
-    const addInterestInfo = () => {
-       interestInfo = {
+    const addInterest = () => {
+       interest = {
                 paid_to_date: "null",
                 terms: [Object.assign({}, EMPTY_TERMS)],
                 account_id: curAccount.id
             }
-        curInterestTerms = interestInfo.terms[0]
+        curInterestTerms = interest.terms[0]
     }
 
 </script>
 
 <div class="info-title">{$_('interest.title')}</div>
-{#if !interestInfo}
+{#if !interest}
     <div class="toolbar" >
-        <button class="toolbar-icon" onclick="{addInterestInfo}" title={$_('interest.addTerms')}>
+        <button class="toolbar-icon" onclick="{addInterest}" title={$_('interest.addTerms')}>
             <Icon icon="mdi:plus"  width="18"/>
         </button>
     </div>
 {/if}
-{#if interestInfo}
+{#if interest}
 <div>
     <table class="csv-table" style="max-width: 450px;">
         <tbody>
@@ -207,7 +207,7 @@
                 <th>{$_('interest.rate')}</th>
             </tr>                    
             <tr class="spacer"></tr>
-        {#each interestInfo.terms as t, i}
+        {#each interest.terms as t, i}
             <tr class="csv-row {curInterestTerms === t ? 'selected-row' : ''}" onclick={() => selectTerms(t)}>                        
                 <td><div class:error={interestErrors.isInError(i + "_startDate")}>{formatDate(t["realStartDate"])}</div></td>
                 <td><div class:error={interestErrors.isInError(i + "_endDate")}>{formatDate(t["realEndDate"])}</div></td>
@@ -220,7 +220,7 @@
                         <button class="toolbar-icon" onclick="{addTerms}" title={$_('interest.addTerms')}>
                             <Icon icon="mdi:plus"  width="18"/>
                         </button>
-                        <button class="toolbar-icon" onclick="{deleteLastTerms}" title={$_('interest.removeTerms')} disabled={!interestInfo.terms || interestInfo.terms.length === 0}>
+                        <button class="toolbar-icon" onclick="{deleteLastTerms}" title={$_('interest.removeTerms')} disabled={!interest.terms || interest.terms.length === 0}>
                             <Icon icon="mdi:trash-can-outline"  width="17"/>
                         </button>
                     </div>
@@ -230,7 +230,7 @@
     </table>
 </div>
 {#if curInterestTerms}
-{@const index = interestInfo.terms.indexOf(curInterestTerms)}
+{@const index = interest.terms.indexOf(curInterestTerms)}
 <div class="info-row">&nbsp;</div>
 <div class="interest-form">
     <div class="toolbar toolbar-right" style="padding: 0">
@@ -283,7 +283,7 @@
         {/if}
     </div>
     <div class="widget buttons">
-        <button class="og-button" onclick={saveInterestInfo}>{$_('buttons.update')}</button>
+        <button class="og-button" onclick={saveInterest}>{$_('buttons.update')}</button>
     </div>
 </div>         
 {/if}

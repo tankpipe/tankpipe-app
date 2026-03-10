@@ -24,7 +24,7 @@ impl NewAccount {
             account_type: self.account_type,
             balance: dec!(0),
             reconciliation_info: None,
-            interest_info_id: None,
+            interest_id: None,
         }
     }
 
