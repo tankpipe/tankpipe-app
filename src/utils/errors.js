@@ -12,7 +12,6 @@ class Errors{
     }
 
     isInError(field) {
-        console.log(field, field in this.fields, this.fields)
         return field in this.fields
     }
 

@@ -11,7 +11,7 @@ use regex::Regex;
 use dirs::home_dir;
 use uuid::Uuid;
 
-use crate::config::{Config, FileDetails, DateFormat};
+use crate::config::{Config, DEFAULT_PROJECTION_MONTHS, DateFormat, FileDetails};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -71,18 +71,41 @@ impl Repo {
     }
 
     pub fn load_startup() -> Result<Repo, BooksError> {
-        Self::load_books_with_config(|config| {
+        let mut repo = Self::load_books_with_config(|config| {
             let path = config.last_file.path.clone();                
             if path.is_empty() {
                 Err(BooksError{ error: "No last file path.".to_string() })
             } else {
                 Ok(path)
             }
-        })
+        });
+
+        if let Ok(ref mut repo) = repo {
+            repo.run_checks();
+        }
+
+        Ok(repo?)
     }
 
     pub fn load_file_and_config(path: &OsString) -> Result<Repo, BooksError> {
-        Self::load_books_with_config(|_config| Ok(path.clone()))
+        let mut repo = Self::load_books_with_config(|_config| Ok(path.clone()));
+
+        if let Ok(ref mut repo) = repo {
+            repo.run_checks();
+        }
+
+        Ok(repo?)
+    }
+
+    fn run_checks(&mut self) {
+        let today = chrono::Utc::now().date_naive();
+        let new_projection_date = today.checked_add_months(chrono::Months::new(self.config.projection_months)).unwrap();
+        if new_projection_date > self.config.projected_to.unwrap_or(today) {
+            let _ = self.books.run_checks_and_update(new_projection_date);
+            self.config.projected_to = Some(new_projection_date);
+            let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+            let _ = self.save_config();
+        }
     }
 
     pub fn load_config() -> Result<Config, BooksError> {
@@ -209,6 +232,8 @@ impl AppDirectories {
             display_date_format: DateFormat::Locale,
             import_date_format: "%d/%m/%Y".to_string(),
             csv_mappings: HashMap::new(),
+            projection_months: DEFAULT_PROJECTION_MONTHS,
+            projected_to: None,
         }
     }
 }

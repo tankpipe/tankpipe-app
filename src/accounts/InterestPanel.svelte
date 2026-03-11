@@ -43,6 +43,7 @@
     }
 
     const loadInterestInternal = async () => {
+        if (!curAccount || !curAccount.id) return
         console.log("loadInterest: " + curAccount.id)
         if (curAccount.interest_id) {
             await invoke('get_interest', {interestId: curAccount.interest_id}).then(
@@ -92,7 +93,7 @@
             const interestData = {
                 id: interest.id,
                 paid_to_date: interest.paid_to_date ? interest.paid_to_date : "null",
-                account_id: curAccount.id,
+                account_id: curAccount?.id,
                 terms: []
             }
 
@@ -116,10 +117,13 @@
                 })
             })
             
+            
             if (interest && interest.id) {
+                console.log(interestData)
                 await invoke('update_interest', {interest: interestData}).then(interestResolved, interestRejected)
             } else {
                 interestData.id = zeros
+                console.log(interestData)
                 await invoke('add_interest', {interest: interestData}).then(interestAddResolved, interestRejected)
             }
         }
@@ -178,6 +182,7 @@
     }
     
     const addInterest = () => {
+       if (!curAccount || !curAccount.id) return
        interest = {
                 paid_to_date: "null",
                 terms: [Object.assign({}, EMPTY_TERMS)],
@@ -268,7 +273,7 @@
         </div>
         <div class="widget">
             <label for="interest_account_id">{$_('interest.interestAccount')}</label>
-            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({value: a.id, name: a.name}))} none={true} inError={interestErrors.isInError("interestAccountId")} flat={true}/>
+            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("interestAccountId")} flat={true}/>
         </div>
     </div>            
 </div>

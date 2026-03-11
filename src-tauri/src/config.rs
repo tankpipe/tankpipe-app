@@ -1,6 +1,11 @@
 use std::{collections::HashMap, ffi::{OsStr, OsString}, path::PathBuf};
+use chrono::NaiveDate;
 use serde::{Deserializer, Serializer, Serialize, Deserialize};
 use uuid::Uuid;
+use accounts::serializer::{serialize_option_naivedate, deserialize_option_naivedate};
+
+
+pub const DEFAULT_PROJECTION_MONTHS: u32 = 12;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub struct FileDetails {
@@ -48,7 +53,15 @@ pub struct Config {
     pub recent_files: Vec<FileDetails>,
     pub display_date_format: DateFormat,
     pub import_date_format: String,
-    pub csv_mappings: HashMap<Uuid, Vec<String>>
+    pub csv_mappings: HashMap<Uuid, Vec<String>>,
+
+    #[serde(default = "default_projection_months")]
+    pub projection_months: u32,
+    
+    #[serde(default)]
+    #[serde(serialize_with = "serialize_option_naivedate")]
+    #[serde(deserialize_with = "deserialize_option_naivedate")]
+    pub projected_to: Option<NaiveDate>,
 }
 
 impl Config {
@@ -102,6 +115,10 @@ impl Config {
         self.csv_mappings.remove(&id);
     }
 
+}
+
+fn default_projection_months() -> u32 {
+    DEFAULT_PROJECTION_MONTHS
 }
 
 pub fn deserialize_osstring<'de, D>(deserializer: D) -> Result<OsString, D::Error>

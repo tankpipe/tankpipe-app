@@ -24,7 +24,7 @@ pub fn add_interest(state: tauri::State<BooksState>, mut interest: Interest) -> 
 
 #[tauri::command]
 pub fn update_interest(state: tauri::State<BooksState>, mut interest: Interest) -> Result<(), String> {
-    println!("Updating interest info for account {}", interest.account_id);
+    println!("Updating interest info {}", interest.id);
     update_terms(&mut interest);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_interest(interest))?;

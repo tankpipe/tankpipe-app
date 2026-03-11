@@ -65,8 +65,7 @@
     const onAdd = async () => {
         msg = ""
         errors = new Errors()
-        interestErrors = new Errors()
-        interestMsg = ""
+        
         if (!name || name.length < 1) {
             errors.addError("name", $_('account.form.errors.nameRequired'))
         }
@@ -84,7 +83,8 @@
                 const account = {
                     name: name,
                     starting_balance: startingBalance,
-                    account_type: accountType.value
+                    account_type: accountType.value,
+                    interest_id: null
                 }
                 addAccount(account)
             } else if ($page.mode === modes.EDIT) {
@@ -93,7 +93,8 @@
                     starting_balance: startingBalance,
                     account_type: curAccount.account_type,
                     id: curAccount.id,
-                    balance: 0
+                    balance: 0,
+                    interest_id: curAccount.interest_id
                 }
                 saveAccount(account)
             }
@@ -115,6 +116,7 @@
         await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
         initialize = false
+        close()
     }
 
     const saveAccount = async (account) => {
@@ -183,7 +185,7 @@
         </div>
     </div>
     <div class="form-row">
-        <Select bind:item={accountType} items={ACCOUNT_TYPES} label={$_('account.form.labels.type')} none={false} inError={errors.isInError("accountType")} disabled={$page.mode === modes.EDIT} flat={true}/>
+        <Select bind:item={accountType} items={ACCOUNT_TYPES} label={$_('account.form.labels.type')} none={false} inError={errors.isInError("accountType")} disabled={!transactions || transactions.length > 0} flat={true}/>
     </div>
     <div class="form-button-row">
         <div class="msg-panel">
