@@ -122,6 +122,10 @@
         "reconcileTransaction": "Reconcile transaction",
         "reconcileTransactions": "Reconcile transactions",
         "schedule": "Schedule",
+        "sourceType": {
+            "Interest": "Interest",
+            "Schedule": "Scheduled"
+        },
         "errors": {
             "accountRequired": "Account is required",
             "amountRequired": "A valid amount is required",

@@ -408,11 +408,14 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
+    {#if (curTransaction.source_type)}
+    <div class="indicator source-msg"><span>{$_('transaction.sourceType.' + curTransaction.source_type)}</span></div>
+    {/if}
     {#if entries.some(e => e.reconciled_status)}
-    <div class="recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
+    <div class="indicator recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
     {/if}
     {#if prefillHint}
-    <div class="recon-msg"><span>{prefillHint}</span></div>
+    <div class="indicator recon-msg"><span>{prefillHint}</span></div>
     {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
@@ -660,17 +663,24 @@
         float: left;
     }
 
-    .recon-msg {
-        color: #daae3e;
+    .indicator {        
         float: left;
         margin: 0px 0px 0px 20px;        
         display: flex;
         align-items: center;
     }
 
-    .recon-msg span {
-        padding-top: 5px;
-        font-size: 0.85em;
+    .indicator span {
+        padding-top: 6px;
+        font-size: 0.75em;
+    }
+
+    .recon-msg {
+        color: #daae3e;
+    }
+    
+    .source-msg {
+        color: #aaa;
     }
 
     .reconciled-cell {

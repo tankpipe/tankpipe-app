@@ -111,7 +111,10 @@
         <button class="toolbar-icon" onclick={schedule} title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
     {/if}
-    <div class="recon-msg"><span>{$_('transaction.reconciled')}</span><Icon icon="mdi:check" width="18"/></div>
+    {#if (curTransaction.source_type)}
+    <div class="indicator source-msg"><span>{$_('transaction.sourceType.' + curTransaction.source_type)}</span></div>
+    {/if}
+    <div class="indicator recon-msg"><span>{$_('transaction.reconciled')}</span><Icon icon="mdi:check" width="16"/></div>
     {#if compoundMode}
     <div class="entries">
         <table>
@@ -128,7 +131,7 @@
                 <td class="money">
                     <input id="cramount" class="money-input" bind:value={e.crAmount} disabled/>
                 </td>
-                <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}{e.reconciled_status}</td>
+                <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
             </tr>
             {/each}
             <tr>
@@ -248,19 +251,25 @@
         float: left;
     }
 
-    .recon-msg {
-        color: #74d965;
+    .indicator {        
         float: left;
         margin: 0px 0px 0px 20px;        
         display: flex;
         align-items: center;
     }
 
-    .recon-msg span {
-        padding-top: 5px;
-        font-size: .85em;
+    .indicator span {
+        padding-top: 6px;
+        font-size: 0.75em;
+    }
+
+    .recon-msg {
+        color: #74d965;
     }
     
+    .source-msg {
+        color: #aaa;
+    }    
     .reconciled-cell {
         background-color: #444 !important;
         color: #ccc;
