@@ -15,7 +15,7 @@ pub fn get_modifier(state: tauri::State<BooksState>, modifier_id: Uuid) -> Resul
     let mutex_guard = state.0.lock().unwrap();
     match mutex_guard.books.get_modifier(modifier_id) {
         Ok(modifier) => Ok(modifier),
-        Err(e) => Err(format!("Modifier {} not found: {}", modifier_id, e.error)),
+        Err(e) => Err(rust_i18n::t!("errors.modifier_not_found_with_reason", id => modifier_id, error => e.error).to_string()),
     }
 }
 

@@ -17,7 +17,7 @@ pub fn get_schedule(state: tauri::State<BooksState>, schedule_id: Uuid) -> Resul
     let mutex_guard = state.0.lock().unwrap();
     match mutex_guard.books.get_schedule(schedule_id) {
         Ok(schedule) => Ok(schedule),
-        Err(e) => Err(format!("Schedule {} not found: {}", schedule_id, e.error)),
+        Err(e) => Err(rust_i18n::t!("errors.schedule_not_found_with_reason", id => schedule_id, error => e.error).to_string()),
     }
 }
 
@@ -94,8 +94,13 @@ pub fn reset_schedule_last_date(state: tauri::State<BooksState>, schedule_id: Uu
     println!("Resetting last date for schedule {}", schedule_id);
     let mut mutex_guard = state.0.lock().unwrap();
     let result = mutex_guard.books.reset_schedule_last_date(schedule_id);
-    error_handler(mutex_guard.save())?;
-    Ok(result.map(|date| DateParam { date }))
+    match result {
+        Ok(date_option) => {
+            error_handler(mutex_guard.save())?;
+            Ok(date_option.map(|date| DateParam { date }))
+        },
+        Err(e) => Err(e.error)
+    }
 }
 
 

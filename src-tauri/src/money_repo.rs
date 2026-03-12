@@ -57,9 +57,10 @@ impl Repo {
                     },
                     Err(e) => {
                         let error_msgs = vec![
-                            format!("Error while loading the books file."),
-                            format!("File: {:?}", &path.display()),
-                            format!("Error: {}", e )];
+                            rust_i18n::t!("errors.load_books").to_string(),
+                            rust_i18n::t!("errors.load_books_file", path => format!("{}", path.display())).to_string(),
+                            rust_i18n::t!("errors.load_books_error", error => e).to_string()
+                        ];
                         println!("{:?}", error_msgs);         
 
                         Err(BooksError{ error: error_msgs.join("\n") })
@@ -74,7 +75,7 @@ impl Repo {
         let mut repo = Self::load_books_with_config(|config| {
             let path = config.last_file.path.clone();                
             if path.is_empty() {
-                Err(BooksError{ error: "No last file path.".to_string() })
+                Err(crate::money_error!("errors.no_last_file_path"))
             } else {
                 Ok(path)
             }
@@ -146,10 +147,10 @@ impl Repo {
                     println!("Saved books to {:?}", self.config.current_file.clone().unwrap().path.clone());
                     Ok(())
                 } else {
-                    Err(BooksError::from_str("Current books id does not match the file path books id"))
+                    Err(crate::money_error!("errors.current_books_id_mismatch"))
                 }
             },
-            None => Err(BooksError::from_str("No file path for current books"))
+            None => Err(crate::money_error!("errors.no_file_path_for_current_books"))
         }
     }
 
@@ -165,7 +166,7 @@ impl Repo {
         save_new_books(self.config.last_file.path.clone(), &self.books)?;
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+            Err(e) => return Err(crate::money_error!("errors.save_config_error", error => format!("{:?}", e))),
         }
     }
 
@@ -179,14 +180,14 @@ impl Repo {
         
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+            Err(e) => return Err(crate::money_error!("errors.save_config_error", error => format!("{:?}", e))),
         }
     }
      
     pub fn save_config(&self) -> Result<(), BooksError> {
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+            Err(e) => return Err(crate::money_error!("errors.save_config_error", error => format!("{:?}", e))),
         }
     }
 
@@ -263,7 +264,7 @@ fn setup_app_directories() -> Result<AppDirectories, BooksError> {
         },
         None => {
             println!("Unable to determine directories for storing testdata");
-            Err(BooksError::from_str("Unable to determine directories for storing test data"))
+            Err(crate::money_error!("errors.determine_directories_failure"))
         }
     }
 
@@ -273,14 +274,14 @@ fn initialise_settings(files: AppDirectories) -> Result<Config, BooksError> {
     let config = files.to_config();
     match write_config(files.settings_path(), &config) {
         Ok(_) => Ok(config),
-        Err(e) => return Err(BooksError{ error: format!("Error while trying to write config file: {:?}", e) })
+        Err(e) => return Err(crate::money_error!("errors.write_config_error", error => format!("{:?}", e)))
     }
 }   
 
 fn build_home_dir_path() -> Result<OsString, BooksError> {
     let h = home_dir();
     if h.is_none() {
-        return Err(BooksError{ error: "Could not determine home directory".to_string() })
+        return Err(crate::money_error!("errors.determine_home_directory_failure"))
     }       
     Ok(h.unwrap().join(FALLBACK_PATH).as_os_str().to_os_string())
 }
@@ -302,7 +303,7 @@ pub fn read_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
         }
     }
 
-    Err(BooksError::from_str("Unable to load settings"))
+    Err(crate::money_error!("errors.load_settings_failure"))
 }
 
 fn write_config<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<()> {
@@ -315,7 +316,7 @@ pub fn initial_setup() -> Result<Config, BooksError> {
     let config = initialise_settings(files)?;
     match write_config(config.settings_path(), &config) {
         Ok(_) => Ok(config),
-        Err(e) => return Err(BooksError{ error: format!("Error while saving config file: {:?}", e) }),
+        Err(e) => return Err(crate::money_error!("errors.save_config_error", error => format!("{:?}", e))),
     }
 }
 

@@ -12,12 +12,15 @@ use tauri::{App, Emitter, Manager};
 use crate::handlers::{account, transaction, schedule, modifier, interest, repo};
 use crate::money_repo::Repo;
 
+rust_i18n::i18n!("locales");
+
 pub mod account_display;
 pub mod config;
 pub mod about;
 pub mod money_repo;
 pub mod reader;
 pub mod csv_check;
+mod i18n;
 mod handlers;
 
 pub struct BooksState(Mutex<Repo>);

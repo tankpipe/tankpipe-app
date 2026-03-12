@@ -30,6 +30,7 @@ data-encoding = "2.5.0"
 dirs = "5.0.1"
 tauri-plugin-dialog = "2"
 tauri-plugin-shell = "2"
+rust-i18n = "3.0"
 
 
 [dev-dependencies]
