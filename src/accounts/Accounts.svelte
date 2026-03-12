@@ -7,8 +7,7 @@
     import {onMount} from 'svelte'
     import { _ } from 'svelte-i18n'
 
-    export let curAccount
-    export let loadAccounts
+    let { curAccount, loadAccounts } = $props()
 
     let ACCOUNT_TYPES = {
         Asset: $_('accountTypes.assets'),
@@ -28,8 +27,18 @@
         }
     })
 
+    $effect(() => {
+        if ($page.mode === modes.EDIT && $page.payload && $page.payload.accountId) {
+            curAccount = $accounts.find(account => account.id === $page.payload.accountId)
+        }
+    })
+
     const close = () => {
-        page.set({view: views.ACCOUNTS, mode: modes.LIST})
+        if ($page.payload && $page.payload.previousView) {
+            page.set({view: $page.payload.previousView, mode: modes.LIST, payload: {accountId: curAccount?.id}})
+        } else {
+            page.set({view: views.ACCOUNTS, mode: modes.LIST})
+        }
     }
 
     const handleAddClick = () => {
@@ -39,13 +48,15 @@
 
     const selectAccount = (account) => {
         curAccount = account
-        page.set({view: views.TRANSACTIONS, mode: modes.LIST})
+        page.set({view: views.TRANSACTIONS, mode: modes.LIST, payload: {accountId: curAccount.id}})
     }
 
     const editAccount = (account) => {
         curAccount = account
         page.set({view: views.ACCOUNTS, mode: modes.EDIT})
-        console.log($_('accounts.messages.selected', { name: curAccount.name }))
+        if (curAccount && curAccount.name) {
+            console.log($_('accounts.messages.selected', { name: curAccount.name }))
+        }
     }
 
     const checkAccountType = (account) => {

@@ -183,6 +183,7 @@
         "totalLiabilities": "Total liabilities"
     },
     "transactions": {
+        "editAccount": "Edit account details",
         "addTransaction": "Add a transaction",
         "clearFilter": "Clear filter",
         "editSelected": "Edit selected transactions",

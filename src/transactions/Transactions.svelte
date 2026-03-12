@@ -4,7 +4,7 @@
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import { Errors } from '../utils/errors'
-    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
+    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
     import { settings } from '../stores/settings'
     import { accounts, updateAccounts } from '../stores/accounts'
     import { invoke } from "@tauri-apps/api/core"
@@ -56,6 +56,12 @@
         }
        
     });
+
+    $effect(() => {
+        if ($page.payload && $page.payload.accountId) {
+            curAccount = $accounts.find(account => account.id === $page.payload.accountId)
+        }
+    })
 
     const setCurrentScroll = () => {
         topScroll = document.getElementById("scroller").scrollTop
@@ -138,7 +144,13 @@
         return transaction.entries.find(e => e.account_id == curAccount.id)
     }
 
-    const handleAddClick = () => {
+    const editAccount = () => {
+        if (curAccount && curAccount.id) {
+            page.set({view: views.ACCOUNTS, mode: modes.EDIT, payload: {accountId: curAccount.id, previousView: views.TRANSACTIONS}})
+        }
+    }
+
+    const handleAddClick = (account) => {
         setCurrentScroll()
         page.set({view: $page.view, mode: modes.NEW})
     }
@@ -254,6 +266,7 @@
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); reconciliationMode = RM.NONE; reconciliationResults = []; reconciliationAccountId = null}}/>
     </div>
     <div class="toolbar">
+        <button type="button" class="toolbar-icon" onclick={editAccount} title={$_('transactions.editAccount')}><Icon icon="mdi:text-box-edit-outline"  width="24"/></button>
         <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
         <button type="button" class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>

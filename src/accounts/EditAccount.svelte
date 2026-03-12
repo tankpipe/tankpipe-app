@@ -28,13 +28,7 @@
     let format = dateFormat($config)
 
     onMount(() => {
-        if ($page.mode === modes.EDIT) {
-            name = curAccount.name
-            startingBalance = curAccount.starting_balance
-            accountType = matchAccountType(curAccount.account_type)
-            addButtonLabel = $_('buttons.update')
-            console.log(curAccount)
-        } else {
+        if ($page.mode !== modes.EDIT) {
             addButtonLabel = $_('buttons.add')
             startingBalance = "0"
             curAccount = null
@@ -43,6 +37,15 @@
 
     $effect(() => {
         if (curAccount && curAccount.id) loadTransactions()
+    })
+
+    $effect(() => {
+        if (curAccount && $page.mode === modes.EDIT) {
+            name = curAccount.name || ''
+            startingBalance = curAccount.starting_balance || '0'
+            accountType = matchAccountType(curAccount.account_type)
+            addButtonLabel = $_('buttons.update')
+        }
     })
 
     const loadTransactions = async () => {
