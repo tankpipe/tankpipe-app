@@ -74,7 +74,7 @@
 {:else if ($context.hasBooks)}
     <div>
         <div class="toolbar toolbar-right">
-            <button class="toolbar-icon" on:click="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
+            <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
         </div>
         <div class="form-heading">{$_('accounts.title')}</div>
     </div>
@@ -84,7 +84,7 @@
     {#if checkAccountType(a)}
         <div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
     {/if}
-        <div class="card" on:click={() => selectAccount(a) }>{a.name}<div class="edit-icon" on:click|stopPropagation={() => editAccount(a) }><Icon icon="mdi:pencil" /></div></div>
+        <div class="card" onclick={() => selectAccount(a) } onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectAccount(a); } }} tabindex="0" role="button">{a.name}<div class="edit-icon" onclick={(e) => {e.stopPropagation(); editAccount(a)} } onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); editAccount(a); } }} tabindex="0" role="button"><Icon icon="mdi:pencil" /></div></div>
     {/each}
     </div>
 </div>
