@@ -118,7 +118,7 @@ pub fn read_rows<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<Vec<Ve
             Ok(rows)
         },
         Err(e) => {
-            return Err(crate::money_error!("errors.read_csv_failure", error => e))
+            return Err(crate::books_error!("errors.read_csv_failure", error => e))
         }
      }
 }
@@ -149,7 +149,7 @@ pub fn read_transactions <P: AsRef<Path>>(path: &P, account_id: Uuid, fmt: &str,
             Ok(transactions)
         },
         Err(e) => {
-            return Err(crate::money_error!("errors.read_csv_failure", error => e))
+            return Err(crate::books_error!("errors.read_csv_failure", error => e))
         }
      }
 }
@@ -201,7 +201,7 @@ fn determine_amount(row: &Vec<String>, columns: &ColumnTypes) -> Result<(Decimal
 fn get_value(row: &Vec<String>, columns: &ColumnTypes, column: ColumnType) -> Result<String, BooksError> {
      match row.get(columns.index_of(column)) {
         Some(value) => Ok(value.to_string()),
-        None => Err(crate::money_error!("errors.value_missing", field => "column"))
+        None => Err(crate::books_error!("errors.value_missing", field => "column"))
     }
 }
 
@@ -224,7 +224,7 @@ pub fn read_headers<P: AsRef<Path>>(path: &P) -> Result<Vec<String> , BooksError
             Ok(headers)
         }
         Err(e) => {
-            return Err(crate::money_error!("errors.read_csv_failure", error => e))
+            return Err(crate::books_error!("errors.read_csv_failure", error => e))
         }
     }
 }
@@ -241,7 +241,7 @@ pub fn read_columns<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<Col
             detect_columns(headers, reverse_dr_cr)
         },
         Err(e) => {
-            return Err(crate::money_error!("errors.read_csv_failure", error => e))
+            return Err(crate::books_error!("errors.read_csv_failure", error => e))
         }
     }
 }
@@ -264,16 +264,16 @@ fn detect_columns(headers: &StringRecord, reverse_dr_cr: bool) -> Result<ColumnT
 
 fn validate_columns(columns: &ColumnTypes) -> Result<(), BooksError> {
     if columns.num_known_columns() == 0 {
-        return Err(crate::money_error!("errors.header_missing"))
+        return Err(crate::books_error!("errors.header_missing"))
     } else if columns.num_known_columns() < 3 {
-        return Err(crate::money_error!("errors.header_missing_columns"))
+        return Err(crate::books_error!("errors.header_missing_columns"))
     }
 
     if columns.len() >= 3 && (columns.has_exactly_one_of(ColumnType::Amount) || (columns.has_exactly_one_of(ColumnType::Debit) && columns.has_exactly_one_of(ColumnType::Credit))) {
         return Ok(())
     }
 
-    return Err(crate::money_error!("errors.header_missing_columns_alt"))
+    return Err(crate::books_error!("errors.header_missing_columns"))
 }
 
 /// Detect if transactions are in reverse chronological order (newest first)
@@ -322,14 +322,14 @@ fn parse_money_str(amount: String) -> Result<Decimal, BooksError> {
 
     match Decimal::from_str(&amount_str) {
         Ok(amount) => Ok(amount),
-        Err(e) => Err(crate::money_error!("errors.parse_amount_with_value", amount => amount, error => e)),
+        Err(e) => Err(crate::books_error!("errors.parse_amount_with_value", amount => amount, error => e)),
     }
 }
 
 fn parse_date_str(date_str: String, format: &str) -> Result<NaiveDate, BooksError> {
     match NaiveDate::parse_from_str(&date_str, format) {
         Ok(d) =>return Ok(d),
-        Err(e) => return Err(crate::money_error!("errors.parse_date_with_format", date => date_str, format => format, error => e)),
+        Err(e) => return Err(crate::books_error!("errors.parse_date_with_format", date => date_str, format => format, error => e)),
     };
 }
 
@@ -338,7 +338,7 @@ fn parse_money_cell<'de, D>(deserializer: D) -> Result<Decimal, BooksError>
 {
     match String::deserialize(deserializer) {
         Ok(amount) => parse_money_str(amount),
-        Err(e) => Err(crate::money_error!("errors.parse_amount", error => e)),
+        Err(e) => Err(crate::books_error!("errors.parse_amount", error => e)),
     }
 
 }
