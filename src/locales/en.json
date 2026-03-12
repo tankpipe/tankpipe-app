@@ -251,6 +251,7 @@
     },
     "interest": {
         "title": "Interest",
+        "paidTo": "Interest paid to",
         "paidType": "Paid",
         "calculatedType": "Calculated",
         "interestRate": "Interest Rate",
@@ -263,7 +264,7 @@
         "paidDay": "Paid day",
         "paidEvery": "Paid every",
         "paidOn": "on day",
-        "rate": "Rate",
+        "rate": "Rate %",
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",

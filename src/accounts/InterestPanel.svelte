@@ -58,6 +58,7 @@
                             }
                             term.realStartDate = new Date(term.start_date)
                             term.realEndDate = term.end_date ? new Date(term.end_date) : null
+                            term.rate = (term.rate * 100).toFixed(2)
                         })
                         curInterestTerms = null
                     }
@@ -92,7 +93,7 @@
         if (!interestErrors.hasErrors()) {
             const interestData = {
                 id: interest.id,
-                paid_to_date: interest.paid_to_date ? interest.paid_to_date : "null",
+                paid_to: interest.paid_to ? interest.paid_to : "null",
                 account_id: curAccount?.id,
                 terms: []
             }
@@ -107,7 +108,7 @@
                     id: terms.id,
                     start_date: startDateStr,
                     end_date: endDateStr,
-                    rate: terms.rate,
+                    rate: terms.rate / 100,
                     calculated: terms.calculated,
                     paid_period: terms.paid_period,
                     paid_frequency: terms.paid_frequency,
@@ -170,9 +171,9 @@
         interest.terms.push(curInterestTerms)                       
     }
 
-    const deleteLastTerms = () => {        
+    const deleteTerm = (index) => {
         if (interest && interest.terms && interest.terms.length > 0) {
-            interest.terms.pop()
+            interest.terms.splice(index, 1)
             curInterestTerms = null
         }
     }
@@ -202,35 +203,36 @@
     </div>
 {/if}
 {#if interest}
+ <div class="info-row">
+    <div class="info-label">{$_('interest.paidTo')}&nbsp;</div>
+    <div class="info-value">{interest.paid_to ? formatDate(interest.paid_to) : "-"}</div>
+</div>
 <div>
     <table class="csv-table" style="max-width: 450px;">
         <tbody>
-            
+            <tr>
+                <th colspan="2"></th>
+                <th>
+                    <div class="toolbar terms-toolbar" style="float: right; ">
+                        <button class="toolbar-icon" onclick="{addTerms}" title={$_('interest.addTerms')}>
+                            <Icon icon="mdi:plus"  width="18"/>
+                        </button>
+                    </div>
+                </th>
+            </tr>
             <tr>
                 <th>{$_('interest.startDate')}</th>
                 <th>{$_('interest.endDate')}</th>
-                <th>{$_('interest.rate')}</th>
+                <th>{$_('interest.rate')}</th>                
             </tr>                    
             <tr class="spacer"></tr>
         {#each interest.terms as t, i}
             <tr class="csv-row {curInterestTerms === t ? 'selected-row' : ''}" onclick={() => selectTerms(t)}>                        
                 <td><div class:error={interestErrors.isInError(i + "_startDate")}>{formatDate(t["realStartDate"])}</div></td>
                 <td><div class:error={interestErrors.isInError(i + "_endDate")}>{formatDate(t["realEndDate"])}</div></td>
-                <td><div class:error={interestErrors.isInError(i + "_rate")}>{t.rate ? (t.rate * 100).toFixed(2) + '%' : ''}</div></td>
+                <td><div class:error={interestErrors.isInError(i + "_rate")}>{t.rate ? t.rate + '%' : ''}</div></td>
             </tr>
         {/each}               
-            <tr>
-                <th colspan="3">
-                    <div class="toolbar terms-toolbar" >
-                        <button class="toolbar-icon" onclick="{addTerms}" title={$_('interest.addTerms')}>
-                            <Icon icon="mdi:plus"  width="18"/>
-                        </button>
-                        <button class="toolbar-icon" onclick="{deleteLastTerms}" title={$_('interest.removeTerms')} disabled={!interest.terms || interest.terms.length === 0}>
-                            <Icon icon="mdi:trash-can-outline"  width="17"/>
-                        </button>
-                    </div>
-                </th>
-            </tr>
         </tbody>
     </table>
 </div>
@@ -239,7 +241,12 @@
 <div class="info-row">&nbsp;</div>
 <div class="interest-form">
     <div class="toolbar toolbar-right" style="padding: 0">
-        <button class="toolbar-icon" onclick="{closeCurrentTerms}" title={$_('buttons.close')}><Icon icon="mdi:close-box-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick={() => deleteTerm(index)} title={$_('interest.removeTerms')} disabled={!interest.terms || interest.terms.length === 0}>
+            <Icon icon="mdi:trash-can-outline"  width="24"/>
+        </button>
+        <button class="toolbar-icon" onclick="{closeCurrentTerms}" title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline"  width="24"/>
+        </button>
     </div>
     <div class="form-row">        
         <div class="widget">

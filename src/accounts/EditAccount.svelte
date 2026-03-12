@@ -163,6 +163,9 @@
         loadAccounts()
     }
 
+    const canSupportInterest = () => {
+        return curAccount && (curAccount.account_type === "Asset" || curAccount.account_type === "Liability")
+    }
 
 </script>
 
@@ -229,7 +232,7 @@
         </div>
         <div class="info-row">&nbsp;</div>
     {/if}
-    {#if curAccount}               
+    {#if curAccount && canSupportInterest()}               
         <hr/>
         <InterestPanel {curAccount} {loadAccounts} />        
     {/if}
@@ -330,7 +333,7 @@
         width: 400px;
     }
 
-    .info-row {
+    :global(.info-row) {
         padding: 5px 0 0px 10px;
         margin: 0 0 0 0;
         display: inline-flex;
@@ -339,17 +342,17 @@
         clear: both;
     }
 
-    .info-label {
+    :global(.info-label) {
         font-size: 0.75em;
         color: #aaa;
     }
 
-    .info-value {
+    :global(.info-value) {
         font-size: 0.75em;
         color: #aaa;
     }
     
-    .info-title {
+    :global(.info-title) {
         white-space: nowrap;
         font-weight: 200;
         font-size: 1em;
