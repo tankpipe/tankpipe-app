@@ -146,7 +146,7 @@
 
     const editAccount = () => {
         if (curAccount && curAccount.id) {
-            page.set({view: views.ACCOUNTS, mode: modes.EDIT, payload: {accountId: curAccount.id, `previousView`: views.TRANSACTIONS}})
+            page.set({view: views.ACCOUNTS, mode: modes.EDIT, payload: {accountId: curAccount.id, previousView: views.TRANSACTIONS}})
         }
     }
 
