@@ -18,7 +18,7 @@
     let curInterestTerms = $state()
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
-    const CALCULATED_TYPES = [{id:"Daily", name:"Daily - End of day balance"}, {id:"Monthly", name:"Monthly - Average daily balance"}, {id:"Monthly", name:"Minimum monthly balance"}]
+    const CALCULATED_TYPES = [{id:"Daily", name:"Daily - End of day balance"}]
     const PAID_PERIODS = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}]
 
     $effect(() => {
@@ -44,13 +44,13 @@
 
     const loadInterestInternal = async () => {
         if (!curAccount || !curAccount.id) return
-        console.log("loadInterest: " + curAccount.id)
+        console.log("loadInterest: " + curAccount.interest_id)
         if (curAccount.interest_id) {
             await invoke('get_interest', {interestId: curAccount.interest_id}).then(
                 (result) => {
                     console.log(result)
                     interest = result
-                    
+                    interest.paid_to = interest.paid_to === "null" ? null : new Date(interest.paid_to)
                     if (interest.terms && interest.terms.length > 0) {
                         interest.terms.forEach((term) => {
                             if (term.end_date === "null") {
@@ -137,7 +137,9 @@
 
     async function interestAddResolved(result) {
         interestMsg = $_('interest.saved')
+        console.log(curAccount.interest_id)
         await loadAccounts()
+        console.log(curAccount.interest_id)
         await loadInterestInternal()
     }
 
@@ -263,7 +265,7 @@
         </div>            
         <div class="widget">
             <label for="calculatedType">{$_('interest.calculatedType')}</label>
-            <Select id="calculatedType" bind:item={curInterestTerms.calculated} items={CALCULATED_TYPES} none={false} valueField="id" inError={interestErrors.isInError("calculatedType")} flat={true}/>
+            <Select id="calculatedType" bind:item={curInterestTerms.calculated} items={CALCULATED_TYPES} none={false} valueField="id" inError={interestErrors.isInError("calculatedType")} flat={true} disabled={true}/>
         </div>
     </div>
     <div class="form-row2">

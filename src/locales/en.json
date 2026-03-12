@@ -180,7 +180,8 @@
         "netAssets": "Net assets",
         "title": "Net Assets",
         "totalAssets": "Total assets",
-        "totalLiabilities": "Total liabilities"
+        "totalLiabilities": "Total liabilities",
+        "balance": "Balance"
     },
     "transactions": {
         "editAccount": "Edit account details",
