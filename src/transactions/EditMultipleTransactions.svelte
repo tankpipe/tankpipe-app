@@ -417,10 +417,7 @@
         margin-right: 0px;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
+    
 
     .total {
         text-align: right;
@@ -474,7 +471,6 @@
     
 
     .entries {
-        padding: 5px 5px 10px 10px;
         clear: left;
     }
 
@@ -527,7 +523,6 @@
     
 
     .money {
-        text-align: right !important;
         min-width: 92px;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;

@@ -374,9 +374,7 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
     }
 
     .form-button-row {

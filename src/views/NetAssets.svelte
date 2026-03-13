@@ -236,7 +236,6 @@
     }
 
     .money {
-        text-align: right !important;
         min-width: 92px;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;

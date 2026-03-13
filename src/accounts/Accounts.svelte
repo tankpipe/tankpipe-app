@@ -152,10 +152,6 @@
     }
 
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 10px;
         border-radius: 10px;
         color: #E0E0E0;

@@ -138,9 +138,7 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
     }
 
     .form-button-row {
@@ -157,10 +155,7 @@
         margin-right: 0px;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
+    
 
     .widget {
         display: inline-block;

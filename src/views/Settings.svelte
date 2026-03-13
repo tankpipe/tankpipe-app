@@ -63,7 +63,6 @@
 
     .label {
         font-size: .9em;
-        color: #aaa !important;
         margin: 0 5px 5px 0;
         display: inline-block;
         text-align: left;

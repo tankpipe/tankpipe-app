@@ -440,9 +440,8 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
+        margin-left: 11px;
     }
 
     .form-button-row {
@@ -452,12 +451,6 @@
 
     input {
         margin-right: 0px;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
     }
 
     .widget {
@@ -470,8 +463,6 @@
         font-size: 0.9em;
     }
 
-    
-
     td .heading {
         margin-bottom: -1px;
     }
@@ -480,13 +471,9 @@
         width: 100px;
     }
 
-    
-
     .money-input {
         text-align: right;
     }
-
-    
 
     .total {
         text-align: right;
@@ -500,8 +487,6 @@
         width: 100vw;
     }
 
-    
-
     .entry-buttons {
         float: left;
     }
@@ -510,7 +495,9 @@
         margin-left: 5px;
     }
 
-    
+    .select-adjust {
+        margin-bottom: 0px;
+    }    
 
     .greyed:hover {
         color: #666 !important;

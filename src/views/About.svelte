@@ -106,10 +106,6 @@
     }
     
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 5px;
     }
 

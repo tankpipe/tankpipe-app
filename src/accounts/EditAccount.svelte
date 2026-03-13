@@ -219,13 +219,13 @@
             <div class="info-value">{formatAmount(curAccount.reconciliation_info.balance)}</div>
         </div>
         <div class="info-row">&nbsp;</div>
-        <div class="rollback-row">
+        <div class="widget-row">
             <div class="widget">
                 <label for="rollbackDate">{$_('account.rollbackTo')}</label>
-                <div class="date-input" id="rollbackDate">
-                    <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
-                </div>
             </div>
+            <div class="date-input" id="rollbackDate">
+                <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
+            </div>            
             <div class="widget">
                 <button class="og-button" onclick={rollbackReconciliation} disabled={!rollbackDate}>{$_('account.rollbackButton')}</button>
             </div>
@@ -290,9 +290,7 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
     }
 
     .form-button-row {
@@ -307,10 +305,7 @@
         margin-right: 0px;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
+    
 
     .widget {
         display: inline-block;
@@ -326,7 +321,6 @@
     }
 
     
-
     :global(.info-row) {
         padding: 5px 0 0px 10px;
         margin: 0 0 0 0;
@@ -356,33 +350,6 @@
         float: left;
         width: 100%;
         clear: both;
-    }
-
-    .rollback-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0px 0 0px 10px;
-        margin: 0 0 0 0;
-        float: left;
-        width: 100%;
-        clear: both;
-    }
-
-    .rollback-row .widget {
-        display: flex;
-        align-items: center;
-        padding: 5px 0px 5px 0px;
-    }
-
-    .rollback-row label {
-        margin-right: 10px;
-        white-space: nowrap;
-    }
-
-    .rollback-row button {
-        min-height: 33px;
-        margin-bottom: 0px;
     }
 
     :global(hr) {

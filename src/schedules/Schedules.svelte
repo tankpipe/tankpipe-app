@@ -159,12 +159,12 @@
 {/if}
 {#if isListMode($page)}
 <div class="controls">
-    <div class="form-row">
+    <div class="widget-row">
         <div class="widget">
-            <div class="label label-column">{$_('schedules.scheduleUntil')} </div>            
-            <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-            <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
-        </div>        
+            <label for="scheduleToDate">{$_('schedules.scheduleUntil')}</label>                      
+        </div>
+        <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
+        <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>              
     </div>
      <div class="msg-row">
             {#each errors.getErrorMessages() as e}
@@ -221,7 +221,6 @@
 
 <style>
     .inline-button {
-        float: right;
         margin: 0px 0px 0px 3px;
     }
 
@@ -271,11 +270,8 @@
         color: #C0C0C0;
     }
 
-    
-
     .label {
         font-size: .8em;
-        color: #aaa !important;
         margin: 0 !important;
     }
     
@@ -291,10 +287,6 @@
     }
 
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 5px;
         border-radius: 10px;
     }
@@ -318,11 +310,8 @@
     }
 
     .money {
-        text-align: right !important;
         min-width: 100px;
     }
-
-    
 
     .description {
         min-width: 316px;
@@ -349,27 +338,15 @@
     }
 
     .message {
-        color: #EFEFEF;
         margin-bottom: 20px;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
     }
-
-    
 
     .form-row {
         display: block;
-        float: left;
-        clear: both;
         margin-top: -10px;
     }
 
     .msg-row {
-        display: block;
-        float: left;
-        clear: both;
         margin: -10px 0px 0px 10px;        
     }
 
@@ -377,18 +354,6 @@
         float: right;
     }
 
-    .label {
-        font-size: .9em;
-        color: #aaa !important;
-        margin: 0 5px 5px 0;
-        display: inline-block;
-        text-align: left;
-        line-height: 36px;
-        padding-right: .5em;
-    }
-
-    
-
-    
+       
 
 </style>

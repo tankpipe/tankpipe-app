@@ -173,12 +173,6 @@
         border: 1px solid #FBC969 !important;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
-    }
-
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
@@ -188,8 +182,6 @@
         max-width: 500px;
         font-size: 0.9em;
     }
-
-    
 
     .money-input {
         width: 120px;
@@ -206,10 +198,9 @@
     }
 
     .form-row {
-        display: block;
-        float: left;
-        clear: both;
-        margin-top: 10px;
+        display: inline-flex;
+        width: 100%;
+        margin-left: 11px;
     }
 
     .form-button-row {

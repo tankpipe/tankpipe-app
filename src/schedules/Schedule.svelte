@@ -167,14 +167,14 @@
     {/if} 
     <hr/>
     <div class="form-row">
-        <div class="schedule-row">
+        <div class="widget-row">
             <div class="widget left float-left">
-                <label for="scheduleToDate">{$_('schedule.schedule_until')}&nbsp;</label>
-                <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-                <div id="scheduleToDate" class="date-input raise">
-                    <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
-                </div>
+                <label for="scheduleToDate">{$_('schedule.schedule_until')}</label>
             </div>
+            <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
+            <div id="scheduleToDate" class="date-input raise">
+                <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
+            </div>            
             <div class="msg-row">
             {#each errors.getErrorMessages() as e}
                 <p class="error-msg">{e}</p>
@@ -213,9 +213,6 @@
     }
 
     .msg-row {
-        display: block;
-        float: left;
-        clear: both;
         margin: -10px 0px 0px 5px;        
     }
 
@@ -237,16 +234,9 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
-    }
 
     .widget {
         display: inline-block;
@@ -267,15 +257,9 @@
         min-height: 33px;
     }
 
-    
-
-    
-
     .left {
         padding-left: 0px;
     }
-
-    
 
     .date-input {
         float: right;
@@ -289,12 +273,7 @@
     }
 
     .inline-button {
-        float: right;
         margin: -7px 0px 0px 3px;
     }
-
-     
-
-    
 
 </style>

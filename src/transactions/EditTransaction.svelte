@@ -584,10 +584,7 @@
         margin-right: 0px;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
+    
 
     .total {
         text-align: right;
@@ -641,7 +638,6 @@
     
 
     .entries {
-        padding: 5px 5px 10px 10px;
         clear: both;
     }
 
@@ -661,12 +657,7 @@
     
 
     .reconciled-cell {
-        background-color: #444 !important;
         color: #ccc;
-        font-size: .8em;
-        font-weight: bold;
-        padding: 0 0 4px 3px;
-        text-align: center;
     }
 
 </style>

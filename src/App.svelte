@@ -246,7 +246,6 @@
         background-color: #444 !important;
     }
 
-
     :global(.form label, .heading, .total) {
         text-align: left;
         font-size: .8em;
@@ -257,7 +256,6 @@
     :global(.form input) {
         background-color: #aaa !important;
     }
-
 
     :global(.form input, .form select) {
         background-color: #aaa;

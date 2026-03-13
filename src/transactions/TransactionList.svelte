@@ -521,7 +521,6 @@
     }
 
     .money {
-        text-align: right !important;
         min-width: 92px;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
@@ -543,12 +542,7 @@
     
     
     .message {
-        color: #EFEFEF;
         margin: 5px 0 20px 0;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
     }
 
     .errors {
@@ -569,11 +563,6 @@
     }
 
     .reconciled-cell {
-        background-color: #444 !important;
-        font-size: .8em;
-        font-weight: bold;
-        padding: 0 0 4px 3px;
-        text-align: center;
         width: 30px;
         min-width: 30px;
         height: 100%;

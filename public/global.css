@@ -68,8 +68,7 @@ input[type="number"]::-webkit-inner-spin-button {
 	outline: none;
 	background-color: #aaaaaa !important;
     height: 1.8em !important;
-    padding: 0 0.2em 0 0.2em !important;
-	
+    padding: 0 0.2em 0 0.2em !important;	
 }
 
 .og-button:disabled {
@@ -94,109 +93,159 @@ input[type="number"]::-webkit-inner-spin-button {
 
 
 .account {
-        float: left;
-    }
+    float: left;
+}
 
 .align_right {
-        text-align: right;
-    }
+    text-align: right;
+}
 
 .bottom-toolbar {
-        float: left;
-    }
+    float: left;
+}
 
 .buttons-left {
-        float: left;
-        margin: 10px 12px 0 0;
-        padding: 5px 0px 5px 0px;
-    }
+    float: left;
+    margin: 10px 12px 0 0;
+    padding: 5px 0px 5px 0px;
+}
 
 .card-title {
-        min-width: 500px;
-        white-space: nowrap;
-        font-weight: bold;
-        float: left;
-    }
+    min-width: 500px;
+    white-space: nowrap;
+    font-weight: bold;
+    float: left;
+}
 
 .controls {
-        text-align: center;
-    }
+    text-align: center;
+}
 
 .description-input {
-        width: 400px;
-    }
+    width: 400px;
+}
 
 .fat-hr {
-        border: 3px solid #363636;
-    }
+    border: 3px solid #363636;
+}
 
 .field {
-        text-align: left;
-        display: inline-block;
-    }
+    text-align: left;
+    display: inline-block;
+}
 
 .float-left {
-        float: left;
-    }
+    float: left;
+}
 
 .greyed {
-        color: #666;
-        border-color: #666;
-    }
+    color: #666;
+    border-color: #666;
+}
 
 .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
+    margin: 3px 0 0 10px;
+    float: left;
+}
 
 .indicator {        
-        float: left;
-        margin: 0px 0px 0px 20px;        
-        display: flex;
-        align-items: center;
-    }
+    float: left;
+    margin: 0px 0px 0px 20px;        
+    display: flex;
+    align-items: center;
+}
 
 .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+    text-align: left;
+    padding-left: 10px;
+}
 
 .msg-panel {
-        padding-left: 2px;
-        font-size: 0.9em;
-        float:left;
-    }
+    padding-left: 2px;
+    font-size: 0.9em;
+    float:left;
+}
 
 .raise {
-        margin-top: -7px;
-    }
+    margin-top: -7px;
+}
 
 .row {
-        display: block;
-        text-align: left;
-    }
+    display: block;
+    text-align: left;
+}
 
 .select-adjust {
-        margin-bottom: -8px;
-    }
+    margin-bottom: -8px;
+}
 
 .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
+    font-size: 0.7em;
+    color: #878787;
+    margin: 3px 0 -5px 2px;
+    min-height: 27px;
+}
 
 .source-msg {
-        color: #aaa;
-    }
+    color: #aaa;
+}
 
 .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
+    display: inline-block;
+    padding: 5px 0px 5px 0px;
+}
 
 .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
+    padding: 5px 0px 5px 10px;
+    margin: 13px 12px 0px 0px;
+}
+
+.card {
+    float: left;
+    clear: both;
+    margin: 10px;
+    background-color: #524e4e;
+}
+
+.entries {
+    padding: 5px 5px 10px 10px;
+}
+
+.form {
+    float: left;
+    border-radius: 10px;
+    color: #DDDDDD;
+}
+    
+.widget-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0px 0 0px 10px;
+    margin: 0 0 0 0;
+    float: left;
+    width: 100%;
+    clear: both;
+}
+
+.widget-row .widget {
+    display: flex !important; 
+    align-items: center !important;
+    padding: 5px 0px 5px 0px !important;
+    margin: 0 0 0 0 !important;
+}
+
+.widget-row label {
+    font-size: .9em !important;
+    margin: 0 0px 0px 0;
+    display: inline-block;
+    text-align: left;
+    line-height: 36px;
+    white-space: nowrap;
+}
+
+
+.widget-row button {
+    min-height: 33px;
+    margin-bottom: 0px;
+}

@@ -289,7 +289,6 @@
 
     .label {
         font-size: .9em;
-        color: #aaa !important;
         margin: 0 5px 5px 0;
         display: inline-block;
         text-align: left;
@@ -359,12 +358,7 @@
     }
 
     .message {
-        color: #EFEFEF;
         margin: 5px 0 20px 0;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
     }
 
     .error-msg {

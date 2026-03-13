@@ -201,17 +201,11 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
         margin: 10px 0 0 10px;
     }
 
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 5px;
         border-radius: 10px;
     }
@@ -243,20 +237,12 @@
     }
 
     .message {
-        color: #EFEFEF;
         margin-bottom: 20px;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
     }
 
     
 
     .msg-row {
-        display: block;
-        float: left;
-        clear: both;
         margin: -10px 0px 0px 10px;        
     }
 
