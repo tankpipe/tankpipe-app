@@ -47,7 +47,8 @@
     "accounts": {
         "title": "Accounts",
         "buttons": {
-            "createNew": "Create a new account"
+            "createNew": "Create a new account",
+            "exportCsv": "Export accounts to CSV"
         }
     },
     "account": {

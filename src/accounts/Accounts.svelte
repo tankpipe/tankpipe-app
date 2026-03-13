@@ -6,6 +6,9 @@
     import {accounts} from '../stores/accounts'
     import {onMount} from 'svelte'
     import { _ } from 'svelte-i18n'
+    import { invoke } from "@tauri-apps/api/core"
+    import { save } from '@tauri-apps/plugin-dialog'
+    import { documentDir } from '@tauri-apps/api/path'
 
     let { curAccount, loadAccounts } = $props()
 
@@ -66,6 +69,30 @@
         }
         return false
     }
+
+    const csvExport = async () => {
+        let defaultPath
+        await documentDir()
+            .then(path => defaultPath = path)
+            .catch(e => console.log("error getting document dir: " + e))
+
+        const defaultFileName = `accounts_${new Date().toISOString().split('T')[0]}.csv`
+
+        const selected = await save({
+            filters: [{name: 'CSV Files', extensions: ['csv']}],
+            defaultPath: `${defaultPath}/${defaultFileName}`,
+        })
+
+        if (selected) {
+            try {
+                await invoke('export_accounts_csv', { path: selected })
+                // Success message could be added here if needed
+            } catch (err) {
+                console.log(err)
+                // Error handling could be added here if needed
+            }
+        }
+    }
     
 </script>
 
@@ -75,6 +102,7 @@
     <div>
         <div class="toolbar toolbar-right">
             <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
+            <button class="toolbar-icon" onclick={csvExport} title={$_('accounts.exportCsv')}><Icon icon="mdi:folder-download" width="22"/></button>
         </div>
         <div class="form-heading">{$_('accounts.title')}</div>
     </div>

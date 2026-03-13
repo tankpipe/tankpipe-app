@@ -95,6 +95,7 @@ fn main() {
             repo::import_csv,
             repo::export_csv,
             repo::export_csv_all,
+            repo::export_accounts_csv,
             repo::load_file,
             repo::new_file,
             repo::initialise,
