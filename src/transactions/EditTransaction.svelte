@@ -657,6 +657,7 @@
     
 
     .reconciled-cell {
+        background-color: transparent;
         color: var(--color-border-light);
     }
 

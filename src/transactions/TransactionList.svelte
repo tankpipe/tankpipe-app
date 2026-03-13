@@ -567,6 +567,7 @@
         min-width: 30px;
         height: 100%;
         cursor: default !important;
+        background-color: transparent;
     }
 
     .reconciled-cell div {
