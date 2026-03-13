@@ -1,4 +1,5 @@
 use accounts::books::{Settings};
+use accounts::book_repo::export_to_csv;
 use accounts::account::Account;
 use tauri::Manager;
 use std::ffi::OsString;
@@ -168,6 +169,22 @@ pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: 
         },
         Err(e) => Err(e.error),
     }
+}
+
+#[tauri::command]
+pub fn export_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid) -> Result<(), String> {
+    println!("export_csv: {:?}, for account:{:?}", path, account_id);
+    let mutex_guard = state.0.lock().unwrap();
+    export_to_csv(&path, &mutex_guard.books, Some(account_id))
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn export_csv_all(state: tauri::State<BooksState>, path: String) -> Result<(), String> {
+    println!("export_csv_all: {:?}", path);
+    let mutex_guard = state.0.lock().unwrap();
+    export_to_csv(&path, &mutex_guard.books, None)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -196,6 +196,8 @@
         "importTransactions": "Import transactions",
         "manualReconciliation": "Manual reconciliation",
         "openCsv": "Open CSV file",
+        "exportCsv": "Export CSV file",
+        "exportSuccess": "Transactions exported successfully",
         "noTransactions": "No transactions",
         "showFilter": "Show filter",
         "showSelect": "Show select transactions",

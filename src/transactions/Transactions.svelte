@@ -4,10 +4,12 @@
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import { Errors } from '../utils/errors'
-    import { page, modes, views, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
+    import { page, modes, views, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
     import { settings } from '../stores/settings'
     import { accounts, updateAccounts } from '../stores/accounts'
     import { invoke } from "@tauri-apps/api/core"
+    import { save } from '@tauri-apps/plugin-dialog'
+    import { documentDir } from '@tauri-apps/api/path'
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte'
     import { _ } from 'svelte-i18n'
@@ -38,7 +40,8 @@
 
     $effect(() => {
         if (journalMode && !curAccount) {
-            curAccount = {}
+            curAccount = null
+            loadTransactions()
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
         } else if (curAccount && curAccount.id !== previousAccountId) {
@@ -258,6 +261,37 @@
         }
     }
 
+    const csvExport = async () => {
+        let defaultPath
+        await documentDir()
+            .then(path => defaultPath = path)
+            .catch(e => console.log("error getting document dir: " + e))
+
+        const defaultFileName = journalMode 
+            ? "all_transactions.csv" 
+            : `${curAccount.name || 'transactions'}_${new Date().toISOString().split('T')[0]}.csv`
+
+        const selected = await save({
+            filters: [{name: 'CSV Files', extensions: ['csv']}],
+            defaultPath: `${defaultPath}/${defaultFileName}`,
+        })
+
+        if (selected) {
+            try {
+                if (journalMode && !curAccount?.id) {
+                    await invoke('export_csv_all', { path: selected })
+                } else {
+                    await invoke('export_csv', { path: selected, accountId: curAccount.id })
+                }
+                msg = $_('transactions.exportSuccess')
+            } catch (err) {
+                console.log(err)
+                errors = new Errors()
+                errors.addError("all", $_('transactions.error', { values: {error: err} }))
+            }
+        }
+    }
+
 </script>
 
 <div class="account-heading">
@@ -277,7 +311,10 @@
         >
             <Icon icon="mdi:check" width="24"/>
         </button>
-        <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
+        <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>        
+        {/if}
+        {#if (curAccount?.id && ! journalMode || (journalMode && ! curAccount?.id)) && transactions.length > 0}
+        <button type="button" class="toolbar-icon import-icon" onclick={csvExport} title={$_('transactions.exportCsv')}><Icon icon="mdi:folder-download" width="22"/></button>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -504,6 +541,10 @@
         background-color: #666;
     }
 
+    .errors {
+        padding-bottom: 10px;
+    }
+
     .error-msg {
         color: red;
         text-align: left;
@@ -514,6 +555,7 @@
     .success-msg {
         color: green;
         text-align: left;
+        font-size: 0.85em;
     }
 
     @media (min-width: 1010px) {

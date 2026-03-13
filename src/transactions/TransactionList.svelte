@@ -558,6 +558,10 @@
         border-radius: 10px;
     }
 
+    .errors {
+        padding-bottom: 10px;
+    }
+
     .error-msg {
         color: red;
         text-align: left;
@@ -565,9 +569,10 @@
         font-size: 0.9em;
     }
 
-    .success-msg {
+    .messages .success-msg {
         color: green;
         text-align: left;
+        font-size: 0.85em;
     }
 
     .reconciled-cell {

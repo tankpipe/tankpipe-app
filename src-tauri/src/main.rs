@@ -93,6 +93,8 @@ fn main() {
             repo::update_config,
             repo::evaluate_csv,
             repo::import_csv,
+            repo::export_csv,
+            repo::export_csv_all,
             repo::load_file,
             repo::new_file,
             repo::initialise,
