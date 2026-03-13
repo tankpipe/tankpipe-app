@@ -400,7 +400,17 @@
         <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')} disabled={!curSchedule || !curSchedule.id}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
 </div>
-<TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
+<TransactionList 
+    curAccount={{}} 
+    journalMode={true} 
+    transactions={transactions} 
+    onSelect={()=>{}} 
+    loadAccounts={()=>{}}
+    rerunReconciliationIfNeeded={()=>{}}
+    topScroll={0}
+    setTopScroll={()=>{}}
+    descriptionFilter=""
+/>
 <style>
 
     :root {

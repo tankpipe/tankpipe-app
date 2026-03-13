@@ -195,7 +195,17 @@
         </button>
 </div>
 </div>
-<TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
+<TransactionList 
+    curAccount={{}} 
+    journalMode={true} 
+    transactions={transactions} 
+    onSelect={()=>{}} 
+    loadAccounts={()=>{}}
+    rerunReconciliationIfNeeded={()=>{}}
+    topScroll={0}
+    setTopScroll={()=>{}}
+    descriptionFilter=""
+/>
 <style>
 
     :root {
