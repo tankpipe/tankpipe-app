@@ -568,10 +568,11 @@
         height: 100%;
         cursor: default !important;
         background-color: transparent;
+        padding: 0;
     }
 
     .reconciled-cell div {
-        margin-left: -10px;
+        margin-left: 2px;
     }
 
     .merge-marker {
@@ -582,7 +583,7 @@
         border: none;
         cursor: pointer;
         color: var(--color-border);
-        margin-left: -10px;
+        margin-left: 1px;
     }
 
     .merge-marker:hover, .merge-marker-selected {
@@ -590,7 +591,7 @@
     }
 
     .merge-marker-selected {
-        margin-left: -10px;
+        margin-left: 2px;
     }
 
     .recon-marker {
@@ -606,12 +607,12 @@
         color: transparent;
         width: 12px !important;
         height: 12px !important;
-        margin-left: -10px;
+        margin: 2px 0 0 4px !important;
     }
 
     .reconciled-cell button {
         width: 19px;
-        margin-left: -10px;
+        margin-left: 2px;
     }
 
     .recon-marker:hover {
@@ -625,11 +626,12 @@
         box-shadow: none;
         font-weight: bold;
         width: 30px !important;
-        height: 24px !important;
+        /* height: 24px !important; */
+        margin-left: -6px !important;
     }
 
     .recon-check {
-        margin-left: 6px;
+        margin-left: 0px;
         color: var(--color-text-muted);
         font-weight: bold;
     }
@@ -661,6 +663,10 @@
         background-color: var(--color-table-recon-row-bg);
         font-size: .7em;
         line-height: .8em;
+    }
+
+    .reconciliation-row .reconciled-cell {
+        background-color: transparent;
     }
 
     .reconciled-recon-row td{
