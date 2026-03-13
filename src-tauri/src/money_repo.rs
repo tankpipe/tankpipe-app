@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
 use accounts::books::{Books, BooksError};
-use accounts::book_repo::{load_books, save_books, save_new_books};
+use accounts::books_repo::{load_books, save_books, save_new_books};
 use directories::ProjectDirs;
 use regex::Regex;
 use dirs::home_dir;
@@ -325,7 +325,7 @@ pub fn initial_setup() -> Result<Config, BooksError> {
 mod tests {
     use std::{ffi::OsString, path::PathBuf};
 
-    use accounts::book_repo::file_exists;
+    use accounts::books_repo::file_exists;
     use serial_test::serial;
     use crate::money_repo::{Repo, derive_file_name, initial_setup, setup_app_directories};
 

@@ -1,5 +1,5 @@
 use accounts::books::{Settings};
-use accounts::book_repo::{export_accounts_to_csv, export_to_csv};
+use accounts::books_repo::{export_accounts_to_csv, export_to_csv};
 use accounts::account::Account;
 use tauri::Manager;
 use std::ffi::OsString;
