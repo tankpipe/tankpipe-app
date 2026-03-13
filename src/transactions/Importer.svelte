@@ -298,7 +298,7 @@
     
 
     .controls input {
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
     }
 
     .scroller{
@@ -327,16 +327,16 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
         text-align: left;
@@ -344,7 +344,7 @@
 
     .scroller tr:hover td {
         cursor: pointer;
-        color: #FFF;
+        color: var(--color-text-strong);
     }
 
     
@@ -354,7 +354,7 @@
     }
 
     .matched {
-        background-color: rgb(0, 71, 0);
+        background-color: var(--color-success-bg);
     }
 
     .message {
@@ -362,19 +362,19 @@
     }
 
     .error-msg {
-        color: rgb(252, 0, 0);
+        color: var(--color-error-strong);
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
     }
 
     .success-msg {
-        color: rgb(0, 187, 0);
+        color: var(--color-success-strong);
         text-align: left;
     }
     .note {
         font-size: 0.7em;
-        color: #daae3e !important;
+        color: var(--color-accent) !important;
         height: 9px;
     }
 

@@ -6,6 +6,11 @@
     import { invoke } from '@tauri-apps/api/core'
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
+    const THEME_OPTIONS = [
+        {value: "system", name: "System"},
+        {value: "light", name: "Light"},
+        {value: "dark", name: "Dark"},
+    ]
 
     const updateSettings = async () => {
         if ($settings) {
@@ -29,6 +34,19 @@
             )
         }
     }
+
+    const updateTheme = async () => {
+        if ($settings) {
+            $settings.theme = $settings.theme || 'system'
+            await updateSettings()
+        }
+    }
+
+    $effect(() => {
+        if ($settings && !$settings.theme) {
+            $settings.theme = 'system'
+        }
+    })
 </script>
 <div class="controls">
     <div class="form-heading">Settings</div>
@@ -45,6 +63,22 @@
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig} disabled={!hasBooks()}/></div>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">Theme</div><div class="field"><Select bind:item={$settings.theme} items={THEME_OPTIONS} flat={true} valueField="value" onChange={updateTheme} disabled={!hasBooks()}/></div>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">Preview</div>
+            <div class="theme-preview">
+                <div class="swatch bg" title="Background"></div>
+                <div class="swatch surface" title="Surface"></div>
+                <div class="swatch text" title="Text"></div>
+                <div class="swatch accent" title="Accent"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -73,7 +107,38 @@
     
 
     .controls input {
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
+    }
+
+    .theme-preview {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 6px;
+    }
+
+    .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid var(--color-border);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+    }
+
+    .swatch.bg {
+        background-color: var(--color-bg);
+    }
+
+    .swatch.surface {
+        background-color: var(--color-surface);
+    }
+
+    .swatch.text {
+        background-color: var(--color-text);
+    }
+
+    .swatch.accent {
+        background-color: var(--color-recon-accent);
     }
 
 </style>

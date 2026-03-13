@@ -20,16 +20,20 @@
     import './utils/i18n'
     import ErrorMsg from './components/ErrorMsg.svelte'
     import { updateConfig } from './stores/config'
+    import { settings } from './stores/settings'
+    import { get } from 'svelte/store'
 
-    export let curAccount = null
+    let curAccount = $state(null)
 
     let dialog
     
     initializeContext()
 
-    export let transactions = []
+    let transactions = $state([])
 
     let unlistenLoaded
+    let themeMediaQuery
+    let removeThemeListener = null
     onMount(async () => {
         unlistenLoaded = await listen('file-loaded', (event) => {
             curAccount = null
@@ -38,6 +42,7 @@
 
     onDestroy(async () => {
         unlistenLoaded()
+        if (removeThemeListener) removeThemeListener()
     })
 
     const initialise = async () => {        
@@ -90,6 +95,39 @@
     listener()
 
     let closeIcon = true
+
+    const getSystemTheme = () => {
+        if (typeof window === 'undefined' || !window.matchMedia) return 'dark'
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+
+    const applyTheme = (theme) => {
+        if (typeof document === 'undefined') return
+        const resolved = theme === 'system' ? getSystemTheme() : theme
+        document.documentElement.dataset.theme = resolved
+    }
+
+    $effect(() => {
+        const theme = $settings?.theme || 'system'
+        applyTheme(theme)
+    })
+
+    onMount(() => {
+        if (typeof window === 'undefined' || !window.matchMedia) return
+        themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+        const handler = () => {
+            const theme = get(settings)?.theme || 'system'
+            if (theme === 'system') applyTheme(theme)
+        }
+        if (themeMediaQuery.addEventListener) {
+            themeMediaQuery.addEventListener('change', handler)
+            removeThemeListener = () => themeMediaQuery.removeEventListener('change', handler)
+        } else {
+            themeMediaQuery.addListener(handler)
+            removeThemeListener = () => themeMediaQuery.removeListener(handler)
+        }
+        handler()
+    })
 
 </script>
 
@@ -157,7 +195,7 @@
 <style>
     .loading {
         margin: 50px 50px;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         text-align: left;
     }
 
@@ -172,7 +210,7 @@
 
     .column.left {
         min-width: 150px;
-        background-color: #363636;
+        background-color: var(--color-bg-alt);
         min-height:100%;
         position:relative;
         padding-top: 30px;
@@ -186,7 +224,7 @@
     }
     
     .app {
-        background-color: #444;
+        background-color: var(--color-bg);
         height: 100%;
         display: flex;
     }
@@ -206,7 +244,7 @@
         background: none !important;
         border: none;
         font-weight: bold;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         padding: 0;
         text-align: left;
         cursor: pointer;
@@ -217,15 +255,15 @@
     }
 
     .menu-left button:hover {
-        color: #F0F0F0;
+        color: var(--color-text-strong);
     }
 
     .menu-selected {
-        color: #F0F0F0 !important;
+        color: var(--color-text-strong) !important;
     }
 
     .disabled {
-        color: #555555 !important;
+        color: var(--color-text-disabled) !important;
     }
 
     main {
@@ -242,28 +280,28 @@
     }
 
     :global(.account-heading select) {
-        color: #C0C0C0;
-        background-color: #444 !important;
+        color: var(--color-text-muted);
+        background-color: var(--color-bg) !important;
     }
 
     :global(.form label, .heading, .total) {
         text-align: left;
         font-size: .8em;
         margin-bottom: 3px;
-        color: #DDDDDD;
+        color: var(--color-text);
     }
 
     :global(.form input) {
-        background-color: #aaa !important;
+        background-color: var(--color-input-bg) !important;
     }
 
     :global(.form input, .form select) {
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
 
     }
 
     :global(.form input:focus, .form select:focus) {
-        outline: #fff solid 1px;
+        outline: var(--color-focus) solid 1px;
 
     }
 
@@ -271,7 +309,7 @@
         font-size: 0.8em;
         font-weight: 500;
         text-align: left;
-        color: #757575;
+        color: var(--color-text-subtle);
         margin: 1px 0 7px 0;
     }
 
@@ -280,7 +318,7 @@
         font-weight: 500;
         margin: 0px 0 20px 0;
         text-align: left;
-        color: #757575;
+        color: var(--color-text-subtle);
         float: left;
     }
    

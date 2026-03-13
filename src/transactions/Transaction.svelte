@@ -154,10 +154,10 @@
 <style>
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
     }
 
     :root {
@@ -247,12 +247,12 @@
     }
 
     .recon-msg {
-        color: #74d965;
+        color: var(--color-success-strong);
     }
     
         
     .reconciled-cell {
-        color: #ccc;
+        color: var(--color-border-light);
     }
 
 </style>

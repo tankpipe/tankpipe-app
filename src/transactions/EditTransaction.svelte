@@ -508,10 +508,10 @@
 <style>
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
     }
 
     :root {
@@ -532,7 +532,7 @@
         margin: 10px 12px 0 0;
     }
     .error-msg {
-        color: #FBC969;
+        color: var(--color-warning);
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
@@ -540,28 +540,28 @@
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
         text-align: left;
     }
 
     .disabled {
-        background-color: #F0F0F0;
+        background-color: var(--color-text-strong);
     }
 
     
 
     .greyed:hover {
-        color: #666 !important;
-        border-color: #666 !important;
+        color: var(--color-border) !important;
+        border-color: var(--color-border) !important;
         cursor: default !important;
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .buttons {
@@ -651,13 +651,13 @@
     }
 
     .recon-msg {
-        color: #daae3e;
+        color: var(--color-accent);
     }
     
     
 
     .reconciled-cell {
-        color: #ccc;
+        color: var(--color-border-light);
     }
 
 </style>

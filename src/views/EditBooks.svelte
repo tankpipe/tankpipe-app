@@ -95,7 +95,7 @@
 
 <style>
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
     }
@@ -112,19 +112,19 @@
     }
 
     .error-msg {
-        color: #FBC969;
+        color: var(--color-warning);
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .buttons {

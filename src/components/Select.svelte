@@ -44,7 +44,7 @@
     }
 
     .flat {
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
         appearance: none;
         position: relative;
         background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
@@ -56,15 +56,15 @@
 
     .flat::after {
         content: "\25b6";
-        color: #fff;
+        color: var(--color-white);
         position: absolute; top: 0; right: 0;
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 </style>

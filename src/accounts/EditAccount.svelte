@@ -242,7 +242,7 @@
 <style>
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
     }
@@ -257,7 +257,7 @@
         color: #EFEFEF;
         margin-bottom: 20px;
         text-align: left;
-        background-color: #303030;
+        background-color: var(--color-surface-2);
         padding:10px;
         border-radius: 10px;
     }
@@ -268,19 +268,19 @@
     }
 
     .error-msg {
-        color: #FBC969;
+        color: var(--color-warning);
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
     }
 
     .error {
-        border: 1px solid #FBC969;
+        border: 1px solid var(--color-warning);
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .buttons {
@@ -332,19 +332,19 @@
 
     :global(.info-label) {
         font-size: 0.75em;
-        color: #aaa;
+        color: var(--color-input-bg);
     }
 
     :global(.info-value) {
         font-size: 0.75em;
-        color: #aaa;
+        color: var(--color-input-bg);
     }
     
     :global(.info-title) {
         white-space: nowrap;
         font-weight: 200;
         font-size: 1em;
-        color: #757575;
+        color: var(--color-text-subtle);
         margin-bottom: 10px;
         display: inline-flex;
         float: left;
@@ -354,12 +354,12 @@
 
     :global(hr) {
         border-style: none;
-        border: 1px solid #363636;
+        border: 1px solid var(--color-bg-alt);
         margin-left: -20px;
         width: 100vw;
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 </style>

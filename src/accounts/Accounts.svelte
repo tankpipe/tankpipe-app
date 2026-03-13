@@ -132,7 +132,7 @@
     .account-type {
         font-size: 0.8em;
         font-weight: 500;
-        color: #757575;
+        color: var(--color-text-subtle);
         margin: 5px 0px -5px 10px;
         float: left;
         clear: both;
@@ -140,28 +140,28 @@
 
     .edit-icon {
         float: right;
-        color: #524e4e;
+        color: var(--color-surface);
     }
 
     .card:hover .edit-icon {
-        color: #666;
+        color: var(--color-border);
     }
 
     .edit-icon:hover {
-        color: #C0C0C0 !important;
+        color: var(--color-text-muted) !important;
     }
 
     .card {
         padding: 10px;
         border-radius: 10px;
-        color: #E0E0E0;
+        color: var(--color-text-strong-2);
         min-width: 300px;
         text-align: left;
     }
 
     .card:hover {
         cursor: pointer;
-        color: #FFF;
+        color: var(--color-white);
     }
     
 </style>

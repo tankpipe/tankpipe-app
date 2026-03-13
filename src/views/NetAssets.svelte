@@ -176,7 +176,7 @@
         margin: 0px 0 20px 0;
         text-align: left;
         overflow: visible;
-        color: #757575;
+        color: var(--color-text-subtle);
     }
 
     .bs-sub-heading {
@@ -185,7 +185,7 @@
         margin: -10px 0 0px 1px;
         text-align: left;
         overflow: visible;
-        color: #757575;
+        color: var(--color-text-subtle);
     }
 
     .scroller{
@@ -195,12 +195,12 @@
     }
 
     .sub-total {
-        border-top: 1px solid #C0C0C0;
+        border-top: 1px solid var(--color-text-muted);
     }
 
     .total {
-        border-top: 1px solid #C0C0C0;
-        border-bottom: 1px solid #C0C0C0
+        border-top: 1px solid var(--color-text-muted);
+        border-bottom: 1px solid var(--color-text-muted)
     }
 
     table {
@@ -211,8 +211,8 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
@@ -223,8 +223,8 @@
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
     }
@@ -232,7 +232,7 @@
 
     tr:hover td {
         cursor: pointer;
-        color: #FFF;
+        color: var(--color-text-strong);
     }
 
     .money {

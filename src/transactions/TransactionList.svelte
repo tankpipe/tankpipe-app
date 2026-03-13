@@ -480,8 +480,8 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
@@ -490,12 +490,12 @@
     
 
     .projected {
-        color: #999;
+        color: var(--color-text-disabled);
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
     }
@@ -503,12 +503,12 @@
 
     .scroller tr:hover td {
         cursor: pointer;
-        color: #FFF;
+        color: var(--color-text-strong);
     }
 
     tr:hover td .tiny{
         cursor: pointer;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
     }
 
     .journal tr:last-child  {
@@ -516,8 +516,8 @@
     }
 
     .selected td {
-        background-color: #1a3924;
-        color: #e3e3e3;
+        background-color: var(--color-table-selected-bg);
+        color: var(--color-table-selected-text);
     }
 
     .money {
@@ -535,7 +535,7 @@
 
     .tiny {
         font-size: 0.5em;
-        color: #878787;
+        color: var(--color-text-dim);
         margin: 3px 0 -5px 2px;
     }
 
@@ -550,14 +550,14 @@
     }
 
     .error-msg {
-        color: red;
+        color: var(--color-error);
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
     }
 
     .messages .success-msg {
-        color: green;
+        color: var(--color-success);
         text-align: left;
         font-size: 0.85em;
     }
@@ -580,12 +580,12 @@
         padding: 0 0 0 0px;
         border: none;
         cursor: pointer;
-        color: #666;
+        color: var(--color-border);
         margin-left: -10px;
     }
 
     .merge-marker:hover, .merge-marker-selected {
-        color: #74d965;
+        color: var(--color-success-strong);
     }
 
     .merge-marker-selected {
@@ -601,7 +601,7 @@
         padding: 0 0 0 0px;
         cursor: pointer;
         border-radius: 50%;
-        border: 1px solid #666;
+        border: 1px solid var(--color-border);
         color: transparent;
         width: 12px !important;
         height: 12px !important;
@@ -620,7 +620,7 @@
     .recon-marker.hover-highlight {
         border-color: transparent;
         background: transparent;
-        color: #74d965;
+        color: var(--color-success-strong);
         box-shadow: none;
         font-weight: bold;
         width: 30px !important;
@@ -629,7 +629,7 @@
 
     .recon-check {
         margin-left: 6px;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
         font-weight: bold;
     }
 
@@ -641,53 +641,53 @@
     }   
     
     .divider-row {
-        background-color: #444;     
+        background-color: var(--color-bg);     
     }
 
     .reconciliation-row-matched td {
-        color: #74d965;
+        color: var(--color-success-strong);
     }   
 
     .reconciliation-row-partialmatch td, .reconciliation-row-mismatch td {
-        color: #daae3e;
+        color: var(--color-accent);
     }
 
     .reconciliation-row-unmatched td {
-        color: #e2634f;
+        color: var(--color-error-muted);
     }
 
     .reconciliation-row td {
-        background-color: #2a2a2a;
+        background-color: var(--color-table-recon-row-bg);
         font-size: .7em;
         line-height: .8em;
     }
 
     .reconciled-recon-row td{
-        color: #888;
+        color: var(--color-muted-strong);
     }
 
     .reconciliation-row-matched:hover td {
         cursor: default !important;
-        color: #74d965 !important;
+        color: var(--color-success-strong) !important;
     }
 
     .reconciliation-row-partialmatch:hover td, .reconciliation-row-mismatch:hover td  {
         cursor: default !important;
-        color: #daae3e !important;
+        color: var(--color-accent) !important;
     }
 
     .reconciliation-row-unmatched:hover td {
         cursor: default !important;
-        color: #e2634f !important;
+        color: var(--color-error-muted) !important;
     }
 
     .reconciled-recon-row:hover td {
         cursor: default !important;
-        color: #888 !important;
+        color: var(--color-muted-strong) !important;
     }
 
     .orphan-row td {
-        border-bottom: 1px solid #52241d;        
+        border-bottom: 1px solid var(--color-error-border);        
     }
 
     .orphan-row td:last-child {
@@ -695,14 +695,14 @@
     }
 
     .error-msg {
-        color: red;
+        color: var(--color-error);
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
         text-align: left;
     }
 

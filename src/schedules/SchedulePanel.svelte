@@ -73,7 +73,7 @@
     .frequency-input {
         width: 40px;
         text-align: right;
-        background-color: #F0F0F0;
+        background-color: var(--color-text-strong);
     }
 
     

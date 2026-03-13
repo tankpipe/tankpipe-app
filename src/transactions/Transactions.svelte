@@ -392,16 +392,16 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
     }
@@ -422,7 +422,7 @@
 
     .chart {
         float: right;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
         margin: 0 30px 5px 10px;
         display: flex;
         padding-right: 13px;
@@ -431,7 +431,7 @@
 
     :global(.toolbar) {
         float: left;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
         margin-left: 10px;
         display: flex;
         padding-right: 9px;
@@ -449,37 +449,37 @@
 
     :global(.toolbar-icon) {
         margin-left: 5px;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
     }
 
     :global(.toolbar-icon:hover) {
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         cursor: pointer;
     }
 
     :global(.toolbar-icon-disabled) {
         margin-left: 5px;
-        color: #303030;
+        color: var(--color-surface-2);
     }
 
     :global(.toolbar-icon:disabled) {
         margin-left: 5px;
-        color: #303030;
+        color: var(--color-surface-2);
         cursor: default;
     }
 
     :global(.toolbar-icon-on) {
         margin-left: 5px;
-        color: #43bd6e; /*#55e688*/
+        color: var(--color-toolbar-on);
     }
 
     :global(.toolbar-icon-on:hover) {
-        color: #55e688;
+        color: var(--color-toolbar-on-hover);
         cursor: pointer;
     }
 
     :global(.warning:hover) {
-        color: #e68843;
+        color: var(--color-warning-strong);
     }
 
     :global(.import-icon) {
@@ -494,35 +494,35 @@
         border: none;
         cursor: pointer;
         padding: 0px;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
     }
 
     :global(.single-button:hover) {
         cursor: pointer;
-        color: #e0e0e0;
+        color: var(--color-text-strong-2);
     }
 
     .reconciliation-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #2a2a2a;
+        background-color: var(--color-recon-header-bg);
         padding: 10px 15px;
         margin: 10px 35px 10px 0;
         border-radius: 5px;
-        border-left: 4px solid #4CAF50;
+        border-left: 4px solid var(--color-recon-accent);
     }
 
     .reconciliation-title {
-        color: #4CAF50;
+        color: var(--color-recon-accent);
         font-weight: bold;
         font-size: 1.1em;
     }
 
     .exit-reconciliation {
-        background-color: #555;
+        background-color: var(--color-text-disabled);
         border: none;
-        color: #fff;
+        color: var(--color-white);
         padding: 5px 10px;
         border-radius: 3px;
         cursor: pointer;
@@ -533,7 +533,7 @@
     }
 
     .exit-reconciliation:hover {
-        background-color: #666;
+        background-color: var(--color-border);
     }
 
     .errors {
@@ -541,14 +541,14 @@
     }
 
     .error-msg {
-        color: red;
+        color: var(--color-error);
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
         text-align: left;
         font-size: 0.85em;
     }

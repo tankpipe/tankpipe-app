@@ -307,7 +307,7 @@
         white-space: nowrap;
         font-weight: 200;
         font-size: 1em;
-        color: #757575;
+        color: var(--color-text-subtle);
         margin-bottom: 10px;
         display: inline-flex;
         float: left;
@@ -328,11 +328,11 @@
 
     .csv-table tr:hover td {
         cursor: pointer;
-        color: #e0e0e0 !important;
+        color: var(--color-text-strong-2) !important;
     }
 
     .selected-row td {
-        background-color: #333 !important;
+        background-color: var(--color-table-selected-bg) !important;
     }
     
     table {
@@ -344,16 +344,16 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
         text-align: left;
@@ -393,15 +393,15 @@
     }
 
     .error-msg {
-        color: #FBC969;
+        color: var(--color-warning);
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .buttons {
@@ -422,13 +422,13 @@
     .number-input {
         width: 50px;
         text-align: right;
-        background-color: #F0F0F0;
+        background-color: var(--color-text-strong);
     }
      
     .interest-form {
         border-radius: 10px;
-        color: #DDDDDD;
-        background-color: #333;
+        color: var(--color-text);
+        background-color: var(--color-text-base);
         float: left;
         padding: 10px;
     }
@@ -438,7 +438,7 @@
     }
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
     }

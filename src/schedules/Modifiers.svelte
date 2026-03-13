@@ -164,17 +164,17 @@
 
 <style>
     .error-msg {
-        color: #FBC969;
+        color: var(--color-warning);
         font-size: .8em;
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
         font-size: .8em;
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .scroller{
@@ -188,7 +188,7 @@
         display: inline-block;
         text-align: left;
         margin: 10px 10px;
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         vertical-align: top;
     }
 
@@ -216,23 +216,23 @@
 
      .edit-icon {
         float: right;
-        color: #524e4e;
+        color: var(--color-surface);
         margin-left: 5px;
     }
 
     .card:hover .edit-icon {
-        color: #666;
+        color: var(--color-border);
     }
 
     .edit-icon:hover {
-        color: #C0C0C0 !important;
+        color: var(--color-text-muted) !important;
         cursor: pointer;
     }
 
    
 
     hr {
-        border: 1px solid #444;
+        border: 1px solid var(--color-bg);
         margin: 0 -5px;
     }
 
