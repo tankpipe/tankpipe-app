@@ -182,11 +182,7 @@
         min-width: 80px;
     }
 
-    .buttons-left {
-        float: left;
-        margin: 10px 12px 0 0;
-        padding: 5px 0px 5px 0px;
-    }
+    
 
     .form-button-row {
         margin-left: 7px;
@@ -238,25 +234,16 @@
         margin: 0px;
     }
 
-    .select-adjust {
-        margin-bottom: -8px;
-    }
+    
 
     .entries {
         padding: 5px 5px 10px 10px;
         clear: both;
     }
 
-    .bottom-toolbar {
-        float: left;
-    }
+    
 
-    .indicator {        
-        float: left;
-        margin: 0px 0px 0px 20px;        
-        display: flex;
-        align-items: center;
-    }
+    
 
     .indicator span {
         padding-top: 6px;
@@ -267,9 +254,7 @@
         color: #74d965;
     }
     
-    .source-msg {
-        color: #aaa;
-    }    
+        
     .reconciled-cell {
         background-color: #444 !important;
         color: #ccc;

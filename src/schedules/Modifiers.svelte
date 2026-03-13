@@ -192,10 +192,7 @@
         vertical-align: top;
     }
 
-    .row {
-        display: block;
-        text-align: left;
-    }
+    
 
     .scroller {
         clear: both;
@@ -238,12 +235,7 @@
         cursor: pointer;
     }
 
-   .card-title {
-        min-width: 500px;
-        white-space: nowrap;
-        font-weight: bold;
-        float: left;
-    }
+   
 
     hr {
         border: 1px solid #444;
@@ -259,9 +251,7 @@
         border-radius: 10px;
     }
 
-    .controls {
-        text-align: center;
-    }
+    
 
     .msg-row {
         display: block;
@@ -270,17 +260,9 @@
         margin: -10px 0px 0px 10px;        
     }
 
-    .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
+    
 
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
+    
     
 
 </style>

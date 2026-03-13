@@ -49,9 +49,7 @@
     </div>
 </div>
 <style>
-    .controls {
-        text-align: center;
-    }
+    
 
     .form-row2 {
         display: block;
@@ -73,10 +71,7 @@
         width: 11em;
     }
 
-    .field {
-        text-align: left;
-        display: inline-block;
-    }
+    
 
     .controls input {
         background-color: #aaa;

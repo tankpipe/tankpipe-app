@@ -251,11 +251,7 @@
         --date-input-width: 110px;
     }
 
-    .msg-panel {
-        padding-left: 2px;
-        font-size: 0.9em;
-        float:left;
-    }
+    
 
     :global(.message) {
         color: #EFEFEF;
@@ -329,9 +325,7 @@
         text-align: right;
     }
 
-    .description-input {
-        width: 400px;
-    }
+    
 
     :global(.info-row) {
         padding: 5px 0 0px 10px;
@@ -391,15 +385,12 @@
         margin-bottom: 0px;
     }
 
-
     :global(hr) {
         border-style: none;
         border: 1px solid #363636;
         margin-left: -20px;
         width: 100vw;
     }
-
-
 
     .error {
         border: 1px solid #FBC969 !important;

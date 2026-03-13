@@ -275,9 +275,7 @@
 </div>
 
 <style>
-    .controls {
-        text-align: center;
-    }
+    
 
     .form-row2 {
         display: block;
@@ -298,10 +296,7 @@
         min-width: 11em;
     }
 
-    .field {
-        text-align: left;
-        display: inline-block;
-    }
+    
 
     .controls input {
         background-color: #aaa;
@@ -353,9 +348,7 @@
         color: #FFF;
     }
 
-    .account {
-        float: left;
-    }
+    
 
     .shrink-font {
         font-size: .9em;

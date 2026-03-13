@@ -91,3 +91,112 @@ input[type="number"]::-webkit-inner-spin-button {
 .og-button:disabled:hover {
 	cursor: default;
 }
+
+
+.account {
+        float: left;
+    }
+
+.align_right {
+        text-align: right;
+    }
+
+.bottom-toolbar {
+        float: left;
+    }
+
+.buttons-left {
+        float: left;
+        margin: 10px 12px 0 0;
+        padding: 5px 0px 5px 0px;
+    }
+
+.card-title {
+        min-width: 500px;
+        white-space: nowrap;
+        font-weight: bold;
+        float: left;
+    }
+
+.controls {
+        text-align: center;
+    }
+
+.description-input {
+        width: 400px;
+    }
+
+.fat-hr {
+        border: 3px solid #363636;
+    }
+
+.field {
+        text-align: left;
+        display: inline-block;
+    }
+
+.float-left {
+        float: left;
+    }
+
+.greyed {
+        color: #666;
+        border-color: #666;
+    }
+
+.heading-spinner {
+        margin: 3px 0 0 10px;
+        float: left;
+    }
+
+.indicator {        
+        float: left;
+        margin: 0px 0px 0px 20px;        
+        display: flex;
+        align-items: center;
+    }
+
+.justify-left {
+        text-align: left;
+        padding-left: 10px;
+    }
+
+.msg-panel {
+        padding-left: 2px;
+        font-size: 0.9em;
+        float:left;
+    }
+
+.raise {
+        margin-top: -7px;
+    }
+
+.row {
+        display: block;
+        text-align: left;
+    }
+
+.select-adjust {
+        margin-bottom: -8px;
+    }
+
+.small-text {
+        font-size: 0.7em;
+        color: #878787;
+        margin: 3px 0 -5px 2px;
+        min-height: 27px;
+    }
+
+.source-msg {
+        color: #aaa;
+    }
+
+.top-widget {
+        display: inline-block;
+        padding: 5px 0px 5px 0px;
+    }
+
+.widget2 {
+        padding: 5px 0px 5px 10px;
+        margin: 13px 12px 0px 0px;
+    }

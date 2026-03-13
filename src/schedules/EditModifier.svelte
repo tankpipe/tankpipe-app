@@ -189,10 +189,7 @@
         font-size: 0.9em;
     }
 
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
+    
 
     .money-input {
         width: 120px;

@@ -267,22 +267,15 @@
         min-height: 33px;
     }
 
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
+    
 
-    .raise {
-        margin-top: -7px;
-    }
+    
 
     .left {
         padding-left: 0px;
     }
 
-    .float-left {
-        float: left;
-    }
+    
 
     .date-input {
         float: right;
@@ -295,22 +288,13 @@
         width: 100vw;
     }
 
-
     .inline-button {
         float: right;
         margin: -7px 0px 0px 3px;
     }
 
-     .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
+     
 
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
+    
 
 </style>

@@ -99,10 +99,7 @@
         color: #DDDDDD;
     }
 
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
+    
 
     hr {
         border-style: none;
@@ -112,16 +109,8 @@
     }
 
    
-    .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
+    
 
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
+    
 
 </style>

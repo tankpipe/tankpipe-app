@@ -429,7 +429,6 @@
         border: 1px solid #FBC969 !important;
     }
 
-
     .buttons {
         float: right;
         margin: 10px 12px 0 0;
@@ -471,10 +470,7 @@
         font-size: 0.9em;
     }
 
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
+    
 
     td .heading {
         margin-bottom: -1px;
@@ -484,17 +480,13 @@
         width: 100px;
     }
 
-    .float-left {
-        float: left;
-    }
+    
 
     .money-input {
         text-align: right;
     }
 
-    .description-input {
-        width: 400px;
-    }
+    
 
     .total {
         text-align: right;
@@ -508,9 +500,7 @@
         width: 100vw;
     }
 
-    .fat-hr {
-        border: 3px solid #363636;
-    }
+    
 
     .entry-buttons {
         float: left;
@@ -520,10 +510,7 @@
         margin-left: 5px;
     }
 
-    .greyed {
-        color: #666;
-        border-color: #666;
-    }
+    
 
     .greyed:hover {
         color: #666 !important;

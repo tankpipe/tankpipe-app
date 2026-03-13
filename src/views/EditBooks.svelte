@@ -104,11 +104,7 @@
         --date-input-width: 110px;
     }
 
-    .msg-panel {
-        padding-left: 2px;
-        font-size: 0.9em;
-        float:left;
-    }
+    
 
     .msg-panel p {
         margin: 8px 0;
@@ -171,7 +167,5 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .description-input {
-        width: 400px;
-    }
+    
 </style>

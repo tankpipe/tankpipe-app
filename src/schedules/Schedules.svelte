@@ -271,10 +271,7 @@
         color: #C0C0C0;
     }
 
-    .row {
-        display: block;
-        text-align: left;
-    }
+    
 
     .label {
         font-size: .8em;
@@ -325,12 +322,7 @@
         min-width: 100px;
     }
 
-    .card-title {
-        min-width: 500px;
-        white-space: nowrap;
-        font-weight: bold;
-        float: left;
-    }
+    
 
     .description {
         min-width: 316px;
@@ -365,9 +357,7 @@
         border-radius: 10px;
     }
 
-    .controls {
-        text-align: center;
-    }
+    
 
     .form-row {
         display: block;
@@ -397,14 +387,8 @@
         padding-right: .5em;
     }
 
-    .field {
-        text-align: left;
-        display: inline-block;
-    }
+    
 
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
+    
 
 </style>

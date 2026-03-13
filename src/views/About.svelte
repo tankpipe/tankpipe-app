@@ -104,10 +104,7 @@
         border: 1px solid #444;
         margin: 0 -5px;
     }
-    .row {
-        display: block;
-        text-align: left;
-    }
+    
     .card {
         float: left;
         clear: both;
@@ -157,7 +154,6 @@
         text-align: left;
         margin: 10px 10px;
     }
-
 
     .link-text {
         vertical-align: super;

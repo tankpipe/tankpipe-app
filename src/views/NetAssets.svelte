@@ -188,7 +188,6 @@
         color: #757575;
     }
 
-
     .scroller{
         height: 100%;
         width: 100%;
@@ -229,16 +228,12 @@
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+    
 
     tr:hover td {
         cursor: pointer;
         color: #FFF;
     }
-
 
     .money {
         text-align: right !important;

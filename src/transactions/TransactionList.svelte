@@ -487,9 +487,7 @@
         font-size: 0.9em;
     }
 
-    .align_right {
-        text-align: right;
-    }
+    
 
     .projected {
         color: #999;
@@ -501,10 +499,7 @@
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+    
 
     .scroller tr:hover td {
         cursor: pointer;
@@ -545,9 +540,7 @@
         margin: 3px 0 -5px 2px;
     }
 
-    .account {
-        float: left;
-    }
+    
     
     .message {
         color: #EFEFEF;
@@ -630,7 +623,6 @@
         width: 19px;
         margin-left: -10px;
     }
-
 
     .recon-marker:hover {
         cursor: default

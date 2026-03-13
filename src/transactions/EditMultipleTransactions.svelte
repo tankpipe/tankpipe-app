@@ -381,10 +381,7 @@
         background-color: #F0F0F0;
     }
 
-    .greyed {
-        color: #666;
-        border-color: #666;
-    }
+    
 
     .greyed:hover {
         color: #666 !important;
@@ -409,11 +406,7 @@
         min-width: 80px;
     }
 
-    .buttons-left {
-        float: left;
-        margin: 10px 12px 0 0;
-        padding: 5px 0px 5px 0px;
-    }
+    
 
     .form-button-row {
         margin-left: 7px;
@@ -439,10 +432,7 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
+    
 
     .widget2 label {
         display: inline-block;
@@ -461,9 +451,7 @@
         text-align: right;
     }
 
-    .description-input {
-        width: 400px;
-    }
+    
 
     .date-input {
         margin-top: 0px;
@@ -483,19 +471,14 @@
         margin: 0px;
     }
 
-    .select-adjust {
-        margin-bottom: -8px;
-    }
+    
 
     .entries {
         padding: 5px 5px 10px 10px;
         clear: left;
     }
 
-
-    .bottom-toolbar {
-        float: left;
-    }
+    
 
     .bottom-toolbar div {
         margin: 6px 0 0 0 !important;
@@ -529,9 +512,7 @@
         font-size: 0.9em;
     }
 
-    .align_right {
-        text-align: right;
-    }
+    
 
     .projected {
         color: #878787;
@@ -543,10 +524,7 @@
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+    
 
     .money {
         text-align: right !important;
@@ -568,7 +546,5 @@
         margin: 3px 0 -5px 2px;
     }
 
-    .account {
-        float: left;
-    }
+    
 </style>

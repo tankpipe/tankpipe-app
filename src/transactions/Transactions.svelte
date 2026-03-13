@@ -405,10 +405,7 @@
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+    
 
     .form input {
         margin: 0px;
@@ -421,9 +418,7 @@
         text-overflow: ellipsis;
     }
 
-    .account {
-        float: left;
-    }
+    
 
     .chart {
         float: right;

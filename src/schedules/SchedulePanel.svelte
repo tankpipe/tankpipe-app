@@ -59,10 +59,7 @@
         font-size: 0.9em;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
+    
 
     .widget2 label {
         display: inline-block;
@@ -79,9 +76,7 @@
         background-color: #F0F0F0;
     }
 
-    .raise {
-        margin-top: -7px;
-    }
+    
 
     .left {
         padding-left: 0px;

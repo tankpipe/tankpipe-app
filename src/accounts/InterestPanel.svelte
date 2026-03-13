@@ -387,11 +387,7 @@
         clear: both;
     }
 
-    .msg-panel {
-        padding-left: 2px;
-        font-size: 0.9em;
-        float:left;
-    }
+    
 
     .msg-panel p {
         margin: 8px 0;
