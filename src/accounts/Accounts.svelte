@@ -144,11 +144,11 @@
     }
 
     .card:hover .edit-icon {
-        color: var(--color-border);
+        color: var(--color-icon-card-hover);
     }
 
     .edit-icon:hover {
-        color: var(--color-text-muted) !important;
+        color: var(--color-icon-hover) !important;
     }
 
     .card {
@@ -161,7 +161,7 @@
 
     .card:hover {
         cursor: pointer;
-        color: var(--color-white);
+        color: var(--color-text-hover);
     }
     
 </style>

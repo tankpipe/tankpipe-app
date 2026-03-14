@@ -11,7 +11,7 @@ use regex::Regex;
 use dirs::home_dir;
 use uuid::Uuid;
 
-use crate::config::{Config, DEFAULT_PROJECTION_MONTHS, DateFormat, FileDetails};
+use crate::config::{Config, DEFAULT_PROJECTION_MONTHS, DateFormat, FileDetails, Theme};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -230,6 +230,7 @@ impl AppDirectories {
             current_file: None,
             last_file: FileDetails::empty(),
             recent_files: Vec::new(),
+            theme: Theme::System,
             display_date_format: DateFormat::Locale,
             import_date_format: "%d/%m/%Y".to_string(),
             csv_mappings: HashMap::new(),

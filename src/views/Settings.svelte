@@ -7,9 +7,9 @@
 
     const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
     const THEME_OPTIONS = [
-        {value: "system", name: "System"},
-        {value: "light", name: "Light"},
-        {value: "dark", name: "Dark"},
+        {value: "System", name: "System"},
+        {value: "Light", name: "Light"},
+        {value: "Dark", name: "Dark"},
     ]
 
     const updateSettings = async () => {
@@ -25,7 +25,8 @@
         if ($config) {
             const configSettings = {
                 display_date_format: $config.display_date_format,
-                import_date_format: $config.import_date_format
+                import_date_format: $config.import_date_format,
+                theme: $config.theme
             }
 
             await invoke('update_config', {configSettings: configSettings}).then(
@@ -37,14 +38,14 @@
 
     const updateTheme = async () => {
         if ($settings) {
-            $settings.theme = $settings.theme || 'system'
+            $settings.theme = $settings.theme || 'System'
             await updateSettings()
         }
     }
 
     $effect(() => {
         if ($settings && !$settings.theme) {
-            $settings.theme = 'system'
+            $settings.theme = 'System'
         }
     })
 </script>
@@ -52,7 +53,7 @@
     <div class="form-heading">Settings</div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} on:change={updateSettings} disabled={!hasBooks()}/>
+            <div class="label label-column">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} onchange={updateSettings} disabled={!hasBooks()}/>
         </div>
     </div>
     <div class="form-row2">
@@ -67,7 +68,7 @@
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Theme</div><div class="field"><Select bind:item={$settings.theme} items={THEME_OPTIONS} flat={true} valueField="value" onChange={updateTheme} disabled={!hasBooks()}/></div>
+            <div class="label label-column">Theme</div><div class="field"><Select bind:item={$config.theme} items={THEME_OPTIONS} flat={true} valueField="value" onChange={updateConfig} disabled={!hasBooks()}/></div>
         </div>
     </div>
     <div class="form-row2">
@@ -104,7 +105,9 @@
         width: 11em;
     }
 
-    
+    .controls .label {
+        color: var(--color-text);
+    }
 
     .controls input {
         background-color: var(--color-input-bg);

@@ -405,7 +405,7 @@
                 <td class="{projected(t)} money">{getBalance(e)}</td>
                 <td class="reconciled-cell" onclick={(event) => stopPropagationHandler(event, () => {})}>
                     {#if reconciledContent === 'reconciled'}
-                        <div><Icon icon="mdi:check" width="16"/></div>
+                        <div class="recon-status"><Icon icon="mdi:check" width="16"/></div>
                     {:else if reconciledContent === 'reconcilable'}
                         <button
                             class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
@@ -425,7 +425,7 @@
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconciledContent === 'outstanding'}
-                        <div><Icon icon="mdi:circle-small" width="16"/></div>
+                        <div class="recon-status"><Icon icon="mdi:circle-small" width="16"/></div>
                     {/if}
                 </td>
             </tr>
@@ -450,7 +450,7 @@
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
-                <td class="reconciled-cell">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == 'Outstanding'}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
+                <td class="reconciled-cell recon-status">{#if isReconciled(e)}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == 'Outstanding'}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
             </tr>
             {/each}
             <tr style="height: 8px;"></tr>
@@ -487,10 +487,17 @@
         font-size: 0.9em;
     }
 
-    
+    .recon-status-reconciled {
+        color: var(--color-recon-accent);
+    }
+
+    .recon-status-outstanding {
+        color: var(--color-recon-accent);
+    }
 
     .projected {
-        color: var(--color-text-disabled);
+        color: var(--color-text-dim);
+        background-color: var(--color-bg-dim);
     }
 
     th {

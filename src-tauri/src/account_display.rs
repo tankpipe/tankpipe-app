@@ -6,7 +6,7 @@ use uuid::Uuid;
 use accounts::serializer::*;
 use rust_decimal_macros::dec;
 
-use crate::{config::DateFormat, money_repo::Repo};
+use crate::{config::{DateFormat, Theme}, money_repo::Repo};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NewAccount {
@@ -39,10 +39,11 @@ pub struct DateParam {
 }
 
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ConfigSettings {
     pub display_date_format: DateFormat,
-    pub import_date_format: String
+    pub import_date_format: String,
+    pub theme: Theme,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

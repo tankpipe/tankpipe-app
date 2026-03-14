@@ -108,7 +108,7 @@
     }
 
     $effect(() => {
-        const theme = $settings?.theme || 'system'
+        const theme = $config?.theme?.toLowerCase() || 'system'
         applyTheme(theme)
     })
 
@@ -116,7 +116,7 @@
         if (typeof window === 'undefined' || !window.matchMedia) return
         themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
         const handler = () => {
-            const theme = get(settings)?.theme || 'system'
+            const theme = get(config)?.theme?.toLowerCase() || 'system'
             if (theme === 'system') applyTheme(theme)
         }
         if (themeMediaQuery.addEventListener) {

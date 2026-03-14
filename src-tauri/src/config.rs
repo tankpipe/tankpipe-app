@@ -30,6 +30,14 @@ impl FileDetails {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+pub enum Theme {
+    Dark,
+    Light,
+    System,
+}
+
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub enum DateFormat {
     Locale,
     Regular,
@@ -51,6 +59,7 @@ pub struct Config {
     pub current_books_id: Option<Uuid>,
     pub last_file: FileDetails,
     pub recent_files: Vec<FileDetails>,
+    pub theme: Theme,
     pub display_date_format: DateFormat,
     pub import_date_format: String,
     pub csv_mappings: HashMap<Uuid, Vec<String>>,
@@ -119,6 +128,10 @@ impl Config {
 
 fn default_projection_months() -> u32 {
     DEFAULT_PROJECTION_MONTHS
+}
+
+fn default_theme() -> Theme {
+    Theme::System
 }
 
 pub fn deserialize_osstring<'de, D>(deserializer: D) -> Result<OsString, D::Error>

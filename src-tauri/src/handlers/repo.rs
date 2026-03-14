@@ -80,10 +80,11 @@ pub fn about() -> About {
 
 #[tauri::command]
 pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSettings) -> Result<(), String>  {
-    println!("Updating config");
+    println!("Updating config: {:?}", config_settings);
     let mut mutex_guard = state.0.lock().unwrap();
     mutex_guard.config.display_date_format = config_settings.display_date_format;
     mutex_guard.config.import_date_format = config_settings.import_date_format;
+    mutex_guard.config.theme = config_settings.theme;
     error_handler(mutex_guard.save_config())
 }
 
