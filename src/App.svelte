@@ -25,8 +25,8 @@
     import Icon from '@iconify/svelte'
 
     let curAccount = $state(null)
-
-    let dialog
+    let dialog = $state(null)
+    let supportedVersion = $state(false);    
     
     initializeContext()
 
@@ -55,8 +55,6 @@
         let result = await invoke('accounts')
         updateAccounts(result)
     };
-
-    let supportedVersion = false;
 
     (async () => {
         supportedVersion = (typeof HTMLDialogElement === 'function')
