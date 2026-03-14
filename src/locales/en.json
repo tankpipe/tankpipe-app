@@ -274,5 +274,24 @@
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",
         "descriptionDefault": "Interest"
+    },
+    "settings": {
+        "title": "Settings",
+        "enforceDoubleEntry": "Enforce double entry",
+        "displayDateFormat": "Display date format",
+        "importDateFormat": "Import date format",
+        "theme": "Theme",
+        "preview": "Preview",
+        "dateFormats": {
+            "localeDefault": "Locale default",
+            "regular": "D/M/YYYY",
+            "us": "M/D/YYYY",
+            "iso": "YYYY-MM-DD"
+        },
+        "themes": {
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
+        }
     }
 }

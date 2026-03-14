@@ -4,12 +4,18 @@
     import {hasBooks} from '../stores/context.js'
     import Select from '../components/Select.svelte';
     import { invoke } from '@tauri-apps/api/core'
+    import { _ } from 'svelte-i18n'
 
-    const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
+    const DATE_FORMATS = [
+        {value: "Locale", name: $_('settings.dateFormats.localeDefault')}, 
+        {value: "Regular", name: $_('settings.dateFormats.regular'), format: "%d/%m/%Y"}, 
+        {value: "US", name: $_('settings.dateFormats.us'), format: "%m/%d/%Y"}, 
+        {value: "ISO", name: $_('settings.dateFormats.iso'), format: "%Y-%M-%D"}
+    ]
     const THEME_OPTIONS = [
-        {value: "System", name: "System"},
-        {value: "Light", name: "Light"},
-        {value: "Dark", name: "Dark"},
+        {value: "System", name: $_('settings.themes.system')},
+        {value: "Light", name: $_('settings.themes.light')},
+        {value: "Dark", name: $_('settings.themes.dark')},
     ]
 
     const updateSettings = async () => {
@@ -50,30 +56,30 @@
     })
 </script>
 <div class="controls">
-    <div class="form-heading">Settings</div>
+    <div class="form-heading">{$_('settings.title')}</div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Enforce double entry</div><input type="checkbox" bind:checked={$settings.require_double_entry} onchange={updateSettings} disabled={!hasBooks()}/>
+            <div class="label label-column">{$_('settings.enforceDoubleEntry')}</div><input type="checkbox" bind:checked={$settings.require_double_entry} onchange={updateSettings} disabled={!hasBooks()}/>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Display date format</div><div class="field"><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}  disabled={!hasBooks()}/></div>
+            <div class="label label-column">{$_('settings.displayDateFormat')}</div><div class="field"><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}  disabled={!hasBooks()}/></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Import date format</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig} disabled={!hasBooks()}/></div>
+            <div class="label label-column">{$_('settings.importDateFormat')}</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={updateConfig} disabled={!hasBooks()}/></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Theme</div><div class="field"><Select bind:item={$config.theme} items={THEME_OPTIONS} flat={true} valueField="value" onChange={updateConfig} disabled={!hasBooks()}/></div>
+            <div class="label label-column">{$_('settings.theme')}</div><div class="field"><Select bind:item={$config.theme} items={THEME_OPTIONS} flat={true} valueField="value" onChange={updateConfig} disabled={!hasBooks()}/></div>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">Preview</div>
+            <div class="label label-column">{$_('settings.preview')}</div>
             <div class="theme-preview">
                 <div class="swatch bg" title="Background"></div>
                 <div class="swatch surface" title="Surface"></div>
