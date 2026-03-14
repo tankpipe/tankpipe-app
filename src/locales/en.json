@@ -6,7 +6,8 @@
         "net_assets": "Net Assets",
         "settings": "Settings",
         "schedules": "Schedules",
-        "transactions": "Transactions"
+        "transactions": "Transactions",
+        "toggleTheme": "Toggle light/dark mode"
     },
     "labels": {
         "account": "Account",

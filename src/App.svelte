@@ -22,6 +22,7 @@
     import { updateConfig } from './stores/config'
     import { settings } from './stores/settings'
     import { get } from 'svelte/store'
+    import Icon from '@iconify/svelte'
 
     let curAccount = $state(null)
 
@@ -107,6 +108,22 @@
         document.documentElement.dataset.theme = resolved
     }
 
+    const toggleTheme = async () => {
+        let currentTheme = $config?.theme || 'System'
+        if (currentTheme === 'System') {
+            currentTheme = getSystemTheme()
+        }
+        const newTheme = (currentTheme === 'Light' || currentTheme === 'light') ? 'Dark' : 'Light'
+        
+        const configSettings = {
+            display_date_format: $config.display_date_format,
+            import_date_format: $config.import_date_format,
+            theme: newTheme
+        }
+        await updateConfig(configSettings)
+        invoke('update_config', {configSettings: configSettings})
+    }
+
     $effect(() => {
         const theme = $config?.theme?.toLowerCase() || 'system'
         applyTheme(theme)
@@ -144,22 +161,31 @@
                 <div class="menu-left">
                     <ul>
                         {#if $context.hasBooks}
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.accounts')}</li>
                         {/if}
                         {#if $accounts.length > 0 }
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.MODIFIERS, mode: modes.LIST})} class:menu-selected={$page.view === views.MODIFIERS}>{$_('app.modifiers')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.MODIFIERS, mode: modes.LIST})} class:menu-selected={$page.view === views.MODIFIERS}>{$_('app.modifiers')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>
                         <li class="disabled">{$_('app.modifiers')}</li>                        
                         {/if}                    
                     </ul>
+                </div>
+                <div class="theme-toggle">
+                    <button class="toolbar-icon" onclick={toggleTheme} title="{$_('app.toggleTheme')}">
+                        {#if $config?.theme === 'Light'}
+                            <Icon icon="mdi:weather-sunny" width="20"/>
+                        {:else}
+                            <Icon icon="mdi:weather-night" width="20"/>
+                        {/if}
+                    </button>
                 </div>
 
             </div>
@@ -334,6 +360,26 @@
         main {
             max-width: none;
         }
+    }
+
+    .theme-toggle {
+        position: absolute;
+        bottom: 20px;
+    }
+
+    .theme-toggle .toolbar-icon {
+        margin-left: 5px;
+        color: var(--color-text-muted);
+    }
+
+    .theme-toggle .toolbar-icon:hover {
+        color: var(--color-text-strong);
+        cursor: pointer;
+    }
+
+    .theme-toggle button {
+        background-color: transparent;
+        border: none;
     }
 
 </style>
