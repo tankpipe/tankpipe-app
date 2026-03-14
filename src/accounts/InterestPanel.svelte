@@ -332,7 +332,7 @@
     }
 
     .selected-row td {
-        background-color: var(--color-table-selected-bg) !important;
+        background-color: var(--color-surface) !important;
     }
     
     table {
@@ -428,7 +428,7 @@
     .interest-form {
         border-radius: 10px;
         color: var(--color-text);
-        background-color: var(--color-text-base);
+        background-color: var(--color-surface);
         float: left;
         padding: 10px;
     }
