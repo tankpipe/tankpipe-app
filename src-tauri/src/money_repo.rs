@@ -101,12 +101,10 @@ impl Repo {
     fn run_checks(&mut self) {
         let today = chrono::Utc::now().date_naive();
         let new_projection_date = today.checked_add_months(chrono::Months::new(self.config.projection_months)).unwrap();
-        if new_projection_date > self.config.projected_to.unwrap_or(today) {
-            let _ = self.books.run_checks_and_update(new_projection_date);
-            self.config.projected_to = Some(new_projection_date);
-            let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
-            let _ = self.save_config();
-        }
+        let _ = self.books.run_checks_and_update(new_projection_date);
+        self.config.projected_to = Some(new_projection_date);
+        let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+        let _ = self.save_config();
     }
 
     pub fn load_config() -> Result<Config, BooksError> {

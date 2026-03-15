@@ -26,7 +26,8 @@
     let crTotal = $state(0)
     let simpleAllowed = $state(false)
     let compoundMode =  $state(false)
-    let recorded = $state(false)
+    let recorded = $state(true)
+    $inspect(recorded)
     let entries =  $state([])
     let pendingEditPatch = $state(null)
     let prefillHint = $state("")
@@ -158,9 +159,7 @@
                 }
             )
 
-            if (!transaction["status"] || (transaction["status"] != "Recorded")) {
-                transaction["status"] = recorded?"Recorded":"Projected"
-            }
+            transaction.status = recorded ? "Recorded" : "Projected"
 
             console.log("transaction", transaction)
             if ($page.mode === modes.NEW) {
@@ -353,12 +352,14 @@
         console.log(transaction)
         await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
         loadTransactions()
+        close()
     }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
         await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
         loadTransactions()
+        close()
     }
 
     function resolvedDelete(result) {
@@ -427,7 +428,7 @@
                 <tbody>
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" closeOnSelection={true}/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" closeOnSelection={true} /></div></td>
                     <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount}></td>
                 </tr>
