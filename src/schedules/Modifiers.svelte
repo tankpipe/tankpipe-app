@@ -2,6 +2,7 @@
     import EditModifier from './EditModifier.svelte'
     import Modifier from './Modifier.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { page, isEditMode, isViewMode, views, modes, isListMode } from '../stores/page'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
@@ -115,13 +116,8 @@
 {#if isListMode($page)}
 <div class="controls">
      <div class="msg-row">
-            {#each errors.getErrorMessages() as e}
-                <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-                <p class="success-msg">{msg}</p>
-            {/if}                
-            </div>  
+        <MessagePanel {errors} {msg} />
+    </div>  
     </div>
 <div class="scroller">
     {#if modifiers.length < 1}
@@ -163,20 +159,6 @@
 {/if}
 
 <style>
-    .error-msg {
-        color: var(--color-warning);
-        font-size: .8em;
-    }
-
-    .success-msg {
-        color: var(--color-success);
-        font-size: .8em;
-    }
-
-    .error {
-        border: 1px solid var(--color-warning) !important;
-    }
-
     .scroller{
         height: 100%;
         width: 100%;
@@ -242,13 +224,6 @@
 
     
 
-    .msg-row {
-        margin: -10px 0px 0px 10px;        
-    }
-
-    
-
-    
     
 
 </style>

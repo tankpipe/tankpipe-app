@@ -9,6 +9,7 @@
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
+    import MessagePanel from '../components/MessagePanel.svelte'
 
     let msg = ""
     let errors = new Errors()
@@ -77,12 +78,7 @@
     </div>
     <div class="form-button-row">
         <div class="msg-panel">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg}
-            <p class="success-msg">{msg}</p>
-            {/if}
+            <MessagePanel {errors} {msg} />
         </div>
         <div class="widget buttons">
             {#if context.hasBooks}
@@ -104,27 +100,26 @@
         --date-input-width: 110px;
     }
 
-    
-
-    .msg-panel p {
-        margin: 8px 0;
-        max-width: 500px;
+    .form-row {
+        display: inline-flex;
+        width: 100%;
     }
 
-    .error-msg {
-        color: var(--color-warning);
+    .form-button-row {
+        display: block;
+        text-align: left;
+        margin-left: 7px;
+        margin-right: 2px;
+        clear: both;
     }
 
-    .success-msg {
-        color: var(--color-success);
+    input {
+        margin-right: 0px;
     }
 
-    .error {
-        border: 1px solid var(--color-warning) !important;
-    }
-
-    :global(.error-input input) {
-        border: 1px solid var(--color-warning) !important;
+    .widget {
+        display: inline-block;
+        padding: 5px 0px 5px 10px;
     }
 
     .buttons {
@@ -136,31 +131,4 @@
         min-width: 80px;
     }
 
-    .form-row {
-        display: inline-flex;
-        width: 100%;
-    }
-
-    .form-button-row {
-        display: block;
-        text-align: left;
-    }
-
-    .form-button-row {
-        margin-left: 7px;
-        margin-right: 2px;
-    }
-
-    input {
-        margin-right: 0px;
-    }
-
-    
-
-    .widget {
-        display: inline-block;
-        padding: 5px 0px 5px 10px;
-    }
-
-    
 </style>

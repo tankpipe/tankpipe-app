@@ -1,6 +1,7 @@
 <script>
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from '../utils/errors'
@@ -215,14 +216,7 @@
     </div>
 </div>
 
-<div class="widget errors">
-    {#each errors.getErrorMessages() as e}
-    <div class="error-msg">{e}</div>
-    {/each}
-    {#if msg}
-    <div class="success-msg">{msg}</div>
-    {/if}
-</div>
+<MessagePanel {errors} {msg} />
 
 <div class="controls">
     <div class="form-heading"></div>
@@ -359,13 +353,6 @@
 
     .message {
         margin: 5px 0 20px 0;
-    }
-
-    .error-msg {
-        color: var(--color-error-strong);
-        text-align: left;
-        margin-bottom: 3px;
-        font-size: 0.9em;
     }
 
     .success-msg {

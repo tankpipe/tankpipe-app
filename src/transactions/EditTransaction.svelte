@@ -4,6 +4,7 @@
     import {Errors} from '../utils/errors'
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import {page, modes, views} from '../stores/page'
     import {settings} from '../stores/settings'
     import {accounts} from '../stores/accounts'
@@ -27,9 +28,7 @@
     let compoundMode =  $state(false)
     let recorded = $state(false)
     let entries =  $state([])
-    $inspect(entries)
     let pendingEditPatch = $state(null)
-    $inspect(pendingEditPatch)
     let prefillHint = $state("")
 
     const isEditMode = $derived($page.mode === modes.EDIT)
@@ -137,7 +136,7 @@
         }
 
         if (!errors.hasErrors()) {
-            const transaction = Object.assign(curTransaction, {entries: [...entries]})
+            const transaction = Object.assign({}, curTransaction, {entries: [...entries]})            
             
             if (!compoundMode && !settings.require_double_entry) {
                  transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
@@ -148,7 +147,6 @@
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
                     if (compoundMode) {
-                        //console.log(e)
                         if (isValidAmount(e.crAmount)) {
                             e["entry_type"] = "Credit"
                             e["amount"] =  e["crAmount"]
@@ -164,6 +162,7 @@
                 transaction["status"] = recorded?"Recorded":"Projected"
             }
 
+            console.log("transaction", transaction)
             if ($page.mode === modes.NEW) {
                 transaction.entries.forEach (
                     e => {
@@ -186,7 +185,6 @@
 
     function resolved(result) {
         msg = $_('transaction.errors.saved')
-        curTransaction = result
         if ($page.mode === modes.EDIT || reconciliationSource?.isReconciliationResult) {
             close()
         }
@@ -349,7 +347,7 @@
 
     function rejected(result) {
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", result)
     }
     const addTransaction = async (transaction) => {
         console.log(transaction)
@@ -490,17 +488,12 @@
             <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status)}>
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
-        <div class="widget buttons">
-            <button class="og-button" onclick={close}>{$_('buttons.close')}</button>
-            <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
-        </div>
-        <div class="widget errors">
-            {#each errors.getErrorMessages() as e}
-            <div class="error-msg selectable-text">{e}</div>
-            {/each}
-            {#if msg}
-            <div class="success-msg selectable-text">{msg}</div>
-            {/if}
+        <div class="buttons-panel">
+            <MessagePanel {errors} {msg} />
+            <div class="widget buttons">
+                <button class="og-button" onclick={close}>{$_('buttons.close')}</button>
+                <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
+            </div>            
         </div>
     </div>
 </div>
@@ -527,29 +520,6 @@
         min-height: 70px;
     }
 
-    .errors {
-        float: right;
-        margin: 10px 12px 0 0;
-    }
-    .error-msg {
-        color: var(--color-warning);
-        text-align: left;
-        margin-bottom: 3px;
-        font-size: 0.9em;
-        max-width: 350px;
-    }
-
-    .success-msg {
-        color: var(--color-success);
-        text-align: left;
-    }
-
-    .disabled {
-        background-color: var(--color-text-strong);
-    }
-
-    
-
     .greyed:hover {
         color: var(--color-border) !important;
         border-color: var(--color-border) !important;
@@ -564,16 +534,18 @@
         border: 1px solid var(--color-warning) !important;
     }
 
-    .buttons {
+    .buttons-panel {
+        clear: both;
+        padding: 5px 0 0 7px;
+    }
+
+    .buttons-panel .buttons {
         float: right;
-        margin: 10px 12px 0 0;
     }
 
     .buttons button {
         min-width: 80px;
     }
-
-    
 
     .form-button-row {
         margin-left: 7px;
@@ -584,8 +556,6 @@
         margin-right: 0px;
     }
 
-    
-
     .total {
         text-align: right;
         margin: 0px 5px -3px 0px;
@@ -595,8 +565,6 @@
         display: inline-block;
         padding: 5px 0px 5px 10px;
     }
-
-    
 
     .widget2 label {
         display: inline-block;
@@ -614,8 +582,6 @@
     .money-input {
         text-align: right;
     }
-
-    
 
     .date-input {
         margin-top: 0px;

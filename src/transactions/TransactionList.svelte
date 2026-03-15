@@ -1,5 +1,6 @@
 <script>
     import { config } from '../stores/config.js'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { accounts } from '../stores/accounts.js'
     import { _ } from 'svelte-i18n'
     import { selector, toggleSelected, toggleAllSelected, isSelected } from './selector.js'
@@ -357,16 +358,7 @@
    
 </script>
 
-{#if errors.getErrorMessages().length > 0 || msg && msg != ""}
-<div class="widget errors">
-    {#each errors.getErrorMessages() as e}
-    <div class="error-msg selectable-text">{e}</div>
-    {/each}
-    {#if msg}
-    <div class="success-msg selectable-text">{msg}</div>
-    {/if}
-</div>
-{/if}
+<MessagePanel {errors} {msg} />
 <div class="scroller" id="scroller">
     <table class="{journalMode ? 'journal' : ''}">
         <tbody>

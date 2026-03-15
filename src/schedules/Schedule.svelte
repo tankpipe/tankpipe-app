@@ -2,6 +2,7 @@
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from '../utils/errors.js'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import {generate} from './generate.js'
     import {config} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
@@ -80,7 +81,7 @@
 
     function rejected(result) {
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", result)
         loading = false
         msg = ""
     }
@@ -97,13 +98,14 @@
     }
 
     const generateSchedule = async () => {
-        showLoading($_('schedule.generating'))        
-        
-        const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
-        invoke('generate_by_schedule', { 
-            date: {date: isoDateString}, 
-            scheduleId: curSchedule.id 
-        }).then(resolvedGenerateSchedule, rejected)
+        if (scheduleToDate) {            
+            showLoading($_('schedule.generating'))                    
+            const isoDateString = scheduleToDate.toISOString().split('T')[0]
+            invoke('generate_by_schedule', { 
+                date: {date: isoDateString}, 
+                scheduleId: curSchedule.id 
+            }).then(resolvedGenerateSchedule, rejected)
+        }
     }
     
     function resolvedGenerateSchedule(result) {
@@ -170,18 +172,13 @@
         <div class="widget-row">
             <div class="widget left float-left">
                 <label for="scheduleToDate">{$_('schedule.schedule_until')}</label>
-            </div>
-            <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
+            </div>            
             <div id="scheduleToDate" class="date-input raise">
                 <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
             </div>            
+            <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
             <div class="msg-row">
-            {#each errors.getErrorMessages() as e}
-                <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-                <p class="success-msg">{msg}</p>
-            {/if}                
+                <MessagePanel {errors} {msg} />
             </div>            
         </div>
     </div>
@@ -212,26 +209,6 @@
         --date-input-width: 110px;
     }
 
-    .msg-row {
-        margin: -10px 0px 0px 5px;        
-    }
-
-    .error-msg {
-        color: var(--color-warning);
-        font-size: .8em;
-        float: left;
-    }
-
-    .success-msg {
-        color: var(--color-success);
-        font-size: .8em;
-        float: left;
-    }
-
-    .error {
-        border: 1px solid var(--color-warning) !important;
-    }
-
     .form-row {
         display: inline-flex;
         width: 100%;
@@ -243,20 +220,7 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .schedule-row {
-        padding: 5px 0 0px 0;
-        margin: 0 0 -6px 0;
-    }
-
-    .schedule-row label {
-        display: inline-block;
-        font-size: 1.0em;
-    }
-
-    .schedule-row button {
-        min-height: 33px;
-    }
-
+    
     .left {
         padding-left: 0px;
     }

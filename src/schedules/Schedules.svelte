@@ -2,6 +2,7 @@
     import EditSchedule from './EditSchedule.svelte'
     import Schedule from './Schedule.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { page, isEditMode, isViewMode, views, modes, isListMode } from '../stores/page'
     import {accounts} from '../stores/accounts'
     import { getEndDate} from './generate'
@@ -52,11 +53,10 @@
     })
 
     const generateSchedule = async () => {
-        loading = true
-        console.log("generateSchedule")         
-        msg = $_('schedule.generating')
-        
         if (scheduleToDate) {
+            loading = true
+            console.log("generateSchedule")         
+            msg = $_('schedule.generating')
             const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
             console.log("generating to " + isoDateString)
             invoke('generate', {date: {date: isoDateString}}).then(resolved, rejected)
@@ -164,16 +164,11 @@
             <label for="scheduleToDate">{$_('schedules.scheduleUntil')}</label>                      
         </div>
         <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
-        <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>              
+        <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>              
     </div>
      <div class="msg-row">
-            {#each errors.getErrorMessages() as e}
-                <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-                <p class="success-msg">{msg}</p>
-            {/if}                
-            </div>  
+        <MessagePanel {errors} {msg} />
+    </div>  
     </div>
 <div class="scroller">
     {#if schedules.length < 1}
@@ -226,20 +221,6 @@
 
     .inline-button button {
         height: 33px !important;
-    }
-
-    .error-msg {
-        color: var(--color-warning);
-        font-size: .8em;
-    }
-
-    .success-msg {
-        color: var(--color-success);
-        font-size: .8em;
-    }
-
-    .error {
-        border: 1px solid var(--color-warning) !important;
     }
 
     .scroller{
@@ -341,11 +322,6 @@
         margin-bottom: 20px;
     }
 
-    .form-row {
-        display: block;
-        margin-top: -10px;
-    }
-
     .msg-row {
         margin: -10px 0px 0px 10px;        
     }
@@ -353,7 +329,5 @@
     .date-input {
         float: right;
     }
-
-       
 
 </style>

@@ -2,6 +2,7 @@
     import {Errors} from '../utils/errors.js'
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import {accounts} from '../stores/accounts.js'
     import {config, formatDate, dateFormat} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
@@ -289,12 +290,7 @@
 {/if}
 <div class="form-button-row">
     <div class="msg-panel sele">
-        {#each interestErrors.getErrorMessages() as e}
-        <p class="error-msg selectable-text">{e}</p>
-        {/each}
-        {#if interestMsg}
-        <p class="success-msg selectable-text">{interestMsg}</p>
-        {/if}
+        <MessagePanel errors={interestErrors} msg={interestMsg} />
     </div>
     <div class="widget buttons">
         <button class="og-button" onclick={saveInterest}>{$_('buttons.update')}</button>
@@ -386,23 +382,6 @@
     }
 
     
-
-    .msg-panel p {
-        margin: 8px 0;
-        max-width: 500px;
-    }
-
-    .error-msg {
-        color: var(--color-warning);
-    }
-
-    .success-msg {
-        color: var(--color-success);
-    }
-
-    .error {
-        border: 1px solid var(--color-warning) !important;
-    }
 
     .buttons {
         float: right;

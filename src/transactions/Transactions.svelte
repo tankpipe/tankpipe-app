@@ -3,6 +3,7 @@
     import Transaction from './Transaction.svelte'
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { Errors } from '../utils/errors'
     import { page, modes, views, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
     import { settings } from '../stores/settings'
@@ -336,14 +337,7 @@
 <Importer {curAccount} onClose={onCloseEdit} onReconciliationResults={handleReconciliationResults} />
 {/if}
 {#if isListMode($page)}
-<div class="widget errors">
-    {#each errors.getErrorMessages() as e}
-    <div class="error-msg">{e}</div>
-    {/each}
-    {#if msg}
-    <div class="success-msg">{msg}</div>
-    {/if}
-</div>
+<MessagePanel {errors} {msg} />
 {#if reconciliationMode === RM.GUIDED}
 <div class="reconciliation-header">
     <div class="reconciliation-title">{$_('transactions.reconciliationHeader')}</div>
@@ -534,23 +528,6 @@
 
     .exit-reconciliation:hover {
         background-color: var(--color-border);
-    }
-
-    .errors {
-        padding-bottom: 10px;
-    }
-
-    .error-msg {
-        color: var(--color-error);
-        text-align: left;
-        margin-bottom: 3px;
-        font-size: 0.9em;
-    }
-
-    .success-msg {
-        color: var(--color-success);
-        text-align: left;
-        font-size: 0.85em;
     }
 
     @media (min-width: 1010px) {

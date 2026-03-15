@@ -3,6 +3,7 @@
     import {onMount} from "svelte"
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import {page, modes} from '../stores/page.js'
     import {accounts} from '../stores/accounts.js'
     import {config, formatAmount, formatDate, dateFormat} from '../stores/config.js'
@@ -195,12 +196,7 @@
     </div>
     <div class="form-button-row">
         <div class="msg-panel">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg selectable-text">{e}</p>
-            {/each}
-            {#if msg}
-            <p class="success-msg selectable-text">{msg}</p>
-            {/if}
+            <MessagePanel {errors} {msg} />
         </div>
         <div class="widget buttons">
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
@@ -262,19 +258,6 @@
         border-radius: 10px;
     }
 
-    .msg-panel p {
-        margin: 8px 0;
-        max-width: 500px;
-    }
-
-    .error-msg {
-        color: var(--color-warning);
-    }
-
-    .success-msg {
-        color: var(--color-success);
-    }
-
     .error {
         border: 1px solid var(--color-warning);
     }
@@ -304,8 +287,7 @@
     input {
         margin-right: 0px;
     }
-
-    
+  
 
     .widget {
         display: inline-block;

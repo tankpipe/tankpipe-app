@@ -4,6 +4,7 @@
     import {onMount} from "svelte"
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import {accounts} from '../stores/accounts'
     import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
@@ -307,14 +308,7 @@
             <button class="og-button" on:click={onSave}>{addButtonLabel}</button>
         </div>
     </div>
-    <div class="widget errors">
-        {#each errors.getErrorMessages() as e}
-        <div class="error-msg">{e}</div>
-        {/each}
-        {#if msg}
-        <div class="success-msg">{msg}</div>
-        {/if}
-    </div>
+    <MessagePanel {errors} {msg} />
 </div>
 <div class="section-heading">
     <div class="form-heading">{$_('editMultiple.form.selectedTransactions')}</div>

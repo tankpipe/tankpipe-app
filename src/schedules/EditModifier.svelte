@@ -3,6 +3,7 @@
     import {onMount} from "svelte"
     import {page, modes} from '../stores/page.js'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import { periods } from '../utils/dates.js'
@@ -143,14 +144,7 @@
     <SchedulePanel {frequency} {period} {date} {hasEnd} {endDate} {errors} />
     <hr/>
     <div class="form-button-row">
-        <div class="widget">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-            <p class="success-msg">{msg}</p>
-            {/if}
-        </div>
+        <MessagePanel {errors} {msg} />
         <div class="widget buttons">
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
@@ -159,28 +153,9 @@
 </div>
 
 <style>    
-    .error-msg {
-        color: var(--color-warning);
-        font-size: .8em;
-    }
-
-    .success-msg {
-        color: var(--color-success);
-        font-size: .8em;
-    }
-
-    .error {
-        border: 1px solid var(--color-warning) !important;
-    }
-
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
-    }
-
-    .widget p {
-        max-width: 500px;
-        font-size: 0.9em;
     }
 
     .money-input {
@@ -215,6 +190,4 @@
         width: 100vw;
         clear: both;
     }
- 
-
 </style>
