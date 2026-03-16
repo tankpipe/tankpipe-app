@@ -18,6 +18,57 @@ it('is displayed correctly for NEW', async () => {
     expect(select.container.outerHTML).toMatchSnapshot();
 });
 
+it('sets recorded to false when all entries are in future', async () => {
+    page.set({view: views.TRANSACTIONS, mode: modes.NEW})
+    const { container } = render(EditTransaction, {loadTransactions: loadTransactions})
+    
+    // Set date to future by finding DateInput component
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 7)
+    const dateInput = container.querySelector('.date-input input')
+    dateInput.value = futureDate.toISOString().split('T')[0]
+    
+    // Trigger change
+    dateInput.dispatchEvent(new Event('input', { bubbles: true }))
+    
+    // Wait for reactivity to update
+    await new Promise(resolve => setTimeout(resolve, 10))
+    
+    // Check that recorded checkbox is unchecked and disabled
+    const recordedCheckbox = container.querySelector('input#recorded')
+    expect(recordedCheckbox.checked).toBe(false)
+    expect(recordedCheckbox.disabled).toBe(true)
+});
+
+it('allows recorded toggle when entries are not all in future', async () => {
+    page.set({view: views.TRANSACTIONS, mode: modes.NEW})
+    const { container } = render(EditTransaction, {loadTransactions: loadTransactions})
+    
+    // Set date to today
+    const todayDate = new Date()
+    const dateInput = container.querySelector('.date-input input')
+    dateInput.value = todayDate.toISOString().split('T')[0]
+    
+    // Trigger change
+    dateInput.dispatchEvent(new Event('input', { bubbles: true }))
+    
+    // Wait for reactivity to update
+    await new Promise(resolve => setTimeout(resolve, 10))
+    
+    // Check that recorded checkbox is enabled and can be toggled
+    const recordedCheckbox = container.querySelector('input#recorded')
+    expect(recordedCheckbox.disabled).toBe(false)
+    
+    // Test toggling
+    recordedCheckbox.click()
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(recordedCheckbox.checked).toBe(false)
+    
+    recordedCheckbox.click()
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(recordedCheckbox.checked).toBe(true)
+});
+
 
 it('is displayed correctly for simple EDIT', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.EDIT})

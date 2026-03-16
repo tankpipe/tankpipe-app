@@ -8,6 +8,7 @@
 - Run the relevant test target(s) for the area you changed.
 - Keep diffs minimal and scoped to the task.
 - If switching a component to Svelte runes mode, update script/reactivity/props usage to runes-compatible patterns.
+- Add frontend test code under the `tests` directory.
 
 ## Engineering Standards
 - Always extract string literals for i18n.

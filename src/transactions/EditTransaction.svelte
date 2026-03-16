@@ -32,6 +32,21 @@
     let pendingEditPatch = $state(null)
     let prefillHint = $state("")
 
+    
+    $effect(() => {
+        // Explicitly track entries for reactivity
+        entries
+        
+        const allFuture = allEntriesInFuture()
+        const hasReconciled = entries.some(e => e.reconciled_status)
+        
+        
+        if (allFuture) {
+            recorded = false
+        }
+        // Don't force recorded to true - let user control it when dates are not all in future
+    })
+
     const isEditMode = $derived($page.mode === modes.EDIT)
 
     const initNewTransaction = () => {
@@ -122,6 +137,20 @@
 
     const toDateStr = (date) => {
         return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
+    }
+
+    const allEntriesInFuture = () => {
+        const today = new Date().setUTCHours(0,0,0,0)
+        
+        // In simple mode, only check the first entry since second entry syncs after date changes
+        const entriesToCheck = !compoundMode && entries.length > 0 ? [entries[0]] : entries
+        
+        return entriesToCheck.length > 0 && entriesToCheck.every(entry => {
+            if (!entry.realDate) return false
+            const entryDate = new Date(entry.realDate)
+            entryDate.setHours(0, 0, 0, 0)
+            return entryDate > today
+        })
     }
 
     const onSave = () => {
@@ -418,8 +447,8 @@
     {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
-        <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled_status)}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock" width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled_status)}><Icon icon="mdi:trash-can-outline" width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -486,7 +515,7 @@
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status)}>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status) || allEntriesInFuture()}>
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
         <div class="buttons-panel">
