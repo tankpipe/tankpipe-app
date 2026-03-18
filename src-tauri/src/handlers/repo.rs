@@ -1,6 +1,7 @@
 use accounts::books::{Settings};
 use accounts::books_repo::{export_accounts_to_csv, export_to_csv};
 use accounts::account::Account;
+use accounts::reconcile::ReconciliationItem;
 use tauri::Manager;
 use std::ffi::OsString;
 use std::sync::Mutex;
@@ -155,7 +156,7 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uui
 }
 
 #[tauri::command]
-pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool) -> Result<Vec<accounts::books::ReconciliationItem>, String> {
+pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool) -> Result<Vec<ReconciliationItem>, String> {
     println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} has_headers:{}", path, account_id, column_types, has_headers);
     let mutex_guard = state.0.lock().unwrap();
     let load_result = read_transactions(&path, account_id, &mutex_guard.config.import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
@@ -256,7 +257,7 @@ mod tests {
     use super::*;
     use crate::money_repo::Repo;
     use crate::reader::ColumnTypes;
-    use accounts::account::{Account, AccountType};
+    use accounts::{account::{Account, AccountType}, reconcile::{ReconciliationItem, ReconciliationMatchStatus}};
     use std::path::Path;
 
     #[test]
@@ -309,22 +310,22 @@ mod tests {
         assert!(!reconciliation_results.is_empty());
         
         let matched_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::Matched { .. }))
+            .filter(|r| matches!(r.status(), ReconciliationMatchStatus::Matched { .. }))
             .count();
         let partial_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::PartialMatch { .. }))
+            .filter(|r| matches!(r.status(), ReconciliationMatchStatus::PartialMatch { .. }))
             .count();
         let mismatch_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::Mismatch { .. }))
+            .filter(|r| matches!(r.status(), ReconciliationMatchStatus::Mismatch { .. }))
             .count();
         let unmatched_count = reconciliation_results.iter()
-            .filter(|r| matches!(r.status(), accounts::books::ReconciliationMatchStatus::Unmatched))
+            .filter(|r| matches!(r.status(), ReconciliationMatchStatus::Unmatched))
             .count();
         let reconciliation_count = reconciliation_results.iter()
-            .filter(|r| matches!(r, accounts::books::ReconciliationItem::Reconciliation { .. }))
+            .filter(|r| matches!(r, ReconciliationItem::Reconciliation { .. }))
             .count();
         let original_count = reconciliation_results.iter()
-            .filter(|r| matches!(r, accounts::books::ReconciliationItem::Original { .. }))
+            .filter(|r| matches!(r, ReconciliationItem::Original { .. }))
             .count();
         
         assert_eq!(6, matched_count, "Should have at least some exact matches");
