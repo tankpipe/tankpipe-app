@@ -19,6 +19,7 @@ pub fn add_interest(state: tauri::State<BooksState>, mut interest: Interest) -> 
     update_terms(&mut interest);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.add_interest(interest))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -28,6 +29,7 @@ pub fn update_interest(state: tauri::State<BooksState>, mut interest: Interest) 
     update_terms(&mut interest);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_interest(interest))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 

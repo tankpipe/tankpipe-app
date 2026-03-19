@@ -16,6 +16,7 @@ pub fn add_account(state: tauri::State<BooksState>, account: NewAccount) -> Resu
     println!("Adding account {}", account.name);
     let mut mutex_guard = state.0.lock().unwrap();
     let _ = mutex_guard.books.add_account(account.to_account());
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -24,6 +25,7 @@ pub fn update_account(state: tauri::State<BooksState>, account: Account) -> Resu
     println!("Updating account {}", account.name);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_account(account))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -32,6 +34,7 @@ pub fn delete_account(state: tauri::State<BooksState>, account: Account) -> Resu
     println!("Deleting account {}", account.name);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.delete_account(&account.id))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 

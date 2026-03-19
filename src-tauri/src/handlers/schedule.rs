@@ -77,6 +77,7 @@ pub fn generate(state: tauri::State<BooksState>, date: DateParam) -> Result<(), 
     println!("Generating to {}", date.date);
     let mut mutex_guard = state.0.lock().unwrap();
     mutex_guard.books.generate(date.date);
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -85,6 +86,7 @@ pub fn generate_by_schedule(state: tauri::State<BooksState>, date: DateParam, sc
     println!("Generating transactions for schedule {} to {}", schedule_id, date.date);
     let mut mutex_guard = state.0.lock().unwrap();
     let transactions = mutex_guard.books.generate_by_schedule(date.date, schedule_id);
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())?;
     Ok(transactions)
 }

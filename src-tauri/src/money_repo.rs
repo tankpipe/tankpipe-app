@@ -107,6 +107,14 @@ impl Repo {
         let _ = self.save_config();
     }
 
+    pub fn check_interest(&mut self) {
+        if self.books.interest_outdated() {
+            let today = chrono::Utc::now().date_naive();
+            let new_projection_date = today.checked_add_months(chrono::Months::new(self.config.projection_months)).unwrap();
+            let _ = self.books.recalculate_interest(new_projection_date);
+        }
+    }
+
     pub fn load_config() -> Result<Config, BooksError> {
         let files = setup_app_directories()?;
         let mut config_result = read_config(files.settings_path());

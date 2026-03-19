@@ -149,6 +149,8 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uui
                     error_handler(mutex_guard.save_config())?;
                 }
             }
+            mutex_guard.check_interest();
+            error_handler(mutex_guard.save())?;
             Ok(())
         },
         Err(e) => Err(e.error),
