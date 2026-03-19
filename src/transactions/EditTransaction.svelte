@@ -27,7 +27,6 @@
     let simpleAllowed = $state(false)
     let compoundMode =  $state(false)
     let recorded = $state(true)
-    $inspect(recorded)
     let entries =  $state([])
     let pendingEditPatch = $state(null)
     let prefillHint = $state("")
@@ -40,11 +39,9 @@
         const allFuture = allEntriesInFuture()
         const hasReconciled = entries.some(e => e.reconciled_status)
         
-        
         if (allFuture) {
             recorded = false
         }
-        // Don't force recorded to true - let user control it when dates are not all in future
     })
 
     const isEditMode = $derived($page.mode === modes.EDIT)
@@ -212,10 +209,10 @@
     }
 
     function resolved(result) {
+        console.log(result)
         msg = $_('transaction.errors.saved')
-        if ($page.mode === modes.EDIT || reconciliationSource?.isReconciliationResult) {
-            close()
-        }
+        loadTransactions()
+        close()
     }
 
     const syncSecondEntry = () => {
@@ -374,21 +371,19 @@
     }
 
     function rejected(result) {
+        console.log(result)
         errors = new Errors()
         errors.addError("all", result)
     }
+
     const addTransaction = async (transaction) => {
         console.log(transaction)
         await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
-        loadTransactions()
-        close()
     }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
         await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
-        loadTransactions()
-        close()
     }
 
     function resolvedDelete(result) {
