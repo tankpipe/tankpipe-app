@@ -133,7 +133,7 @@
     }
 
     const findClosestTransaction = () => {
-        const today = new Date().setUTCHours(0,0,0,0)
+        const today = new Date().setHours(0, 0, 0, 0)
         let tDate
 
         if (transactions) {

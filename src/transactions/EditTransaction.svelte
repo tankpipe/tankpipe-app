@@ -100,6 +100,7 @@
     }
 
     const validateEntry = (entry, index, errors) => {
+
         const prefix = compoundMode ? index + "_" : ""
         if (!entry.description || entry.description.length < 1) {
              errors.addError(prefix + "description", $_('transaction.errors.descriptionRequired'))
@@ -122,8 +123,8 @@
                 errors.addError(prefix + "drAmount", $_('transaction.errors.debitOrCredit'))
             }
         }
-
-        if (!entry.account || !entry.account.id || entry.account.id < 1) {
+       
+        if (!entry.account || !entry.account.id || entry.account.id.length < 1) {
             if (settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", $_('transaction.errors.accountRequired'))
             }
@@ -137,15 +138,14 @@
     }
 
     const allEntriesInFuture = () => {
-        const today = new Date().setUTCHours(0,0,0,0)
+        const today = new Date().setHours(0, 0, 0, 0)
         
         // In simple mode, only check the first entry since second entry syncs after date changes
         const entriesToCheck = !compoundMode && entries.length > 0 ? [entries[0]] : entries
         
         return entriesToCheck.length > 0 && entriesToCheck.every(entry => {
             if (!entry.realDate) return false
-            const entryDate = new Date(entry.realDate)
-            entryDate.setHours(0, 0, 0, 0)
+            const entryDate = new Date(entry.realDate).setHours(0, 0, 0, 0)
             return entryDate > today
         })
     }
@@ -157,6 +157,11 @@
         if (!compoundMode) syncSecondEntry(entries)
         calculateTotals()
         entries.forEach((e, i) => validateEntry(e, i, errors))
+
+        const hasAccountSelected = entries.some(e => e.account && e.account.id && e.account.id.length > 0)
+        if (!hasAccountSelected) {
+            errors.addError("account", $_('transaction.errors.accountRequired'))
+        }
 
         if (compoundMode && (drTotal != crTotal)) {
             errors.addError("totals", $_('transaction.errors.totalsBalance'))

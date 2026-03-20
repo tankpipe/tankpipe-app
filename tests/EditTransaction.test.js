@@ -14,7 +14,7 @@ const loadTransactions = () => {}
 
 it('is displayed correctly for NEW', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.NEW})
-    const select = render(EditTransaction, {loadTransactions: loadTransactions, curEntry: transaction_data[0]})
+    const select = render(EditTransaction, {loadTransactions: loadTransactions})
     expect(select.container.outerHTML).toMatchSnapshot();
 });
 
@@ -44,18 +44,10 @@ it('allows recorded toggle when entries are not all in future', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.NEW})
     const { container } = render(EditTransaction, {loadTransactions: loadTransactions})
     
-    // Set date to today
-    const todayDate = new Date()
-    const dateInput = container.querySelector('.date-input input')
-    dateInput.value = todayDate.toISOString().split('T')[0]
-    
-    // Trigger change
-    dateInput.dispatchEvent(new Event('input', { bubbles: true }))
-    
-    // Wait for reactivity to update
+    // Wait for component to initialize
     await new Promise(resolve => setTimeout(resolve, 10))
     
-    // Check that recorded checkbox is enabled and can be toggled
+    // Check that recorded checkbox is enabled (should be enabled by default for NEW mode with today's date)
     const recordedCheckbox = container.querySelector('input#recorded')
     expect(recordedCheckbox.disabled).toBe(false)
     

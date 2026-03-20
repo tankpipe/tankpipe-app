@@ -16,7 +16,7 @@
 
     let assetsTotal = 0
     let liabilitiesTotal = 0
-    const today = new Date().setUTCHours(0,0,0,0)
+    const today = new Date().setHours(0, 0, 0, 0)
 
     const loadEmUp = async () => {
         for (const account of $accounts) {
