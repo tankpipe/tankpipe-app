@@ -43,7 +43,7 @@
         paid_frequency: 1,
         paid_day: 1,
         description: "",
-        interest_account_id: null
+        income_account_id: null
     }
 
     const loadInterestInternal = async () => {
@@ -120,7 +120,7 @@
                     paid_frequency: terms.paid_frequency,
                     paid_day: terms.paid_day,
                     description: terms.description,
-                    interest_account_id: terms.interest_account_id || null
+                    income_account_id: terms.income_account_id || null
                 })
             })
             
@@ -281,8 +281,8 @@
             <input id="description" bind:value={curInterestTerms.description} placeholder={$_('interest.descriptionDefault')}/>
         </div>
         <div class="widget">
-            <label for="interest_account_id">{$_('interest.interestAccount')}</label>
-            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("interestAccountId")} flat={true}/>
+            <label for="income_account_id">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
+            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true}/>
         </div>
     </div>            
 </div>

@@ -259,8 +259,7 @@
         "paidType": "Paid",
         "calculatedType": "Calculated",
         "interestRate": "Interest Rate",
-        "paidToDate": "Paid To Date",
-        "interestAccount": "Interest Account",
+        "paidToDate": "Paid To Date",        
         "startDate": "Start",
         "endDate": "End",
         "description": "Description",        
@@ -273,13 +272,15 @@
             "paidFrequency": "Paid frequency",
             "paidDay": "Paid day",
             "paidEvery": "Paid every month",
-            "paidOn": "on day"
+            "paidOn": "on day",
+            "incomeAccount": "Revenue account"
         },
         "Credit": {
             "paidFrequency": "Charge frequency",
             "paidDay": "Charged day",
             "paidEvery": "Charged every month",
-            "paidOn": "on day"
+            "paidOn": "on day",
+            "incomeAccount": "Expense account"
         },
         "calculatedTypes": {
             "daily": "Daily - End of day balance"
