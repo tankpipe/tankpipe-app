@@ -281,6 +281,11 @@
             "days": "Days",
             "weeks": "Weeks",
             "months": "Months"
+        },
+        "errors": {
+            "startDateRequired": "Start date is required",
+            "rateRequired": "Interest rate is required",
+            "paidDayRequired": "Paid on day must be between 1 and 31"
         }
     },
     "settings": {

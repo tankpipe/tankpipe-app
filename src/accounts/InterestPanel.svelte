@@ -20,7 +20,7 @@
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
     const CALCULATED_TYPES = [{id:"Daily", name:$_('interest.calculatedTypes.daily')}]
-    const PAID_PERIODS = [{value:"Days", name:$_('interest.paidPeriods.days')}, {value:"Weeks", name:$_('interest.paidPeriods.weeks')}, {value:"Months", name:$_('interest.paidPeriods.months')}]
+    const PAID_PERIODS = [{value:"Months", name:$_('interest.paidPeriods.months')}]
 
     $effect(() => {
         if (curAccount && curAccount.id) {
@@ -85,6 +85,10 @@
 
             if (!terms.rate || terms.rate.length < 1 || isNaN(terms.rate)) {
                 interestErrors.addError(i + "_rate", $_('interest.errors.rateRequired'))
+            }
+
+            if (!terms.paid_day || (terms.paid_day < 1 || terms.paid_day > 31)) {
+                interestErrors.addError(i + "_paidDay", $_('interest.errors.paidDayRequired'))
             }
         })
 
@@ -271,9 +275,9 @@
     </div>
     <div class="form-row2">
         <div class="widget">
-            {$_('interest.paidEvery')}&nbsp;<input id="amount" class="number-input" type="number" class:error={interestErrors.isInError("frequency")} bind:value={curInterestTerms.paid_frequency}>
-            &nbsp;<Select bind:item={curInterestTerms.paid_period} items={PAID_PERIODS} none={false} valueField="value" inError={interestErrors.isInError("paidType")} flat={true}/>
-            {$_('interest.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" bind:value={curInterestTerms.paid_day} placeholder="1"/>
+            {$_('interest.paidEvery')}&nbsp;<input id="amount" class="number-input" type="number" class:error={interestErrors.isInError(index + "_frequency")} bind:value={curInterestTerms.paid_frequency}  disabled={true} placeholder="1">
+            &nbsp;<Select bind:item={curInterestTerms.paid_period} items={PAID_PERIODS} none={false} valueField="value" inError={interestErrors.isInError(index + "_paidType")} flat={true}  disabled={true}/>
+            {$_('interest.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
         </div>
     </div>
     <div class="form-row">

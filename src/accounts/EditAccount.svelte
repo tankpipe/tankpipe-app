@@ -258,8 +258,8 @@
         border-radius: 10px;
     }
 
-    .error {
-        border: 1px solid var(--color-warning);
+    :global(.error) {
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
@@ -340,8 +340,5 @@
         margin-left: -20px;
         width: 100vw;
     }
-
-    .error {
-        border: 1px solid var(--color-warning) !important;
-    }
+    
 </style>
