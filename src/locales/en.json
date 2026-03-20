@@ -256,7 +256,6 @@
     },
     "interest": {
         "title": "Interest",
-        "paidTo": "Interest paid to",
         "paidType": "Paid",
         "calculatedType": "Calculated",
         "interestRate": "Interest Rate",
@@ -264,16 +263,24 @@
         "interestAccount": "Interest Account",
         "startDate": "Start",
         "endDate": "End",
-        "description": "Description",
-        "paidFrequency": "Paid frequency",
-        "paidDay": "Paid day",
-        "paidEvery": "Paid every",
-        "paidOn": "on day",
+        "description": "Description",        
         "rate": "Rate %",
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",
         "descriptionDefault": "Interest",
+        "Debit": {
+            "paidFrequency": "Paid frequency",
+            "paidDay": "Paid day",
+            "paidEvery": "Paid every month",
+            "paidOn": "on day"
+        },
+        "Credit": {
+            "paidFrequency": "Charge frequency",
+            "paidDay": "Charged day",
+            "paidEvery": "Charged every month",
+            "paidOn": "on day"
+        },
         "calculatedTypes": {
             "daily": "Daily - End of day balance"
         },

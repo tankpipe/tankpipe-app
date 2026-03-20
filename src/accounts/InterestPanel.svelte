@@ -3,7 +3,7 @@
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
-    import {accounts} from '../stores/accounts.js'
+    import {accounts, normalBalance} from '../stores/accounts.js'
     import {config, formatDate, dateFormat} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
@@ -21,6 +21,9 @@
     const zeros = '00000000-0000-0000-0000-000000000000'
     const CALCULATED_TYPES = [{id:"Daily", name:$_('interest.calculatedTypes.daily')}]
     const PAID_PERIODS = [{value:"Months", name:$_('interest.paidPeriods.months')}]
+    let curAccountNormalBalance = $derived.by(() => {
+        return normalBalance(curAccount.account_type)
+    })
 
     $effect(() => {
         if (curAccount && curAccount.id) {
@@ -51,7 +54,6 @@
                 (result) => {
                     console.log(result)
                     interest = result
-                    interest.paid_to = interest.paid_to === "null" ? null : new Date(interest.paid_to)
                     if (interest.terms && interest.terms.length > 0) {
                         interest.terms.forEach((term) => {
                             if (term.end_date === "null") {
@@ -97,8 +99,7 @@
         
         if (!interestErrors.hasErrors()) {
             const interestData = {
-                id: interest.id,
-                paid_to: interest.paid_to ? interest.paid_to : "null",
+                id: interest.id,                
                 account_id: curAccount?.id,
                 terms: []
             }
@@ -210,10 +211,6 @@
     </div>
 {/if}
 {#if interest}
- <div class="info-row">
-    <div class="info-label">{$_('interest.paidTo')}&nbsp;</div>
-    <div class="info-value">{interest.paid_to ? formatDate(interest.paid_to) : "-"}</div>
-</div>
 <div>
     <table class="csv-table" style="max-width: 450px;">
         <tbody>
@@ -270,14 +267,12 @@
         </div>            
         <div class="widget">
             <label for="calculatedType">{$_('interest.calculatedType')}</label>
-            <Select id="calculatedType" bind:item={curInterestTerms.calculated} items={CALCULATED_TYPES} none={false} valueField="id" inError={interestErrors.isInError("calculatedType")} flat={true} disabled={true}/>
+            <input id="calculatedType" value={$_('interest.calculatedTypes.daily')} inError={interestErrors.isInError("calculatedType")} disabled={true}/>
         </div>
     </div>
     <div class="form-row2">
         <div class="widget">
-            {$_('interest.paidEvery')}&nbsp;<input id="amount" class="number-input" type="number" class:error={interestErrors.isInError(index + "_frequency")} bind:value={curInterestTerms.paid_frequency}  disabled={true} placeholder="1">
-            &nbsp;<Select bind:item={curInterestTerms.paid_period} items={PAID_PERIODS} none={false} valueField="value" inError={interestErrors.isInError(index + "_paidType")} flat={true}  disabled={true}/>
-            {$_('interest.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
+            {$_('interest.' + curAccountNormalBalance + '.paidEvery')}&nbsp;{$_('interest.' + curAccountNormalBalance + '.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
         </div>
     </div>
     <div class="form-row">
@@ -403,7 +398,7 @@
     }
 
     .number-input {
-        width: 50px;
+        width: 55px;
         text-align: right;
         background-color: var(--color-text-strong);
     }
