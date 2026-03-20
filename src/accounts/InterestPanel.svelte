@@ -19,8 +19,8 @@
     let curInterestTerms = $state()
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
-    const CALCULATED_TYPES = [{id:"Daily", name:"Daily - End of day balance"}]
-    const PAID_PERIODS = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}]
+    const CALCULATED_TYPES = [{id:"Daily", name:$_('interest.calculatedTypes.daily')}]
+    const PAID_PERIODS = [{value:"Days", name:$_('interest.paidPeriods.days')}, {value:"Weeks", name:$_('interest.paidPeriods.weeks')}, {value:"Months", name:$_('interest.paidPeriods.months')}]
 
     $effect(() => {
         if (curAccount && curAccount.id) {

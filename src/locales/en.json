@@ -273,7 +273,15 @@
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",
-        "descriptionDefault": "Interest"
+        "descriptionDefault": "Interest",
+        "calculatedTypes": {
+            "daily": "Daily - End of day balance"
+        },
+        "paidPeriods": {
+            "days": "Days",
+            "weeks": "Weeks",
+            "months": "Months"
+        }
     },
     "settings": {
         "title": "Settings",
