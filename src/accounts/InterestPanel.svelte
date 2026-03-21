@@ -24,6 +24,7 @@
     let curAccountNormalBalance = $derived.by(() => {
         return normalBalance(curAccount.account_type)
     })
+    let showAdvanced = $state(false)
 
     $effect(() => {
         if (curAccount && curAccount.id) {
@@ -66,6 +67,9 @@
                             term.interest_account_id = term.interest_account_id == null ? curAccount.id : term.interest_account_id
                             term.min_balance = term.min_balance ? Number(term.min_balance).toFixed(2) : "0.00"
                             term.max_balance = term.max_balance ? Number(term.max_balance).toFixed(2) : ""
+                            if ((term.min_balance && term.min_balance > 0) || term.max_balance || term.interest_account_id !== curAccount.id) {
+                                showAdvanced = true
+                            }
                         })
                         curInterestTerms = null
                     }
@@ -277,15 +281,6 @@
             <label for="interestRate">{$_('interest.rate')}</label>
             <input id="interestRate" class="money-input" class:error={interestErrors.isInError(index + "_rate")} bind:value={curInterestTerms.rate} placeholder=""/>
         </div>            
-        <div class="widget">
-            <label for="calculatedType">{$_('interest.calculatedType')}</label>
-            <input id="calculatedType" value={$_('interest.calculatedTypes.daily')} inError={interestErrors.isInError("calculatedType")} disabled={true}/>
-        </div>
-    </div>
-    <div class="form-row2">
-        <div class="widget">
-            {$_('interest.' + curAccountNormalBalance + '.paidEvery')}&nbsp;{$_('interest.' + curAccountNormalBalance + '.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
-        </div>
     </div>
     <div class="form-row">
         <div class="widget">
@@ -293,24 +288,42 @@
             <input id="description" bind:value={curInterestTerms.description} class:error={interestErrors.isInError(index + "_description")} />
         </div>
         <div class="widget">
-            <label for="min">{$_('interest.minBalance')}</label>
-            <input id="min" class="money-input" class:error={interestErrors.isInError(index + "_min")} bind:value={curInterestTerms.min_balance}>
-        </div>
-        <div class="widget">
-            <label for="max">{$_('interest.maxBalance')}</label>
-            <input id="max" class="money-input" class:error={interestErrors.isInError(index + "_max")} bind:value={curInterestTerms.max_balance}>
-        </div>
-    </div>            
-    <div class="form-row">
-        <div class="widget">
-            <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
-            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
-        </div>
-        <div class="widget">
             <label for="income_account_id">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
             <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
         </div>
-    </div>            
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            {$_('interest.' + curAccountNormalBalance + '.paidEvery')}&nbsp;{$_('interest.' + curAccountNormalBalance + '.paidOn')}&nbsp;&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
+        </div>
+    </div>
+    <hr/>    
+    <div class="toolbar" style="margin: 0px" >
+        <label for="advanced" class="toggle-label">{$_('interest.advanced')}</label>
+        <button class="toolbar-icon" onclick={() => showAdvanced = !showAdvanced}>
+            <Icon icon={showAdvanced ? "mdi:chevron-up" : "mdi:chevron-down"} width="24"/>
+        </button>
+    </div>
+    {#if showAdvanced}
+    <div id="advanced">
+        <div class="form-row">
+            <div class="widget">
+                <label for="min">{$_('interest.minBalance')}</label>
+                <input id="min" class="money-input" class:error={interestErrors.isInError(index + "_min")} bind:value={curInterestTerms.min_balance}>
+            </div>
+            <div class="widget">
+                <label for="max">{$_('interest.maxBalance')}</label>
+                <input id="max" class="money-input" class:error={interestErrors.isInError(index + "_max")} bind:value={curInterestTerms.max_balance}>
+            </div>
+        </div>            
+        <div class="form-row">
+            <div class="widget">
+                <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
+                <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
+            </div>
+        </div>                
+    </div>
+    {/if}
 </div>
 {/if}
 <div class="form-button-row">
@@ -431,6 +444,19 @@
         padding: 10px;
     }
     
+    .interest-form hr {
+        border-style: none;
+        border: 1px solid #444444;
+        margin-left: -10px;
+        margin-right: -10px;
+        width: auto;
+    }
+
+    .toggle-label {
+        color: var(--color-text-subtle);
+        margin: 5px -5px 0 5px;
+    }
+
     .terms-toolbar {
         margin: 3px 0 0 -5px;
     }
