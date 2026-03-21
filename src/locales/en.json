@@ -268,6 +268,8 @@
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",
         "descriptionDefault": "Interest",
+        "minBalance": "Minimum balance",
+        "maxBalance": "Maximum balance",
         "Debit": {
             "paidFrequency": "Paid frequency",
             "paidDay": "Paid day",

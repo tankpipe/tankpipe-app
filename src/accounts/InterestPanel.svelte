@@ -4,7 +4,7 @@
     import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
     import {accounts, normalBalance} from '../stores/accounts.js'
-    import {config, formatDate, dateFormat} from '../stores/config.js'
+    import {config, formatDate, dateFormat, formatAmount} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import {DateInput} from 'date-picker-svelte'
@@ -64,6 +64,8 @@
                             term.realEndDate = term.end_date ? new Date(term.end_date) : null
                             term.rate = (term.rate * 100).toFixed(2)
                             term.interest_account_id = term.interest_account_id == null ? curAccount.id : term.interest_account_id
+                            term.min_balance = term.min_balance ? Number(term.min_balance).toFixed(2) : "0.00"
+                            term.max_balance = term.max_balance ? Number(term.max_balance).toFixed(2) : ""
                         })
                         curInterestTerms = null
                     }
@@ -128,7 +130,9 @@
                     paid_day: terms.paid_day,
                     description: terms.description,
                     income_account_id: terms.income_account_id || null,
-                    interest_account_id: terms.interest_account_id == curAccount.id ? null : terms.interest_account_id || null
+                    interest_account_id: terms.interest_account_id == curAccount.id ? null : terms.interest_account_id || null,
+                    min_balance: Number(terms.min_balance),
+                    max_balance: terms.max_balance && terms.max_balance.length > 0 ? Number(terms.max_balance) : null
                 })
             })
             
@@ -289,6 +293,16 @@
             <input id="description" bind:value={curInterestTerms.description} class:error={interestErrors.isInError(index + "_description")} />
         </div>
         <div class="widget">
+            <label for="min">{$_('interest.minBalance')}</label>
+            <input id="min" class="money-input" class:error={interestErrors.isInError(index + "_min")} bind:value={curInterestTerms.min_balance}>
+        </div>
+        <div class="widget">
+            <label for="max">{$_('interest.maxBalance')}</label>
+            <input id="max" class="money-input" class:error={interestErrors.isInError(index + "_max")} bind:value={curInterestTerms.max_balance}>
+        </div>
+    </div>            
+    <div class="form-row">
+        <div class="widget">
             <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
             <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
         </div>
@@ -367,10 +381,7 @@
     }
 
     .money-input {
-        width: 100px;
-    }
-
-    .money-input {
+        width: 120px;    
         text-align: right;
     }
     

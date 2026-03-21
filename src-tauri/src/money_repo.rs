@@ -149,9 +149,18 @@ impl Repo {
         match self.config.current_books_id  {
             Some(id) => {                
                 if id == self.books.id {
-                    let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
-                    println!("Saved books to {:?}", self.config.current_file.clone().unwrap().path.clone());
-                    Ok(())
+                    let result = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+                    
+                    match result {
+                        Ok(()) => {
+                            println!("Saved books to {:?}", self.config.current_file.clone().unwrap().path.clone());
+                            Ok(())
+                        },
+                        Err(e) => {
+                            println!("Failed to save books: {}", e);
+                            Err(BooksError{ error: e.to_string() })
+                        }
+                    }
                 } else {
                     Err(crate::books_error!("errors.current_books_id_mismatch"))
                 }
