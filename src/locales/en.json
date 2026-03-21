@@ -267,20 +267,22 @@
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",
-        "descriptionDefault": "Interest",
+        "descriptionDefault": "Interest",        
         "Debit": {
             "paidFrequency": "Paid frequency",
             "paidDay": "Paid day",
             "paidEvery": "Paid every month",
             "paidOn": "on day",
-            "incomeAccount": "Revenue account"
+            "incomeAccount": "Revenue account",
+            "interestAccount": "Pay interest to"
         },
         "Credit": {
             "paidFrequency": "Charge frequency",
             "paidDay": "Charged day",
             "paidEvery": "Charged every month",
             "paidOn": "on day",
-            "incomeAccount": "Expense account"
+            "incomeAccount": "Expense account",
+            "interestAccount": "Charge interest to"
         },
         "calculatedTypes": {
             "daily": "Daily - End of day balance"

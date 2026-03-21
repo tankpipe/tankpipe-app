@@ -4,6 +4,7 @@
     export let label = null
     export let none = false
     export let flat = false
+    export let limitWidth = false
     export let inError = false
     export let disabled = false
     export let valueField = null
@@ -13,7 +14,7 @@
 
 <div class={cssClass}>
     {#if label}<label for="itemSelect">{label}</label>{/if}
-    <select bind:value={item} name="itemSelect" class:flat={flat} class:error={inError} disabled={disabled} on:change={onChange}>
+    <select bind:value={item} name="itemSelect" class:flat={flat} class:limit-width={limitWidth} class:error={inError} disabled={disabled} on:change={onChange}>
         {#if none}
             <option value={null}>None</option>
         {/if}
@@ -52,12 +53,17 @@
         background-position-x: 100%;
         background-position-y: 5px;
         padding-right: 2rem;
+        max-width: 300px;
     }
 
     .flat::after {
         content: "\25b6";
         color: var(--color-white);
         position: absolute; top: 0; right: 0;
+    }
+
+    .limit-width {
+        max-width: 200px;
     }
 
     .error {

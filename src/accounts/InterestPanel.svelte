@@ -43,7 +43,8 @@
         paid_frequency: 1,
         paid_day: 1,
         description: "",
-        income_account_id: null
+        income_account_id: null,
+        interest_account_id: null
     }
 
     const loadInterestInternal = async () => {
@@ -62,6 +63,7 @@
                             term.realStartDate = new Date(term.start_date)
                             term.realEndDate = term.end_date ? new Date(term.end_date) : null
                             term.rate = (term.rate * 100).toFixed(2)
+                            term.interest_account_id = term.interest_account_id == null ? curAccount.id : term.interest_account_id
                         })
                         curInterestTerms = null
                     }
@@ -120,7 +122,8 @@
                     paid_frequency: terms.paid_frequency,
                     paid_day: terms.paid_day,
                     description: terms.description,
-                    income_account_id: terms.income_account_id || null
+                    income_account_id: terms.income_account_id || null,
+                    interest_account_id: terms.interest_account_id == curAccount.id ? null : terms.interest_account_id || null
                 })
             })
             
@@ -280,9 +283,13 @@
             <label for="description">{$_('interest.description')}</label>
             <input id="description" bind:value={curInterestTerms.description} placeholder={$_('interest.descriptionDefault')}/>
         </div>
-        <div class="widget">
+        <div class="widget small-select">
+            <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
+            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} limitWidth={true}/>
+        </div>
+        <div class="widget small-select">
             <label for="income_account_id">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
-            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true}/>
+            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} limitWidth={true}/>
         </div>
     </div>            
 </div>
