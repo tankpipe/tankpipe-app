@@ -21,10 +21,32 @@
     const zeros = '00000000-0000-0000-0000-000000000000'
     const CALCULATED_TYPES = [{id:"Daily", name:$_('interest.calculatedTypes.daily')}]
     const PAID_PERIODS = [{value:"Months", name:$_('interest.paidPeriods.months')}]
+    const INCOME_ACCOUNT_TYPES_ASSET = new Set(["Revenue"])
+    const INCOME_ACCOUNT_TYPES_LIABILITY = new Set(["Expense"])
+    const INTEREST_ACCOUNT_TYPES = new Set(["Asset", "Liability"])
     let curAccountNormalBalance = $derived.by(() => {
         return normalBalance(curAccount.account_type)
     })
     let showAdvanced = $state(false)
+    let incomeAccountItems = $derived.by(() => {
+        const list = Array.isArray($accounts) ? $accounts : []
+        const allowedTypes =
+            curAccount?.account_type === "Asset"
+                ? INCOME_ACCOUNT_TYPES_ASSET
+                : curAccount?.account_type === "Liability"
+                    ? INCOME_ACCOUNT_TYPES_LIABILITY
+                    : null
+
+        return list
+            .filter(a => (allowedTypes ? allowedTypes.has(a.account_type) : true))
+            .map(a => ({id: a.id, name: a.name}))
+    })
+    let interestAccountItems = $derived.by(() => {
+        const list = Array.isArray($accounts) ? $accounts : []
+        return list
+            .filter(a => INTEREST_ACCOUNT_TYPES.has(a.account_type))
+            .map(a => ({id: a.id, name: a.name}))
+    })
 
     $effect(() => {
         if (curAccount && curAccount.id) {
@@ -289,7 +311,7 @@
         </div>
         <div class="widget">
             <label for="income_account_id">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
-            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
+            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={incomeAccountItems} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
         </div>
     </div>
     <div class="form-row2">
@@ -319,7 +341,7 @@
         <div class="form-row">
             <div class="widget">
                 <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
-                <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
+                <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={interestAccountItems} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
             </div>
         </div>                
     </div>

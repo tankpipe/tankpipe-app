@@ -6,8 +6,8 @@
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
     "tauri": "tauri",
-    "test": "vitest run tests",
-    "test:watch": "vitest tests"
+    "test": "NODE_OPTIONS=--experimental-require-module vitest run tests",
+    "test:watch": "NODE_OPTIONS=--experimental-require-module vitest tests"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
