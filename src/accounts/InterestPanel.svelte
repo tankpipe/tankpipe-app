@@ -70,7 +70,7 @@
                 },
                 (error) => {
                     console.error("Error loading interest:", error)
-                    interestErrors.addError("interest", $_('errors.genericError', { values: { 0: error } }))
+                    interestErrors.addError("interest", error)
                 }
             )
         } else {
@@ -94,6 +94,11 @@
             if (!terms.paid_day || (terms.paid_day < 1 || terms.paid_day > 31)) {
                 interestErrors.addError(i + "_paidDay", $_('interest.errors.paidDayRequired'))
             }
+
+            if (!terms.description || terms.description.length < 1) {
+                interestErrors.addError(i + "_description", $_('interest.errors.descriptionRequired'))
+            }
+
         })
 
         console.log(interestErrors)
@@ -154,7 +159,7 @@
 
     function interestRejected(result) {
         interestErrors = new Errors()
-        interestErrors.addError("all", $_('errors.genericError', { values: { 0: result } }))
+        interestErrors.addError("all", result)
     }
 
     const selectTerms = (term) => {
@@ -281,15 +286,15 @@
     <div class="form-row">
         <div class="widget">
             <label for="description">{$_('interest.description')}</label>
-            <input id="description" bind:value={curInterestTerms.description} placeholder={$_('interest.descriptionDefault')}/>
+            <input id="description" bind:value={curInterestTerms.description} class:error={interestErrors.isInError(index + "_description")} />
         </div>
-        <div class="widget small-select">
+        <div class="widget">
             <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
-            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} limitWidth={true}/>
+            <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
         </div>
-        <div class="widget small-select">
+        <div class="widget">
             <label for="income_account_id">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
-            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} limitWidth={true}/>
+            <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={$accounts.map(a => ({id: a.id, name: a.name}))} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
         </div>
     </div>            
 </div>
@@ -368,7 +373,6 @@
     .money-input {
         text-align: right;
     }
-
     
     .date-input {
         margin-top: 0px;
@@ -386,8 +390,6 @@
         margin-right: 2px;
         clear: both;
     }
-
-    
 
     .buttons {
         float: right;

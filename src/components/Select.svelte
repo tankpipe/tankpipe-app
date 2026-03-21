@@ -53,7 +53,7 @@
         background-position-x: 100%;
         background-position-y: 5px;
         padding-right: 2rem;
-        max-width: 300px;
+        max-width: 250px;
     }
 
     .flat::after {
