@@ -1,4 +1,6 @@
 <script>
+    import { onDestroy } from 'svelte'
+
     export let items = []
     export let item = {}
     export let disabledItems = []
@@ -17,6 +19,11 @@
         return Promise.resolve().then(fn)
     }
 
+    let destroyed = false
+    onDestroy(() => {
+        destroyed = true
+    })
+
     const isItemDisabled = (candidate) => {
         if (!disabledItems || disabledItems.length < 1) return false
         if (valueField) {
@@ -33,8 +40,17 @@
     }
 
     const handleChange = (event) => {
+        const selectEl = event?.currentTarget
+        const selectedOption = selectEl?.selectedOptions?.[0]
+        const selectedValue = selectedOption && Object.prototype.hasOwnProperty.call(selectedOption, '__value')
+            ? selectedOption.__value
+            : selectEl?.value
+
         // Defer so `bind:value={item}` updates propagate before callers run.
-        defer(() => onChange(event))
+        defer(() => {
+            if (destroyed) return
+            onChange(event, selectedValue)
+        })
     }
 </script>
 

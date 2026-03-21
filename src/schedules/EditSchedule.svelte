@@ -40,6 +40,30 @@
     let schedule_modifiers = []
     let schedule_modifier = null
 
+    let disabledAccountsByEntryIndex = $derived.by(() => {
+        const selectedIds = []
+        const seen = new Set()
+        for (const e of entries) {
+            const id = e?.account?.id
+            if (!id || seen.has(id)) continue
+            seen.add(id)
+            selectedIds.push(id)
+        }
+
+        return entries.map((e) => {
+            const mineId = e?.account?.id
+            return selectedIds
+                .filter(id => id !== mineId)
+                .map(id => ({ id }))
+        })
+    })
+
+    let disabledAccountsKeyByEntryIndex = $derived.by(() => {
+        return disabledAccountsByEntryIndex.map(list =>
+            (list || []).map(a => a?.id).filter(Boolean).sort().join('|')
+        )
+    })
+
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
             return "Debit"
@@ -345,7 +369,11 @@
             {#each entries as e, i}
             <tr>
                 <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                <td><div class="select-adjust">
+                    {#key (disabledAccountsKeyByEntryIndex[i] || "") + ":" + (e?.account?.id || "")}
+                        <Select bind:item={e["account"]} items={$accounts} disabledItems={disabledAccountsByEntryIndex[i] || []} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} onChange={() => entries = [...entries]}/>
+                    {/key}
+                </div></td>
                 <td class="money">
                     {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
                     {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}

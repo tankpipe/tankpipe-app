@@ -100,7 +100,12 @@
     const scrollToPosition = () => {
         const scroller = document.getElementById("scroller")
         if (scroller) {
-            scroller.scrollTo(0, topScroll ?? 0)
+            const target = topScroll ?? 0
+            if (typeof scroller.scrollTo === 'function') {
+                scroller.scrollTo(0, target)
+            } else {
+                scroller.scrollTop = target
+            }
         }
     }
 
