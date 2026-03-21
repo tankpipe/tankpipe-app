@@ -30,6 +30,28 @@
     let entries =  $state([])
     let pendingEditPatch = $state(null)
     let prefillHint = $state("")
+    let disabledAccountsByEntryIndex = $derived.by(() => {
+        const selectedIds = []
+        const seen = new Set()
+        for (const e of entries) {
+            const id = e?.account?.id
+            if (!id || seen.has(id)) continue
+            seen.add(id)
+            selectedIds.push(id)
+        }
+
+        return entries.map((e) => {
+            const mineId = e?.account?.id
+            return selectedIds
+                .filter(id => id !== mineId)
+                .map(id => ({ id }))
+        })
+    })
+    let disabledAccountsKeyByEntryIndex = $derived.by(() => {
+        return disabledAccountsByEntryIndex.map(list =>
+            (list || []).map(a => a?.id).filter(Boolean).sort().join('|')
+        )
+    })
 
     
     $effect(() => {
@@ -467,12 +489,20 @@
         <div class="form-row2">
             {#if entries.length > 1}
             {#if entries[0].entry_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true} />
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true} />
+            {#key disabledAccountsKeyByEntryIndex[0] + ":" + (entries[0]?.account?.id || "")}
+                <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
+            {#key disabledAccountsKeyByEntryIndex[1] + ":" + (entries[1]?.account?.id || "")}
+                <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
             {/if}
             {#if entries[0].entry_type === "Credit"}
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true} />
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true} />
+            {#key disabledAccountsKeyByEntryIndex[1] + ":" + (entries[1]?.account?.id || "")}
+                <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
+            {#key disabledAccountsKeyByEntryIndex[0] + ":" + (entries[0]?.account?.id || "")}
+                <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
             {/if}
             {/if}
         </div>
@@ -486,7 +516,11 @@
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled={!editable(e)} closeOnSelection={true}/></div></td>
                     <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description} disabled={!editable(e)}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={!editable(e)}/></div></td>
+                    <td><div class="select-adjust">
+                        {#key (disabledAccountsKeyByEntryIndex[i] || "") + ":" + (e?.account?.id || "")}
+                            <Select bind:item={e["account"]} items={$accounts} disabledItems={disabledAccountsByEntryIndex[i] || []} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={!editable(e)} onChange={() => entries = [...entries]}/>
+                        {/key}
+                    </div></td>
                     <td class="money">
                         <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount} disabled={!editable(e)}>
                     </td>
