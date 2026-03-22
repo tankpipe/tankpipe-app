@@ -9,6 +9,7 @@
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
+    import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
 
     let msg = ""
@@ -70,6 +71,11 @@
 {/if}
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('editBooks.labels.edit_books') : $_('editBooks.labels.new_books')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" on:click={onCancel} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
+    </div>
     <div class="form-row">
         <div class="widget">
             <label for="name">{$_('labels.name')}</label>

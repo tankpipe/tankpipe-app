@@ -338,6 +338,9 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('schedule.edit_schedule') : $_('schedule.new_schedule')}</div>
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{deleteSchedule}" title={$_('schedule.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick={onCancel} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
     </div>
     <div class="form-row">
         <div class="top-widget">

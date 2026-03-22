@@ -443,6 +443,11 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick={close} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
+    </div>
     {#if (curTransaction.source_type)}
     <div class="indicator source-msg"><span>{$_('transaction.sourceType.' + curTransaction.source_type)}</span></div>
     {/if}

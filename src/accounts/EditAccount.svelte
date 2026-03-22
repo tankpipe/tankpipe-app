@@ -180,6 +180,9 @@
         {#if transactions.length < 1}
         <button class="toolbar-icon" onclick={deleteAccount(curAccount)} title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {/if}
+        <button class="toolbar-icon" onclick={onCancel} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline"  width="24"/>
+        </button>
     </div>
     <div class="form-row">
         <div class="widget">

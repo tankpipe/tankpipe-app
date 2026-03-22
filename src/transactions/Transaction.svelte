@@ -109,6 +109,9 @@
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick={schedule} title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+        <button class="toolbar-icon" onclick={close} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
     </div>
     {/if}
     {#if (curTransaction.source_type)}
