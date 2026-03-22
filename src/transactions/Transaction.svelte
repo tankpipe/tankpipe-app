@@ -182,8 +182,6 @@
         min-width: 80px;
     }
 
-    
-
     .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
@@ -192,8 +190,6 @@
     input {
         margin-right: 0px;
     }
-
-    
 
     .total {
         text-align: right;
@@ -231,15 +227,9 @@
         margin: 0px;
     }
 
-    
-
     .entries {
         clear: both;
     }
-
-    
-
-    
 
     .indicator span {
         padding-top: 6px;
@@ -249,7 +239,6 @@
     .recon-msg {
         color: var(--color-success-strong);
     }
-    
         
     .reconciled-cell {
         background-color: transparent;

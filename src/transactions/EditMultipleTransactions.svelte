@@ -1,7 +1,6 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
     import {Errors} from '../utils/errors'
-    import {onMount} from "svelte"
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
@@ -28,14 +27,11 @@
     let recorded = false
     let entries = []
     let curTransaction
+    let disabledAccountsByEntryIndex = []
+    let disabledAccountsKeyByEntryIndex = []
 
     $: disabledAccountsByEntryIndex = disabledItemsByIndex(entries, (e) => e?.account?.id)
     $: disabledAccountsKeyByEntryIndex = disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
-
-    onMount(() => {
-        //console.log($page.mode, curAccount, transactions)
-        resetChanges()
-    })
 
     const resetChanges = () => {
         entries = [
@@ -43,6 +39,9 @@
             {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Credit', account: {}},
         ]
     }
+
+    // Ensure form fields render immediately (tests + UI) without waiting for onMount.
+    resetChanges()
 
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
@@ -236,10 +235,11 @@
 </script>
 <div class="form">
     <div class="form-heading">{$_('editMultiple.form.editMultiple')}</div>
-    {#if curTransaction && curTransaction.entries}
-    <div class="toolbar">
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" on:click={close} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
     </div>
-    {/if}
         {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>
