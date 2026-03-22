@@ -40,16 +40,10 @@
     }
 
     const handleChange = (event) => {
-        const selectEl = event?.currentTarget
-        const selectedOption = selectEl?.selectedOptions?.[0]
-        const selectedValue = selectedOption && Object.prototype.hasOwnProperty.call(selectedOption, '__value')
-            ? selectedOption.__value
-            : selectEl?.value
-
         // Defer so `bind:value={item}` updates propagate before callers run.
         defer(() => {
             if (destroyed) return
-            onChange(event, selectedValue)
+            onChange(event)
         })
     }
 </script>

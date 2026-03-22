@@ -9,6 +9,7 @@
     import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
+    import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems'
 
     export let loadTransactions
     export let onClose
@@ -28,21 +29,8 @@
     let entries = []
     let curTransaction
 
-    $: disabledAccountsByEntryIndex = (() => {
-        const selectedIds = []
-        const seen = new Set()
-        for (const e of entries) {
-            const id = e?.account_id
-            if (!id || seen.has(id)) continue
-            seen.add(id)
-            selectedIds.push(id)
-        }
-        return entries.map((e) => {
-            const mineId = e?.account_id
-            return selectedIds
-                .filter(id => id !== mineId)
-        })
-    })()
+    $: disabledAccountsByEntryIndex = disabledItemsByIndex(entries, (e) => e?.account?.id)
+    $: disabledAccountsKeyByEntryIndex = disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
 
     onMount(() => {
         //console.log($page.mode, curAccount, transactions)
@@ -51,13 +39,13 @@
 
     const resetChanges = () => {
         entries = [
-            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Debit', account_id: null},
-            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Credit', account_id: null},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Debit', account: {}},
+            {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Credit', account: {}},
         ]
     }
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account_id: null, entry_type: "Debit"}]
+        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
     }
 
     const handleRemoveClick = () => {
@@ -84,8 +72,8 @@
             updateDescription(entries[0])
         }
 
-        if (entries[index].account_id) {
-            entry.account_id = entries[index].account_id
+        if (entries[index].account && entries[index].account.id) {
+            entry.account_id = entries[index].account.id
             entry.entry_type = entries[index].entry_type
         }
 
@@ -94,8 +82,8 @@
 
     const needSecondEntry = (transaction) =>  {
         if (transaction.entries.length == 1) {
-            console.log(entries.filter(e => e.account_id && e.entry_type !== transaction.entries[0].entry_type))
-            return entries.filter(e => e.account_id && e.entry_type !== transaction.entries[0].entry_type).length > 0
+            console.log(entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type))
+            return entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type).length > 0
         }
         return false
     }
@@ -170,18 +158,17 @@
     }
 
     const showAmount = (entry, type) => {
-        const dr = Number(entry?.drAmount) || 0
-        const cr = Number(entry?.crAmount) || 0
-        if (dr > 0) return type === "Debit"
-        if (cr > 0) return type === "Credit"
-        return true
-    }
+        if (entry["drAmount"] > 0) {
+            entry["entry_type"] = "Debit"
+            return type === "Debit"
+        }
 
-    const syncEntryType = (entry) => {
-        const dr = Number(entry?.drAmount) || 0
-        const cr = Number(entry?.crAmount) || 0
-        if (dr > 0 && cr <= 0) entry.entry_type = "Debit"
-        if (cr > 0 && dr <= 0) entry.entry_type = "Credit"
+        if (entry["crAmount"] > 0) {
+            entry["entry_type"] = "Credit"
+            return type === "Credit"
+        }
+
+        return true
     }
 
     const total = (type) => {
@@ -267,8 +254,8 @@
             </table>
         </div>
         <div class="form-row2">
-            <Select bind:item={entries[0].account_id} items={$accounts} valueField="id" disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true}/>
-            <Select bind:item={entries[1].account_id} items={$accounts} valueField="id" disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true}/>
+            <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]}/>
+            <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]}/>
         </div>
         {/if}
         {#if compoundMode}
@@ -281,28 +268,25 @@
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={entries[i]["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={entries[i].description}></td>
                     <td><div class="select-adjust">
-                        <Select
-                            item={e.account_id}
-                            items={$accounts}
-                            valueField="id"
-                            disabledItems={disabledAccountsByEntryIndex[i] || []}
-                            label=""
-                            none={true}
-                            flat={true}
-                            inError={errors.isInError(i + "_account")}
-                            onChange={(_, selectedValue) => {
-                                console.log('compound onChange', i, selectedValue)
-                                e.account_id = selectedValue ?? null
-                                entries = [...entries]
-                            }}
-                        />
+                        {#key disabledAccountsKeyByEntryIndex[i]}
+                            <Select
+                                bind:item={e["account"]}
+                                items={$accounts}
+                                disabledItems={disabledAccountsByEntryIndex[i] || []}
+                                label=""
+                                none={true}
+                                flat={true}
+                                inError={errors.isInError(i + "_account")}
+                                onChange={() => entries = [...entries]}
+                            />
+                        {/key}
                     </div></td>
                     <td class="money">
-                        {#if showAmount(entries[i], "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={entries[i].drAmount} on:input={() => syncEntryType(entries[i])}>{/if}
+                        {#if showAmount(entries[i], "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={entries[i].drAmount}>{/if}
                         {#if !showAmount(entries[i], "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
                     </td>
                     <td class="money">
-                        {#if showAmount(entries[i], "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={entries[i].crAmount} on:input={() => syncEntryType(entries[i])}>{/if}
+                        {#if showAmount(entries[i], "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={entries[i].crAmount}>{/if}
                         {#if !showAmount(entries[i], "Credit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
                     </td>
                 </tr>

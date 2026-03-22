@@ -11,6 +11,7 @@
     import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
+    import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems'
     
 
     let { loadTransactions, transactionId, onClose, reconciliationSource, editSource } = $props()
@@ -30,28 +31,12 @@
     let entries =  $state([])
     let pendingEditPatch = $state(null)
     let prefillHint = $state("")
-    let disabledAccountsByEntryIndex = $derived.by(() => {
-        const selectedIds = []
-        const seen = new Set()
-        for (const e of entries) {
-            const id = e?.account?.id
-            if (!id || seen.has(id)) continue
-            seen.add(id)
-            selectedIds.push(id)
-        }
-
-        return entries.map((e) => {
-            const mineId = e?.account?.id
-            return selectedIds
-                .filter(id => id !== mineId)
-                .map(id => ({ id }))
-        })
-    })
-    let disabledAccountsKeyByEntryIndex = $derived.by(() => {
-        return disabledAccountsByEntryIndex.map(list =>
-            (list || []).map(a => a?.id).filter(Boolean).sort().join('|')
-        )
-    })
+    let disabledAccountsByEntryIndex = $derived.by(() =>
+        disabledItemsByIndex(entries, (e) => e?.account?.id)
+    )
+    let disabledAccountsKeyByEntryIndex = $derived.by(() =>
+        disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
+    )
 
     
     $effect(() => {
