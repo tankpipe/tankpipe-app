@@ -262,7 +262,7 @@
         "paidToDate": "Paid To Date",
         "startDate": "Start",
         "endDate": "End",
-        "description": "Description",
+        "description": "Transaction description",
         "rate": "Rate %",
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
@@ -277,7 +277,12 @@
             "paidEvery": "Paid every month",
             "paidOn": "on day",
             "incomeAccount": "Revenue account",
-            "interestAccount": "Pay interest to"
+            "interestAccount": "Pay interest to",
+            "tooltips": {
+                "paidEvery": "The day of the month that interest will be paid on. Interest is calculated for the month up to the preceeding day.",
+                "interestAccount": "Pay interest to a different account. Default is the current account.",
+                "incomeAccount": "The Revenue Account to track interest earned. Default is none."
+            }
         },
         "Credit": {
             "paidFrequency": "Charge frequency",
@@ -285,7 +290,19 @@
             "paidEvery": "Charged every month",
             "paidOn": "on day",
             "incomeAccount": "Expense account",
-            "interestAccount": "Charge interest to"
+            "interestAccount": "Charge interest to",
+            "tooltips": {
+                "paidEvery": "The day of the month that interest will be charged on. Interest is calculated for the month up to the preceeding day.",
+                "interestAccount": "Charge interest to a different account. Default is the current account.",
+                "incomeAccount": "The Expense Account to track interest charged. Default is none."
+            }
+        },
+        "tooltips": {
+            "startDate": "The first day that interest is calculated from.",
+            "endDate": "The last day that interest is calculated for. Default is no end date.",
+            "rate": "Interest rate as a percentage.",
+            "minBalance": "The minimum balance required to earn interest for this rate. The default is 0.",
+            "maxBalance": "The maximum balance that can earn interest for this rate. Default is no limit."
         },
         "calculatedTypes": {
             "daily": "Daily - End of day balance"

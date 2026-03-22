@@ -5,6 +5,7 @@
     export let item = {}
     export let disabledItems = []
     export let label = null
+    export let title = null
     export let none = false
     export let flat = false
     export let limitWidth = false
@@ -50,7 +51,7 @@
 
 <div class={cssClass}>
     {#if label}<label for="itemSelect">{label}</label>{/if}
-    <select bind:value={item} name="itemSelect" class:flat={flat} class:limit-width={limitWidth} class:error={inError} disabled={disabled} on:change={handleChange}>
+    <select bind:value={item} name="itemSelect" class:flat={flat} class:limit-width={limitWidth} class:error={inError} disabled={disabled} on:change={handleChange} {title}>
         {#if none}
             <option value={null}>None</option>
         {/if}
