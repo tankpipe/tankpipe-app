@@ -296,7 +296,7 @@
             <div class="date-input" class:error={interestErrors.isInError(index + "_startDate")} ><DateInput bind:value={curInterestTerms["realStartDate"]} {format} placeholder="" disabled={false} closeOnSelection={true}/></div>
         </div>
         <div class="widget">
-            <label for="endDate">{$_('interest.endDate')}</label>
+            <label for="endDate" class="optional">{$_('interest.endDate')}</label>
             <div class="date-input" class:error={interestErrors.isInError(index + "_endDate")} ><DateInput bind:value={curInterestTerms["realEndDate"]} {format} placeholder="" disabled={false} closeOnSelection={true}/></div>
         </div>
         <div class="widget">
@@ -310,7 +310,7 @@
             <input id="description" bind:value={curInterestTerms.description} class:error={interestErrors.isInError(index + "_description")} />
         </div>
         <div class="widget">
-            <label for="income_account_id">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
+            <label for="income_account_id" class="optional">{$_('interest.' + curAccountNormalBalance + '.incomeAccount')}</label>
             <Select id="income_account_id" bind:item={curInterestTerms.income_account_id} items={incomeAccountItems} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
         </div>
     </div>
@@ -330,17 +330,17 @@
     <div id="advanced">
         <div class="form-row">
             <div class="widget">
-                <label for="min">{$_('interest.minBalance')}</label>
+                <label for="min" class="optional">{$_('interest.minBalance')}</label>
                 <input id="min" class="money-input" class:error={interestErrors.isInError(index + "_min")} bind:value={curInterestTerms.min_balance}>
             </div>
             <div class="widget">
-                <label for="max">{$_('interest.maxBalance')}</label>
+                <label for="max" class="optional">{$_('interest.maxBalance')}</label>
                 <input id="max" class="money-input" class:error={interestErrors.isInError(index + "_max")} bind:value={curInterestTerms.max_balance}>
             </div>
         </div>            
         <div class="form-row">
             <div class="widget">
-                <label for="interest_account_id">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
+                <label for="interest_account_id" class="optional">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
                 <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={interestAccountItems} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} />
             </div>
         </div>                

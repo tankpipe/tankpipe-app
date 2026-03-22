@@ -387,7 +387,7 @@
     <hr/>
     <div class="form-row">
         <div class="top-widget">
-            <label for="desc">{$_('schedule.modifier')}</label>
+            <label for="desc" class="optional">{$_('schedule.modifier')}</label>
             <Select bind:item={modifier} items={modifiers} label="" none={true} flat={true} inError={errors.isInError("modifier")}/>
         </div>
     </div>
