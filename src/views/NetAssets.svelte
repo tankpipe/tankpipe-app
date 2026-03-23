@@ -188,12 +188,6 @@
         color: var(--color-text-subtle);
     }
 
-    .scroller{
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
-    }
-
     .sub-total {
         border-top: 1px solid var(--color-text-muted);
     }
@@ -228,7 +222,7 @@
         font-weight: 400;
         font-size: .8em;
     }
-    
+
 
     tr:hover td {
         cursor: pointer;

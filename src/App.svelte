@@ -4,6 +4,7 @@
     import Modifiers from './schedules/Modifiers.svelte'
     import Transactions from './transactions/Transactions.svelte'
     import Settings from './views/Settings.svelte'
+    import Backups from './views/Backups.svelte'
     import {page, modes, views} from './stores/page.js'
     import {initialiseBooks, initialiseFailed} from'./events'
     import {accounts, updateAccounts} from './stores/accounts'
@@ -26,8 +27,8 @@
 
     let curAccount = $state(null)
     let dialog = $state(null)
-    let supportedVersion = $state(false);    
-    
+    let supportedVersion = $state(false);
+
     initializeContext()
 
     let transactions = $state([])
@@ -38,7 +39,7 @@
     onMount(async () => {
         unlistenLoaded = await listen('file-loaded', (event) => {
             curAccount = null
-        })         
+        })
     })
 
     onDestroy(async () => {
@@ -46,7 +47,7 @@
         if (removeThemeListener) removeThemeListener()
     })
 
-    const initialise = async () => {        
+    const initialise = async () => {
         await invoke('initialise').then(initialiseBooks, initialiseFailed)
     };
 
@@ -66,8 +67,8 @@
              if ($config && ($config.current_books_id || $config.current_file)) {
                  initialise()
              } else {
-                 console.log('No books history found')                 
-                 page.set({view: views.BOOKS, mode: modes.NEW}) 
+                 console.log('No books history found')
+                 page.set({view: views.BOOKS, mode: modes.NEW})
              }
         }
 
@@ -75,7 +76,7 @@
 
     const loadConfigSuccess = (result) => {
         console.log(result)
-        updateConfig(result)        
+        updateConfig(result)
     }
 
     const loadConfigFailed = (error) => {
@@ -112,7 +113,7 @@
             currentTheme = getSystemTheme()
         }
         const newTheme = (currentTheme === 'Light' || currentTheme === 'light') ? 'Dark' : 'Light'
-        
+
         const configSettings = {
             display_date_format: $config.display_date_format,
             import_date_format: $config.import_date_format,
@@ -147,7 +148,7 @@
 </script>
 
 <main>
-    <div class="app">                
+    <div class="app">
         {#if !supportedVersion}
         <div class="column middle">
             <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
@@ -172,8 +173,8 @@
                         {:else}
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>
-                        <li class="disabled">{$_('app.modifiers')}</li>                        
-                        {/if}                    
+                        <li class="disabled">{$_('app.modifiers')}</li>
+                        {/if}
                     </ul>
                 </div>
                 <div class="theme-toggle">
@@ -205,6 +206,8 @@
                 <Settings />
                 {:else if $page.view === views.BOOKS}
                 <EditBooks />
+                {:else if $page.view === views.BACKUPS}
+                <Backups />
                 {:else if $page.view === views.ABOUT}
                 <About />
                 {/if}
@@ -246,7 +249,7 @@
         margin: 40px 20px 0px 20px;
         min-width: 200px;
     }
-    
+
     .app {
         background-color: var(--color-bg);
         height: 100%;
@@ -345,7 +348,7 @@
         color: var(--color-text-subtle);
         float: left;
     }
-   
+
     :global(.selectable-text) {
         -webkit-user-select: all; /* Chrome/Safari */
         -moz-user-select: all; /* Firefox */

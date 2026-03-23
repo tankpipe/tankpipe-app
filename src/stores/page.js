@@ -9,6 +9,7 @@ const views = {
     SETTINGS: "SETTINGS",
     NET_ASSETS: "NET_ASSETS",
     JOURNAL: "JOURNAL",
+    BACKUPS: "BACKUPS",
 }
 
 const modes = {

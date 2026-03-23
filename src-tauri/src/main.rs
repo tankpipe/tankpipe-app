@@ -107,7 +107,7 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-        
+
 }
 
 
@@ -134,6 +134,11 @@ fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
         .accelerator("CmdOrCtrl+O")
         .build(app)?;
 
+    let file_backups = MenuItemBuilder::new("Backups...")
+        .id("file-backups")
+         .accelerator("CmdOrCtrl+B")
+        .build(app)?;
+
     let file_new = MenuItemBuilder::new("New...")
         .id("file-new")
         .accelerator("CmdOrCtrl+N")
@@ -142,6 +147,7 @@ fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
     let file_submenu = SubmenuBuilder::new(app, "File")
         .item(&file_new)
         .item(&file_open)
+        .item(&file_backups)
         .build()?;
 
     let edit_submenu = SubmenuBuilder::new(app, "Edit")

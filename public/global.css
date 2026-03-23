@@ -55,7 +55,7 @@
 	--color-surface-2: #f2f1ee;
 	--color-text-base: #1f1f1f;
 	--color-text: #1f1f1f;
-	--color-text-muted: #2a2a2a;
+	--color-text-muted: #4e4e4e;
 	--color-text-strong: #111111;
 	--color-text-strong-2: #161616;
 	--color-text-subtle: #ababab;
@@ -168,7 +168,7 @@ input[type="number"]::-webkit-inner-spin-button {
 	outline: none;
 	background-color: var(--color-input-bg) !important;
     height: 1.8em !important;
-    padding: 0 0.2em 0 0.2em !important;	
+    padding: 0 0.2em 0 0.2em !important;
 	white-space: nowrap;
 }
 
@@ -249,9 +249,9 @@ input[type="number"]::-webkit-inner-spin-button {
     float: left;
 }
 
-.indicator {        
+.indicator {
     float: left;
-    margin: 0px 0px 0px 20px;        
+    margin: 0px 0px 0px 20px;
     display: flex;
     align-items: center;
 }
@@ -321,7 +321,7 @@ label.optional {
     border-radius: 10px;
     color: var(--color-text);
 }
-    
+
 .widget-row {
     display: flex;
     align-items: center;
@@ -334,7 +334,7 @@ label.optional {
 }
 
 .widget-row .widget {
-    display: flex !important; 
+    display: flex !important;
     align-items: center !important;
     padding: 5px 0px 5px 0px !important;
     margin: 0 0 0 0 !important;
@@ -352,4 +352,10 @@ label.optional {
 .widget-row button {
     min-height: 33px;
     margin-bottom: 0px;
+}
+
+.scroller{
+    height: 100%;
+    width: 100%;
+    overflow: scroll;
 }

@@ -9,6 +9,21 @@
         "transactions": "Transactions",
         "toggleTheme": "Toggle light/dark mode"
     },
+    "backups": {
+        "title": "Backups",
+        "loading": "Loading backups...",
+        "empty": "No backups available.",
+        "selectPrompt": "Choose a backup to restore:",
+        "restoreButtonTitle": "Restore this backup",
+        "messages": {
+            "restored": "Backup restored."
+        },
+        "errors": {
+            "load": "Unable to load backups: {error}",
+            "restore": "Unable to restore backup: {error}",
+            "reload": "Backup restored, but account refresh failed: {error}"
+        }
+    },
     "labels": {
         "account": "Account",
         "amount": "Amount",

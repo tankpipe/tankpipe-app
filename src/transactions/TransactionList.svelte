@@ -15,8 +15,8 @@
     let msg = $state("")
     let mergeTransaction = $state(null)
     let mergeReconTransaction = $state(null)
-    
-    let firstReconciledDate = $derived.by(() => {     
+
+    let firstReconciledDate = $derived.by(() => {
         return displayTransactions().find(t => t.isReconciliationResult)?.date ?? null
     })
 
@@ -26,7 +26,7 @@
 
     let displayTransactions = $derived(() => {
         console.log("displayTransactions", reconciliationMode)
-        
+
         if (reconciliationMode !== RM.GUIDED || reconciliationResults.length === 0 || journalMode) {
             return transactions
         }
@@ -35,12 +35,12 @@
         let previousTransaction = null
 
         // Filter reconciliation results that need to be displayed
-        let results = reconciliationResults            
+        let results = reconciliationResults
             .map(abstractResult => {
                 let isReconciliation = abstractResult.Reconciliation !== undefined
                 let result = isReconciliation ? abstractResult.Reconciliation : abstractResult.Original
                 const transaction = result.transaction
-                targetsToReconciliationMap.set(result.matched_transaction_id, result)                
+                targetsToReconciliationMap.set(result.matched_transaction_id, result)
                 // Extract date from first entry (like existing transactions do)
                 let item = {
                     ...transaction,
@@ -54,7 +54,7 @@
                     item.targetTransactionId = result.matched_transaction_id
                     if (previousTransaction?.id === result.matched_transaction_id) {
                         item.targetReconciledStatus = getEntry(previousTransaction)?.reconciled_status
-                    } 
+                    }
                 } else {
                     item.matchedReconciliationId = result.matched_reconciliation_id
                     previousTransaction = transaction
@@ -65,7 +65,7 @@
 
         return results.filter(filterMatchTransaction)
     })
-    
+
     const filterMatchTransaction = (transaction) => {
         if (!descriptionFilter || descriptionFilter === "") return true
         const filterValue = descriptionFilter.toLowerCase()
@@ -73,19 +73,19 @@
             return transaction.entries.some(e => e.description?.toLowerCase().includes(filterValue))
         }
         const entry = getEntry(transaction)
-        return entry?.description?.toLowerCase().includes(filterValue)        
+        return entry?.description?.toLowerCase().includes(filterValue)
     }
 
     $effect(() => {
         if (topScroll === null || topScroll === undefined) {
             let targetTransaction
-            
+
             if (reconciliationMode === RM.GUIDED) {
                 targetTransaction = findLastReconciledTransaction()
             } else {
                 targetTransaction = findClosestTransaction()
             }
-            
+
             if (targetTransaction) {
                 setTopScroll(getScrollPosition(targetTransaction.id))
             }
@@ -195,11 +195,11 @@
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 
-    const isReconciled = (entry) => {                
+    const isReconciled = (entry) => {
         return entry.reconciled_status == 'Reconciled'
     }
 
-    const noReconciledStatus = (transaction) => {                
+    const noReconciledStatus = (transaction) => {
         return !transaction.entries.some(e => e.reconciled_status)
     }
 
@@ -218,7 +218,7 @@
             .map(t => t.targetTransactionId)
 
         console.log("reconciling", transactionIds)
-        await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds}).then(resolvedReconcile, rejectedReconcile)            
+        await invoke('reconcile_account_transactions', {accountId: curAccount.id, transactionIds: transactionIds}).then(resolvedReconcile, rejectedReconcile)
         await loadAccounts()
         if (rerunReconciliationIfNeeded) {
             await rerunReconciliationIfNeeded()
@@ -292,7 +292,7 @@
         if (noReconciledStatus(t)) {
             toggleSelected(t)
             setCurrentScroll()
-        }        
+        }
     }
 
     const stopPropagationHandler = (event, handler) => {
@@ -303,14 +303,14 @@
             console.error('Handler is not a function:', handler)
         }
     }
-       
+
     const isOrphan = (t, e) => {
-        return reconciliationMode === RM.GUIDED && !t.isReconciliationResult && 
-               !isReconciled(e) && t.reconciliationStatus === 'Unmatched' && 
-               e.date >= firstReconciledDate && e.date <= lastReconciledDate 
+        return reconciliationMode === RM.GUIDED && !t.isReconciliationResult &&
+               !isReconciled(e) && t.reconciliationStatus === 'Unmatched' &&
+               e.date >= firstReconciledDate && e.date <= lastReconciledDate
     }
 
-    const isHovered = (i) => hoveredReconIndex !== null && i <= hoveredReconIndex    
+    const isHovered = (i) => hoveredReconIndex !== null && i <= hoveredReconIndex
 
     const isSelectedForMerge = (t_id) => {
         return mergeTransaction && mergeTransaction.id == t_id || mergeReconTransaction && mergeReconTransaction.id== t_id
@@ -318,13 +318,13 @@
 
     const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
     const inMergeWindow = (e) => {
-        return new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime() && 
-               new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime() 
+        return new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime() &&
+               new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime()
     }
 
     const transactionCanBeReconciled = (t) => {
-        return !t.isReconciliationResult && 
-            (t.reconciliationStatus == 'Matched' || 
+        return !t.isReconciliationResult &&
+            (t.reconciliationStatus == 'Matched' ||
             (t.reconciliationStatus == 'PartialMatch' && !isSelectedForMerge(t.matchedReconciliationId)))
     }
 
@@ -347,20 +347,20 @@
             }
 
             if (availableForMerge(t, e)) {
-                return 'merge'                    
+                return 'merge'
             }
-        
+
         } else if (reconciliationMode === RM.MANUAL) {
             return 'manual-reconcile'
         }
-        
+
         if (e.reconciled_status == 'Outstanding') {
             return 'outstanding'
         }
-        
+
         return 'empty'
     }
-   
+
 </script>
 
 <MessagePanel {errors} {msg} />
@@ -385,8 +385,8 @@
             {@const e =  getEntry(t)}
             {#if e}
                 {@const reconciledContent = getReconciledCellType(t, e)}
-                <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''} {isOrphan(t, e)? 'orphan-row' : ''}" 
-                    onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined} 
+                <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''} {isOrphan(t, e)? 'orphan-row' : ''}"
+                    onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined}
                     id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if noReconciledStatus(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
@@ -410,11 +410,11 @@
                             onmouseenter={() => {if (t.reconciliationStatus == 'Matched') hoveredReconIndex = i}}
                             onmouseleave={() => hoveredReconIndex = null}
                             title={$_('transaction.reconcileTransactions')}
-                        ><Icon icon="mdi:check" width="16"/></button>    
+                        ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconciledContent === 'merge'}
                         <button class={"merge-marker " + (isSelectedForMerge(t.id) ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
                             {#if isSelectedForMerge(t.id)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
-                        </button>                    
+                        </button>
                     {:else if reconciledContent === 'manual-reconcile'}
                         <button
                             class="recon-marker "
@@ -462,12 +462,6 @@
 
 
 <style>
-    .scroller{
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
-    }
-
     table {
         padding-right: 10px;
         width: 100%;
@@ -503,7 +497,7 @@
         font-weight: 400;
         font-size: .8em;
     }
-    
+
 
     .scroller tr:hover td {
         cursor: pointer;
@@ -543,8 +537,8 @@
         margin: 3px 0 -5px 2px;
     }
 
-    
-    
+
+
     .message {
         margin: 5px 0 20px 0;
     }
@@ -645,15 +639,15 @@
         min-width: 80px;
         font-weight: bold;
         font-size: 1.2em;
-    }   
-    
+    }
+
     .divider-row {
-        background-color: var(--color-bg);     
+        background-color: var(--color-bg);
     }
 
     .reconciliation-row-matched td {
         color: var(--color-success-strong);
-    }   
+    }
 
     .reconciliation-row-partialmatch td, .reconciliation-row-mismatch td {
         color: var(--color-accent);
@@ -698,7 +692,7 @@
     }
 
     .orphan-row td {
-        border-bottom: 1px solid var(--color-error-border);        
+        border-bottom: 1px solid var(--color-error-border);
     }
 
     .orphan-row td:last-child {

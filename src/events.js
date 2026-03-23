@@ -11,7 +11,7 @@ import { invoke } from '@tauri-apps/api/core'
 
 const listener = async () => {
     listen('file-open', (event) => {
-        console.log(event)        
+        console.log(event)
         openFile()
     })
 
@@ -23,10 +23,16 @@ const listener = async () => {
     listen('preferences', (event) => {
         console.log(event)
         page.set({view: views.SETTINGS, mode: modes.EDIT})
-    })    
+    })
+
+    listen('file-backups', (event) => {
+        console.log(event)
+        page.set({view: views.BACKUPS, mode: modes.LIST})
+    })
 }
 
 listener()
+console.log("events.js loaded", listener)
 
 const openFile = async () => {
     showFilePicker(loadFile)
@@ -71,13 +77,13 @@ const loadFileFailure = (result) => {
 
 const initialiseBooks = async () => {
     console.log("initialiseBooks")
-    await loadAccounts()        
+    await loadAccounts()
     await loadSettings()
     await loadConfig()
     resetMenu()
     setHasBooks(true)
     setInitialising(false)
-    page.set({view: views.ACCOUNTS, mode: modes.LIST})    
+    page.set({view: views.ACCOUNTS, mode: modes.LIST})
     emit('initialised', "")
 }
 
@@ -110,8 +116,7 @@ const resetMenu = async () => {
     updateContext({hasBooks: hasBooksData})
     if (get(accounts).length < 1) {
         page.set({view: views.ACCOUNTS, mode: modes.NEW})
-    }    
+    }
 }
 
 export {showFilePicker, initialiseBooks, initialiseFailed, loadConfig}
-

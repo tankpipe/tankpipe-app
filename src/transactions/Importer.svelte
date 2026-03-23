@@ -69,12 +69,12 @@
 
         if (showReverseDrCrMsg) {
             const curDrCrColumns = selectedColumns.filter(col => col && (col.id === 'Debit' || col.id === 'Credit'))
-            if (originalDrCrColumns.length === 0 && curDrCrColumns.length > 0) {         
+            if (originalDrCrColumns.length === 0 && curDrCrColumns.length > 0) {
                 originalDrCrColumns = [...curDrCrColumns]
             } else {
-                let changed = curDrCrColumns.length > 0 &&  (originalDrCrColumns.length !== curDrCrColumns.length || 
-                     originalDrCrColumns.some((col, index) => col.id !== curDrCrColumns[index].id))        
-                showReverseDrCrMsg = !changed            
+                let changed = curDrCrColumns.length > 0 &&  (originalDrCrColumns.length !== curDrCrColumns.length ||
+                     originalDrCrColumns.some((col, index) => col.id !== curDrCrColumns[index].id))
+                showReverseDrCrMsg = !changed
             }
         }
     });
@@ -102,7 +102,7 @@
         console.log(result)
         rows = result.sample_rows.slice(0, 20)
         columnTypes = result.column_types.columns
-        showReverseDrCrMsg = result.dr_cr_reversed      
+        showReverseDrCrMsg = result.dr_cr_reversed
         columns = result.column_types.columns.map(c => ({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
@@ -138,20 +138,20 @@
     }
 
     const importCsv = async () => {
-        
+
         if (!path) {
             errors.addError("all", "No file selected")
             return
         }
-        
+
         if (!curAccount || !curAccount.id) {
             errors.addError("all", "No account selected")
             return
         }
-        
+
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        
+
         console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
         await invoke('import_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
     }
@@ -159,20 +159,20 @@
     let lastReconcileRequest = null
 
     const reconcileCsv = async () => {
-        
+
         if (!path) {
             errors.addError("all", "No file selected")
             return
         }
-        
+
         if (!curAccount || !curAccount.id) {
             errors.addError("all", "No account selected")
             return
         }
-        
+
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        
+
         lastReconcileRequest = {
             path: path,
             accountId: curAccount.id,
@@ -229,7 +229,7 @@
         <div class="widget">
             <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
         </div>
-    </div>    
+    </div>
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
@@ -269,7 +269,7 @@
 </div>
 
 <style>
-    
+
 
     .form-row2 {
         display: block;
@@ -289,16 +289,10 @@
         min-width: 11em;
     }
 
-    
+
 
     .controls input {
         background-color: var(--color-input-bg);
-    }
-
-    .scroller{
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
     }
 
     .csv-table td {
@@ -341,7 +335,7 @@
         color: var(--color-text-strong);
     }
 
-    
+
 
     .shrink-font {
         font-size: .9em;
