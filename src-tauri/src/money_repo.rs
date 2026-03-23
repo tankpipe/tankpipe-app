@@ -397,6 +397,15 @@ fn create_backup_snapshot(path: &std::ffi::OsStr) -> io::Result<()> {
     fs::create_dir_all(&backup_dir)?;
 
     let now = Utc::now();
+    let mut existing_entries = read_backup_entries(&backup_dir)?;
+    existing_entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    if !existing_entries.is_empty() {
+        let latest = &existing_entries[0];
+        if files_are_identical(&path, &latest.path)? {
+            return prune_backups(&backup_dir, now);
+        }
+    }
+
     let mut backup_path = backup_dir.join(format!("backup-{}.json", now.timestamp_millis()));
     let mut collision = 1u32;
     while backup_path.exists() {
@@ -419,6 +428,7 @@ fn backup_dir_for_file(path: &Path) -> io::Result<PathBuf> {
 fn prune_backups(backup_dir: &Path, now: DateTime<Utc>) -> io::Result<()> {
     let mut entries = read_backup_entries(backup_dir)?;
     entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    entries = remove_adjacent_duplicate_backups(entries)?;
 
     if entries.len() <= BACKUP_KEEP_LAST {
         return Ok(())
@@ -511,6 +521,56 @@ fn recent_month_keys(now: DateTime<Utc>, months: u32) -> std::collections::HashS
     }
 
     month_keys
+}
+
+fn remove_adjacent_duplicate_backups(entries: Vec<BackupEntry>) -> io::Result<Vec<BackupEntry>> {
+    let mut deduped_entries: Vec<BackupEntry> = Vec::new();
+
+    for entry in entries {
+        let duplicate = if deduped_entries.is_empty() {
+            false
+        } else {
+            let previous = deduped_entries.last().unwrap();
+            files_are_identical(&entry.path, &previous.path)?
+        };
+
+        if duplicate {
+            fs::remove_file(&entry.path)?;
+        } else {
+            deduped_entries.push(entry);
+        }
+    }
+
+    Ok(deduped_entries)
+}
+
+fn files_are_identical(path_a: &Path, path_b: &Path) -> io::Result<bool> {
+    let metadata_a = fs::metadata(path_a)?;
+    let metadata_b = fs::metadata(path_b)?;
+
+    if metadata_a.len() != metadata_b.len() {
+        return Ok(false)
+    }
+
+    let mut file_a = File::open(path_a)?;
+    let mut file_b = File::open(path_b)?;
+    let mut buffer_a = [0u8; 8192];
+    let mut buffer_b = [0u8; 8192];
+
+    loop {
+        let read_a = file_a.read(&mut buffer_a)?;
+        let read_b = file_b.read(&mut buffer_b)?;
+
+        if read_a != read_b {
+            return Ok(false)
+        }
+        if read_a == 0 {
+            return Ok(true)
+        }
+        if buffer_a[..read_a] != buffer_b[..read_b] {
+            return Ok(false)
+        }
+    }
 }
 
 pub fn initial_setup() -> Result<Config, BooksError> {
