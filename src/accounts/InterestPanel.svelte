@@ -4,7 +4,7 @@
     import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
     import {accounts, normalBalance} from '../stores/accounts.js'
-    import {config, formatDate, dateFormat, formatAmount} from '../stores/config.js'
+    import {config, formatDate, dateFormat} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import {DateInput} from 'date-picker-svelte'
@@ -19,8 +19,6 @@
     let curInterestTerms = $state()
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
-    const CALCULATED_TYPES = [{id:"Daily", name:$_('interest.calculatedTypes.daily')}]
-    const PAID_PERIODS = [{value:"Months", name:$_('interest.paidPeriods.months')}]
     const INCOME_ACCOUNT_TYPES_ASSET = new Set(["Revenue"])
     const INCOME_ACCOUNT_TYPES_LIABILITY = new Set(["Expense"])
     const INTEREST_ACCOUNT_TYPES = new Set(["Asset", "Liability"])
@@ -131,10 +129,10 @@
 
         console.log(interestErrors)
 
-        
+
         if (!interestErrors.hasErrors()) {
             const interestData = {
-                id: interest.id,                
+                id: interest.id,
                 account_id: curAccount?.id,
                 terms: []
             }
@@ -161,8 +159,8 @@
                     max_balance: terms.max_balance && terms.max_balance.length > 0 ? Number(terms.max_balance) : null
                 })
             })
-            
-            
+
+
             if (interest && interest.id) {
                 console.log(interestData)
                 await invoke('update_interest', {interest: interestData}).then(interestResolved, interestRejected)
@@ -197,13 +195,13 @@
     }
 
     const addTerms = () => {
-        if (!interest) { 
+        if (!interest) {
             interest = {
                 ...interest,
                 terms: []
             }
         }
-        
+
         if(interest.terms && interest.terms.length > 0) {
             const lastTerm = interest.terms[interest.terms.length - 1]
             curInterestTerms = {
@@ -213,8 +211,8 @@
         } else {
             curInterestTerms = Object.assign({}, EMPTY_TERMS)
         }
-        
-        interest.terms.push(curInterestTerms)                       
+
+        interest.terms.push(curInterestTerms)
     }
 
     const deleteTerm = (index) => {
@@ -227,7 +225,7 @@
     const closeCurrentTerms = () => {
         curInterestTerms = null
     }
-    
+
     const addInterest = () => {
        if (!curAccount || !curAccount.id) return
        interest = {
@@ -265,16 +263,16 @@
             <tr>
                 <th>{$_('interest.startDate')}</th>
                 <th>{$_('interest.endDate')}</th>
-                <th>{$_('interest.rate')}</th>                
-            </tr>                    
+                <th>{$_('interest.rate')}</th>
+            </tr>
             <tr class="spacer"></tr>
         {#each interest.terms as t, i}
-            <tr class="csv-row {curInterestTerms === t ? 'selected-row' : ''}" onclick={() => selectTerms(t)}>                        
+            <tr class="csv-row {curInterestTerms === t ? 'selected-row' : ''}" onclick={() => selectTerms(t)}>
                 <td><div class:error={interestErrors.isInError(i + "_startDate")}>{formatDate(t["realStartDate"])}</div></td>
                 <td><div class:error={interestErrors.isInError(i + "_endDate")}>{formatDate(t["realEndDate"])}</div></td>
                 <td><div class:error={interestErrors.isInError(i + "_rate")}>{t.rate ? t.rate + '%' : ''}</div></td>
             </tr>
-        {/each}               
+        {/each}
         </tbody>
     </table>
 </div>
@@ -290,7 +288,7 @@
             <Icon icon="mdi:close-box-outline"  width="24"/>
         </button>
     </div>
-    <div class="form-row">        
+    <div class="form-row">
         <div class="widget">
             <label for="startDate">{$_('interest.startDate')}</label>
             <div class="date-input" class:error={interestErrors.isInError(index + "_startDate")}  title={$_('interest.tooltips.startDate')}><DateInput bind:value={curInterestTerms["realStartDate"]} {format} placeholder="" disabled={false} closeOnSelection={true} title={$_('interest.tooltips.startDate')} /></div>
@@ -302,7 +300,7 @@
         <div class="widget">
             <label for="interestRate">{$_('interest.rate')}</label>
             <input title={$_('interest.tooltips.rate')} id="interestRate" class="money-input" class:error={interestErrors.isInError(index + "_rate")} bind:value={curInterestTerms.rate} placeholder=""/>
-        </div>            
+        </div>
     </div>
     <div class="form-row">
         <div class="widget">
@@ -319,7 +317,7 @@
             {$_('interest.' + curAccountNormalBalance + '.paidEvery')}&nbsp;{$_('interest.' + curAccountNormalBalance + '.paidOn')}&nbsp;&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
         </div>
     </div>
-    <hr/>    
+    <hr/>
     <div class="toolbar" style="margin: 0px" >
         <label for="advanced" class="toggle-label">{$_('interest.advanced')}</label>
         <button class="toolbar-icon" onclick={() => showAdvanced = !showAdvanced}>
@@ -337,13 +335,13 @@
                 <label for="max" class="optional">{$_('interest.maxBalance')}</label>
                 <input id="max" class="money-input" class:error={interestErrors.isInError(index + "_max")} bind:value={curInterestTerms.max_balance} title={$_('interest.tooltips.maxBalance')}>
             </div>
-        </div>            
+        </div>
         <div class="form-row">
             <div class="widget">
                 <label for="interest_account_id" class="optional">{$_('interest.' + curAccountNormalBalance + '.interestAccount')}</label>
                 <Select id="interest_account_id" bind:item={curInterestTerms.interest_account_id} items={interestAccountItems} valueField="id" none={true} inError={interestErrors.isInError("incomeAccountId")} flat={true} title={$_('interest.' + curAccountNormalBalance + '.tooltips.interestAccount')}/>
             </div>
-        </div>                
+        </div>
     </div>
     {/if}
 </div>
@@ -355,7 +353,7 @@
     <div class="widget buttons">
         <button class="og-button" onclick={saveInterest}>{$_('buttons.update')}</button>
     </div>
-</div>         
+</div>
 {/if}
 
 <style>
@@ -390,7 +388,7 @@
     .selected-row td {
         background-color: var(--color-surface) !important;
     }
-    
+
     table {
         padding-right: 10px;
         width: 100%;
@@ -416,10 +414,10 @@
     }
 
     .money-input {
-        width: 120px;    
+        width: 120px;
         text-align: right;
     }
-    
+
     .date-input {
         margin-top: 0px;
     }
@@ -457,7 +455,7 @@
         text-align: right;
         background-color: var(--color-text-strong);
     }
-     
+
     .interest-form {
         border-radius: 10px;
         color: var(--color-text);
@@ -465,7 +463,7 @@
         float: left;
         padding: 10px;
     }
-    
+
     .interest-form hr {
         border-style: none;
         border: 1px solid #444444;

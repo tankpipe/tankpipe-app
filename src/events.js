@@ -32,7 +32,6 @@ const listener = async () => {
 }
 
 listener()
-console.log("events.js loaded", listener)
 
 const openFile = async () => {
     showFilePicker(loadFile)

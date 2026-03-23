@@ -12,7 +12,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems'
-    
+
 
     let { loadTransactions, transactionId, onClose, reconciliationSource, editSource } = $props()
 
@@ -38,14 +38,14 @@
         disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
     )
 
-    
+
     $effect(() => {
         // Explicitly track entries for reactivity
         entries
-        
+
         const allFuture = allEntriesInFuture()
         const hasReconciled = entries.some(e => e.reconciled_status)
-        
+
         if (allFuture) {
             recorded = false
         }
@@ -55,13 +55,13 @@
 
     const initNewTransaction = () => {
         curTransaction = {id: zeros, status:"Recorded"}
-        
+
         let date = new Date()
         entries = [
             {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
             {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
         ]
-        
+
         addButtonLabel = "Add"
         simpleAllowed = true
     }
@@ -89,7 +89,21 @@
     })
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}}]
+        const lastEntry = entries[entries.length - 1]
+        const defaultDate = lastEntry?.realDate || new Date()
+        const defaultDescription = lastEntry?.description || ""
+
+        entries = [...entries, {
+            id: zeros,
+            transaction_id: curTransaction.id,
+            date: defaultDate,
+            realDate: defaultDate,
+            description: defaultDescription,
+            amount: 0,
+            drAmount: '',
+            crAmount: '',
+            account: {}
+        }]
     }
 
     const handleRemoveClick = () => {
@@ -130,7 +144,7 @@
                 errors.addError(prefix + "drAmount", $_('transaction.errors.debitOrCredit'))
             }
         }
-       
+
         if (!entry.account || !entry.account.id || entry.account.id.length < 1) {
             if (settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", $_('transaction.errors.accountRequired'))
@@ -146,10 +160,10 @@
 
     const allEntriesInFuture = () => {
         const today = new Date().setHours(0, 0, 0, 0)
-        
+
         // In simple mode, only check the first entry since second entry syncs after date changes
         const entriesToCheck = !compoundMode && entries.length > 0 ? [entries[0]] : entries
-        
+
         return entriesToCheck.length > 0 && entriesToCheck.every(entry => {
             if (!entry.realDate) return false
             const entryDate = new Date(entry.realDate).setHours(0, 0, 0, 0)
@@ -175,8 +189,8 @@
         }
 
         if (!errors.hasErrors()) {
-            const transaction = Object.assign({}, curTransaction, {entries: [...entries]})            
-            
+            const transaction = Object.assign({}, curTransaction, {entries: [...entries]})
+
             if (!compoundMode && !settings.require_double_entry) {
                  transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
             }
@@ -278,7 +292,7 @@
         }
 
         recorded = curTransaction.status != "Projected"
-        if (pendingEditPatch) {            
+        if (pendingEditPatch) {
             const targetId = pendingEditPatch.targetTransactionId ?? pendingEditPatch.id
             if (targetId === curTransaction.id) {
                 applyEditPatch(pendingEditPatch)
@@ -547,7 +561,7 @@
             <div class="widget buttons">
                 <button class="og-button" onclick={close}>{$_('buttons.close')}</button>
                 <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
-            </div>            
+            </div>
         </div>
     </div>
 </div>
@@ -655,15 +669,15 @@
         margin: 0px;
     }
 
-    
+
 
     .entries {
         clear: both;
     }
 
-    
 
-    
+
+
 
     .indicator span {
         padding-top: 6px;
@@ -673,8 +687,8 @@
     .recon-msg {
         color: var(--color-accent);
     }
-    
-    
+
+
 
     .reconciled-cell {
         background-color: transparent;
