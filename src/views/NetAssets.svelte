@@ -104,29 +104,36 @@
 
 </script>
 
-<div class="bs-form-heading">{$_('netAssets.title')}</div>
-<div class="bs-sub-heading">{$_('netAssets.asAt')} {formatDate(today)}</div>
+<a href="#scroller" class="skip-link">{$_('a11y.skipToContent')}</a>
+
+<div class="bs-form-heading" role="heading" aria-level="1">{$_('netAssets.title')}</div>
+<div class="bs-sub-heading" aria-live="polite">{$_('netAssets.asAt')} {formatDate(today)}</div>
 {#await loadEmUp()}
 {$_('common.loading')}
 {:then _nothin}
 
 <div class="scroller" id="scroller">
-    <table>
+    <table aria-label="{$_('netAssets.title')}">
+        <thead>
+            <tr>
+                <th scope="col" class="justify-left">{$_('netAssets.accountName')}</th>
+                <th scope="col">{$_('netAssets.assets')}</th>
+                <th scope="col">{$_('netAssets.liabilities')}</th>
+            </tr>
+        </thead>
         <tbody>
-            <tr ><th colspan="3" class="justify-left"></th></tr>
-            <tr ><th colspan="3" class="justify-left">{$_('netAssets.assets')}</th></tr>
 
         {#each assetAccounts as a}
             <tr id={a.id}>
-                <td title="{a.name}"><div class="description" onclick={() => selectAccount(a)}>{a.name}</div></td>
-                <td class="money">{formatAmount(bsBalances[a.id])}</td>
+                <td title="{a.name}"><button class="description" onclick={() => selectAccount(a)} aria-label="{$_('netAssets.viewAccount')}: {a.name}">{a.name}</button></td>
+                <td class="money" aria-label="{$_('netAssets.assetBalance')}: {formatAmount(bsBalances[a.id])}">{formatAmount(bsBalances[a.id])}</td>
                 <td class="money"></td>
             </tr>
         {/each}
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr class="sub-total">
-            <td title="balance"><div class="description indent">{$_('netAssets.totalAssets')}</div></td>
-            <td class="money sub-total" >{formatAmount(assetsTotal)}</td>
+            <td title="balance"><div class="description indent" aria-label="{$_('netAssets.totalAssets')}">{$_('netAssets.totalAssets')}</div></td>
+            <td class="money sub-total" aria-label="{$_('netAssets.totalAssets')}: {formatAmount(assetsTotal)}">{formatAmount(assetsTotal)}</td>
             <td class="money"></td>
         </tr>
 
@@ -136,24 +143,24 @@
 
         {#each liabilityAccounts as a}
             <tr id={a.id}>
-                <td title="{a.name}"><div class="description" onclick={() => selectAccount(a)}>{a.name}</div></td>
+                <td title="{a.name}"><button class="description" onclick={() => selectAccount(a)} aria-label="{$_('netAssets.viewAccount')}: {a.name}">{a.name}</button></td>
                 <td class="money"></td>
-                <td class="money">{formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}</td>
+                <td class="money" aria-label="{$_('netAssets.liabilityBalance')}: {formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}">{formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}</td>
             </tr>
         {/each}
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr class="sub-total">
-            <td title="balance"><div class="description indent">{$_('netAssets.totalLiabilities')}</div></td>
+            <td title="balance"><div class="description indent" aria-label="{$_('netAssets.totalLiabilities')}">{$_('netAssets.totalLiabilities')}</div></td>
             <td class="money"></td>
-            <td class="money sub-total" >{formatAmount(liabilitiesTotal)}</td>
+            <td class="money sub-total" aria-label="{$_('netAssets.totalLiabilities')}: {formatAmount(liabilitiesTotal)}">{formatAmount(liabilitiesTotal)}</td>
         </tr>
 
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr ><th colspan="3" class="justify-left">{$_('netAssets.balance')}</th></tr>
 
         <tr>
-            <td title="balance"><div class="description indent">{$_('netAssets.netAssets')}</div></td>
-            <td class="money total">{formatAmount(balance)}</td>
+            <td title="balance"><div class="description indent" aria-label="{$_('netAssets.netAssets')}">{$_('netAssets.netAssets')}</div></td>
+            <td class="money total" aria-label="{$_('netAssets.netAssets')}: {formatAmount(balance)}">{formatAmount(balance)}</td>
             <td class="money"></td>
         </tr>
 
@@ -163,6 +170,24 @@
 {/await}
 
 <style>
+    .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 6px;
+        background: var(--color-bg);
+        color: var(--color-text);
+        padding: 8px;
+        text-decoration: none;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        z-index: 1000;
+        transition: top 0.3s;
+    }
+
+    .skip-link:focus {
+        top: 6px;
+    }
+
     .scroller{
         height: 100%;
         width: 100%;
@@ -240,5 +265,25 @@
         max-width: 33vw;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .description:focus {
+        outline: 2px solid var(--color-border);
+        outline-offset: 2px;
+    }
+
+    button.description {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    button.description:hover {
+        color: var(--color-text-strong);
     }
 </style>
