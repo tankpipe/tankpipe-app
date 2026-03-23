@@ -8,7 +8,7 @@
     import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
-    import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems'
+    import { disabledItemsByIndex } from '../utils/disabledItems'
 
     export let loadTransactions
     export let onClose
@@ -28,10 +28,8 @@
     let entries = []
     let curTransaction
     let disabledAccountsByEntryIndex = []
-    let disabledAccountsKeyByEntryIndex = []
 
     $: disabledAccountsByEntryIndex = disabledItemsByIndex(entries, (e) => e?.account?.id)
-    $: disabledAccountsKeyByEntryIndex = disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
 
     const resetChanges = () => {
         entries = [
@@ -57,6 +55,12 @@
         onClose()
     }
 
+    const resolvedEntryType = (entry) => {
+        if (Number(entry?.drAmount) > 0) return "Debit"
+        if (Number(entry?.crAmount) > 0) return "Credit"
+        return entry?.entry_type
+    }
+
     const applyChanges = (entry, changeEntry, index, errors) => {
 
         const updateDescription = (changeEntry) => {
@@ -73,7 +77,7 @@
 
         if (entries[index].account && entries[index].account.id) {
             entry.account_id = entries[index].account.id
-            entry.entry_type = entries[index].entry_type
+            entry.entry_type = resolvedEntryType(entries[index])
         }
 
         console.log(entry, entries[index])
@@ -81,14 +85,14 @@
 
     const needSecondEntry = (transaction) =>  {
         if (transaction.entries.length == 1) {
-            console.log(entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type))
-            return entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type).length > 0
+            console.log(entries.filter(e => e.account && e.account.id && resolvedEntryType(e) !== transaction.entries[0].entry_type))
+            return entries.filter(e => e.account && e.account.id && resolvedEntryType(e) !== transaction.entries[0].entry_type).length > 0
         }
         return false
     }
 
     const sortEntries = (entries) => {
-        return entries.sort((a, b) => {
+        return [...entries].sort((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
             if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
             return 0
@@ -101,7 +105,9 @@
 
         const changedTransactions = []
         transactions.forEach(t => {
-            const transaction = structuredClone(t)
+            // `transactions` may come from reactive proxy objects; use JSON cloning
+            // to produce a plain payload for safe processing.
+            const transaction = JSON.parse(JSON.stringify(t))
 
             if (needSecondEntry(transaction)) {
                 console.log("Creating second entry ", transaction)
@@ -128,7 +134,7 @@
       msg = "Transactions saved."
       curTransaction = result
       loadTransactions()
-      //close()
+      close()
     }
 
     const createSecondEntry = (transaction) => {
@@ -156,28 +162,12 @@
         await invoke('update_transactions', {transactions: transactions}).then(resolved, rejected)
     }
 
-    const showAmount = (entry, type) => {
-        if (entry["drAmount"] > 0) {
-            entry["entry_type"] = "Debit"
-            return type === "Debit"
-        }
-
-        if (entry["crAmount"] > 0) {
-            entry["entry_type"] = "Credit"
-            return type === "Credit"
-        }
-
-        return true
-    }
-
     const total = (type) => {
         let total = 0
-        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
+        entries
+            .filter(e => resolvedEntryType(e) === type)
+            .forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
         return total
-    }
-
-    const afterToggle = () => {
-        //if (compoundMode) syncSecondEntry()
     }
 
     $: drTotal = total("Debit")
@@ -246,16 +236,16 @@
                 <tbody>
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount} disabled="disabled"></td>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} value={entries[0].amount} disabled="disabled"></td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <div class="form-row2">
-            <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]}/>
-            <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]}/>
+            <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true}/>
+            <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true}/>
         </div>
         {/if}
         {#if compoundMode}
@@ -265,29 +255,24 @@
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.account')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={entries[i]["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput value={entries[i]["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={entries[i].description}></td>
                     <td><div class="select-adjust">
-                        {#key disabledAccountsKeyByEntryIndex[i]}
-                            <Select
-                                bind:item={e["account"]}
-                                items={$accounts}
-                                disabledItems={disabledAccountsByEntryIndex[i] || []}
-                                label=""
-                                none={true}
-                                flat={true}
-                                inError={errors.isInError(i + "_account")}
-                                onChange={() => entries = [...entries]}
-                            />
-                        {/key}
+                        <Select
+                            bind:item={entries[i].account}
+                            items={$accounts}
+                            disabledItems={disabledAccountsByEntryIndex[i] || []}
+                            label=""
+                            none={true}
+                            flat={true}
+                            inError={errors.isInError(i + "_account")}
+                        />
                     </div></td>
                     <td class="money">
-                        {#if showAmount(entries[i], "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={entries[i].drAmount}>{/if}
-                        {#if !showAmount(entries[i], "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
+                        <input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={entries[i].drAmount}>
                     </td>
                     <td class="money">
-                        {#if showAmount(entries[i], "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={entries[i].crAmount}>{/if}
-                        {#if !showAmount(entries[i], "Credit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
+                        <input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={entries[i].crAmount}>
                     </td>
                 </tr>
                 {/each}
@@ -298,15 +283,21 @@
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} value={drTotal} disabled="disabled"></td>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} value={crTotal} disabled="disabled"></td></tr>
                 </tbody>
             </table>
         </div>
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={false}>
+            <input
+                id="compound"
+                type=checkbox
+                checked={compoundMode}
+                on:change={(event) => compoundMode = event.currentTarget.checked}
+                disabled={false}
+            >
             <label for="compound">{$_('editMultiple.form.compoundEntry')}</label>
         </div>
         <div class="widget2 buttons-left">
@@ -385,8 +376,6 @@
         background-color: var(--color-text-strong);
     }
 
-    
-
     .greyed:hover {
         color: var(--color-border) !important;
         border-color: var(--color-border) !important;
@@ -410,8 +399,6 @@
         min-width: 80px;
     }
 
-    
-
     .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
@@ -420,8 +407,6 @@
     input {
         margin-right: 0px;
     }
-
-    
 
     .total {
         text-align: right;
@@ -432,8 +417,6 @@
         display: inline-block;
         padding: 5px 0px 5px 10px;
     }
-
-    
 
     .widget2 label {
         display: inline-block;
@@ -451,8 +434,6 @@
     .money-input {
         text-align: right;
     }
-
-    
 
     .date-input {
         margin-top: 0px;
@@ -472,13 +453,9 @@
         margin: 0px;
     }
 
-    
-
     .entries {
         clear: left;
     }
-
-    
 
     .bottom-toolbar div {
         margin: 6px 0 0 0 !important;
@@ -512,8 +489,6 @@
         font-size: 0.9em;
     }
 
-    
-
     .projected {
         color: var(--color-text-dim);
     }
@@ -524,7 +499,6 @@
         font-weight: 400;
         font-size: .8em;
     }
-    
 
     .money {
         min-width: 92px;
@@ -545,5 +519,4 @@
         margin: 3px 0 -5px 2px;
     }
 
-    
 </style>

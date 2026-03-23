@@ -38,6 +38,7 @@
     let lastReconciliationRequest = $state(null)
     let reconciliationMode = $state(RM.NONE)
     let chartValues = []
+    let multiEditTransactions = $state([])
 
     $effect(() => {
         if (journalMode && !curAccount) {
@@ -63,7 +64,10 @@
 
     $effect(() => {
         if ($page.payload && $page.payload.accountId) {
-            curAccount = $accounts.find(account => account.id === $page.payload.accountId)
+            const payloadAccount = $accounts.find(account => account.id === $page.payload.accountId)
+            if (payloadAccount && payloadAccount.id !== curAccount?.id) {
+                curAccount = payloadAccount
+            }
         }
     })
 
@@ -97,7 +101,10 @@
 
     const editTransactions = () => {
         setCurrentScroll()
-        page.set({view: $page.view, mode: modes.MULTI_EDIT})
+        multiEditTransactions = getSortedSelectedTransactions().map((t) => JSON.parse(JSON.stringify(t)))
+        queueMicrotask(() => {
+            page.set({view: $page.view, mode: modes.MULTI_EDIT})
+        })
     }
 
     const deleteTransactions = async () => {
@@ -201,6 +208,7 @@
     }
 
     const onCloseMultiEdit = async () => {
+        multiEditTransactions = []
         await loadTransactions()
         await rerunReconciliationIfNeeded()
         page.set({view: $page.view, mode: modes.LIST})
@@ -331,7 +339,7 @@
 <EditTransaction {loadTransactions} transactionId={curTransaction.id} onClose={onCloseEdit} reconciliationSource={curTransaction} {editSource}/>
 {/if}
 {#if isMultiEditMode($page)}
-<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
+<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={multiEditTransactions}/>
 {/if}
 {#if $page.mode == modes.LOAD}
 <Importer {curAccount} onClose={onCloseEdit} onReconciliationResults={handleReconciliationResults} />
