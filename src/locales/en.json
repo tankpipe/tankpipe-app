@@ -7,7 +7,8 @@
         "settings": "Settings",
         "schedules": "Schedules",
         "transactions": "Transactions",
-        "toggleTheme": "Toggle light/dark mode"
+        "toggleTheme": "Toggle light/dark mode",
+        "loading": "Loading..."
     },
     "backups": {
         "title": "Backups",
@@ -115,6 +116,7 @@
         }
     },
     "editMultiple": {
+        "overview": "Edits are applied in template form, you only need to enter the values that you want to be changed.",
         "form": {
             "compoundEntry": "Compound entry",
             "editMultiple": "Edit Multiple Transactions",
@@ -270,7 +272,7 @@
         "percent": "%"
     },
     "interest": {
-        "title": "Interest",
+        "title": "Interest Terms",
         "paidType": "Paid",
         "calculatedType": "Calculated",
         "interestRate": "Interest Rate",

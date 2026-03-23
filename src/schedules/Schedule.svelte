@@ -44,7 +44,7 @@
         console.log("hasEnd: ",(endDate != null))
         date = new Date(curSchedule.start_date)
         max.setFullYear(date.getFullYear() + 20)
-        min.setFullYear(date.getFullYear() - 10)        
+        min.setFullYear(date.getFullYear() - 10)
     })
 
     const matchPeriod = (value) =>  {
@@ -91,23 +91,23 @@
         errors = new Errors()
         msg = loadingMsg
     }
-    
+
     const saveSchedule = async (schedule) => {
         console.log(schedule)
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
     const generateSchedule = async () => {
-        if (scheduleToDate) {            
-            showLoading($_('schedule.generating'))                    
+        if (scheduleToDate) {
+            showLoading($_('schedule.generating'))
             const isoDateString = scheduleToDate.toISOString().split('T')[0]
-            invoke('generate_by_schedule', { 
-                date: {date: isoDateString}, 
-                scheduleId: curSchedule.id 
+            invoke('generate_by_schedule', {
+                date: {date: isoDateString},
+                scheduleId: curSchedule.id
             }).then(resolvedGenerateSchedule, rejected)
         }
     }
-    
+
     function resolvedGenerateSchedule(result) {
         loadTransactions()
         msg = $_('schedule.generation_complete')
@@ -115,12 +115,12 @@
     }
 
     const deleteTransactions = async () => {
-        showLoading($_('schedule.deleting_transactions'))        
+        showLoading($_('schedule.deleting_transactions'))
         const transactionIds = transactions.map(t => t.id)
-        invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)        
+        invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)
     }
 
-    const resolvedDeleteTransactions = async (result) => {      
+    const resolvedDeleteTransactions = async (result) => {
       loadTransactions()
       await loadSchedule()
       await invoke('reset_schedule_last_date', {scheduleId: curSchedule.id}).then(loadSchedule, rejected)
@@ -150,7 +150,7 @@
     <div class="form-row">
         <div class="small-text">
             {$_('schedule.every')}&nbsp;{frequency}&nbsp;{period.name}
-            {$_('schedule.starting_from')}&nbsp;{formatDate(date)} 
+            {$_('schedule.starting_from')}&nbsp;{formatDate(date)}
         </div>
     </div>
     {#if hasEnd}
@@ -172,14 +172,14 @@
         <div class="widget-row">
             <div class="widget left float-left">
                 <label for="scheduleToDate">{$_('schedule.schedule_until')}</label>
-            </div>            
+            </div>
             <div id="scheduleToDate" class="date-input raise">
                 <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
-            </div>            
+            </div>
             <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
             <div class="msg-row">
                 <MessagePanel {errors} {msg} />
-            </div>            
+            </div>
         </div>
     </div>
 </div>
@@ -192,11 +192,11 @@
         </button>
 </div>
 </div>
-<TransactionList 
-    curAccount={{}} 
-    journalMode={true} 
-    transactions={transactions} 
-    onSelect={()=>{}} 
+<TransactionList
+    curAccount={{}}
+    journalMode={true}
+    transactions={transactions}
+    onSelect={()=>{}}
     loadAccounts={()=>{}}
     rerunReconciliationIfNeeded={()=>{}}
     topScroll={0}
@@ -209,18 +209,12 @@
         --date-input-width: 110px;
     }
 
-    .form-row {
-        display: inline-flex;
-        width: 100%;
-    }
-
-
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
     }
 
-    
+
     .left {
         padding-left: 0px;
     }

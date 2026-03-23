@@ -21,7 +21,6 @@
     import './utils/i18n'
     import ErrorMsg from './components/ErrorMsg.svelte'
     import { updateConfig } from './stores/config'
-    import { settings } from './stores/settings'
     import { get } from 'svelte/store'
     import Icon from '@iconify/svelte'
 
@@ -32,7 +31,7 @@
     initializeContext()
 
     let transactions = $state([])
-
+    let initialising = $state(false)
     let unlistenLoaded
     let themeMediaQuery
     let removeThemeListener = null
@@ -48,7 +47,10 @@
     })
 
     const initialise = async () => {
+        console.log('Initialising...')
+        initialising = true
         await invoke('initialise').then(initialiseBooks, initialiseFailed)
+        initialising = false
     };
 
     const loadAccounts = async () => {
@@ -62,7 +64,6 @@
 
         if (supportedVersion) {
              await waitLocale()
-             //await initialise()
              await invoke('load_config').then(loadConfigSuccess, loadConfigFailed)
              if ($config && ($config.current_books_id || $config.current_file)) {
                  initialise()
@@ -155,7 +156,16 @@
             <div class="loading">User Agent: {window.navigator.userAgent}</div>
         </div>
         {/if}
-        {#if supportedVersion && !$isLoading}
+        {#if initialising && !$isLoading}
+        <div class="column left">
+            <div class="menu-left"></div>
+        </div>
+        <div class="column middle">
+            <div class="form-heading">{$_('app.loading')}</div>
+            <div class="loading"></div>
+        </div>
+        {/if}
+        {#if supportedVersion && !$isLoading && !initialising}
             <div class="column left">
                 <div class="menu-left">
                     <ul>

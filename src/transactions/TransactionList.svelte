@@ -565,7 +565,7 @@
         min-width: 30px;
         height: 100%;
         cursor: default !important;
-        background-color: transparent;
+        background-color: transparent !important;
         padding: 0;
     }
 

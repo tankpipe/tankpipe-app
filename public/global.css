@@ -322,6 +322,11 @@ label.optional {
     color: var(--color-text);
 }
 
+.form-row {
+    display: inline-flex;
+    width: 100%;
+}
+
 .widget-row {
     display: flex;
     align-items: center;

@@ -213,13 +213,6 @@
         }
     }
 
-    const getDescription = (transaction) => {
-        return transaction.description
-    }
-    const getEntry = (transaction) => {
-        return transaction.entries.find(e => e.account_id == curAccount.id)
-    }
-
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 </script>
@@ -230,11 +223,15 @@
             <Icon icon="mdi:close-box-outline" width="24"/>
         </button>
     </div>
+     <div class="form-row">
+        <div class="small-text">{$_('editMultiple.overview')}</div>
+    </div>
         {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>
                 <tbody>
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
+
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>

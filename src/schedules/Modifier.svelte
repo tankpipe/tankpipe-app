@@ -45,7 +45,7 @@
 </script>
 
 <div class="form">
-    <div class="form-heading">{$_('modifier.title')}</div>    
+    <div class="form-heading">{$_('modifier.title')}</div>
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{edit}" title={$_('schedule.edit')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button class="toolbar-icon" onclick="{close}" title={$_('buttons.close')}><Icon icon="mdi:close-box-outline"  width="24"/></button>
@@ -58,15 +58,15 @@
     <div class="form-row">
         <div class="small-text">
             {#if percentage >= 0}
-            {percentage * 100}{$_('modifier.increase')}                        
+            {percentage * 100}{$_('modifier.increase')}
             {/if}
             {#if percentage < 0}
-            {percentage * -100}{$_('modifier.decrease')}                        
+            {percentage * -100}{$_('modifier.decrease')}
             {/if}
         </div>
         <div class="small-text">
             {$_('schedule.every')}&nbsp;{frequency}&nbsp;{period.name}
-            {$_('schedule.starting_from')}&nbsp;{formatDate(date)} 
+            {$_('schedule.starting_from')}&nbsp;{formatDate(date)}
         </div>
     </div>
     {#if hasEnd}
@@ -77,7 +77,7 @@
     </div>
     {/if}
     <hr/>
-    
+
 </div>
 
 <style>
@@ -86,14 +86,6 @@
         --date-input-width: 110px;
     }
 
-    .form-row {
-        display: inline-flex;
-        width: 100%;
-    }
-
-    
-
-    
 
     hr {
         border-style: none;
@@ -102,9 +94,9 @@
         width: 100vw;
     }
 
-   
-    
 
-    
+
+
+
 
 </style>

@@ -69,7 +69,7 @@
     const onAdd = async () => {
         msg = ""
         errors = new Errors()
-        
+
         if (!name || name.length < 1) {
             errors.addError("name", $_('account.form.errors.nameRequired'))
         }
@@ -154,12 +154,12 @@
 
         // Convert Date to ISO string for backend
         const rollbackDateString = rollbackDate.toISOString().split('T')[0]
-        
-        await invoke('rollback_reconciliation', { 
-            accountId: curAccount.id, 
-            toDate: {date: rollbackDateString} 
+
+        await invoke('rollback_reconciliation', {
+            accountId: curAccount.id,
+            toDate: {date: rollbackDateString}
         }).then(() => {
-            msg = $_('account.form.success.rollback')            
+            msg = $_('account.form.success.rollback')
         }, rejected)
         loadAccounts()
     }
@@ -205,7 +205,7 @@
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
-    </div>    
+    </div>
     {#if curAccount && curAccount.reconciliation_info}
         <hr/>
         <div class="info-title">{$_('account.reconciliationInfo')}</div>
@@ -224,16 +224,16 @@
             </div>
             <div class="date-input" id="rollbackDate">
                 <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
-            </div>            
+            </div>
             <div class="widget">
                 <button class="og-button" onclick={rollbackReconciliation} disabled={!rollbackDate}>{$_('account.rollbackButton')}</button>
             </div>
         </div>
         <div class="info-row">&nbsp;</div>
     {/if}
-    {#if curAccount && canSupportInterest()}               
+    {#if curAccount && canSupportInterest()}
         <hr/>
-        <InterestPanel {curAccount} {loadAccounts} />        
+        <InterestPanel {curAccount} {loadAccounts} />
     {/if}
 </div>
 <hr/>
@@ -249,8 +249,6 @@
     :root {
         --date-input-width: 110px;
     }
-
-    
 
     :global(.message) {
         color: #EFEFEF;
@@ -274,11 +272,6 @@
         margin: 10px 12px 0 0;
     }
 
-    .form-row {
-        display: inline-flex;
-        width: 100%;
-    }
-
     .form-button-row {
         display: block;
         text-align: left;
@@ -290,7 +283,7 @@
     input {
         margin-right: 0px;
     }
-  
+
 
     .widget {
         display: inline-block;
@@ -305,7 +298,7 @@
         text-align: right;
     }
 
-    
+
     :global(.info-row) {
         padding: 5px 0 0px 10px;
         margin: 0 0 0 0;
@@ -324,7 +317,7 @@
         font-size: 0.75em;
         color: var(--color-input-bg);
     }
-    
+
     :global(.info-title) {
         white-space: nowrap;
         font-weight: 200;
@@ -343,5 +336,5 @@
         margin-left: -20px;
         width: 100vw;
     }
-    
+
 </style>

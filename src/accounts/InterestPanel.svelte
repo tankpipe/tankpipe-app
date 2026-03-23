@@ -422,11 +422,6 @@
         margin-top: 0px;
     }
 
-    .form-row {
-        display: inline-flex;
-        width: 100%;
-    }
-
     .form-button-row {
         display: block;
         text-align: left;

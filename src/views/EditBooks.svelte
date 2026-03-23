@@ -106,10 +106,6 @@
         --date-input-width: 110px;
     }
 
-    .form-row {
-        display: inline-flex;
-        width: 100%;
-    }
 
     .form-button-row {
         display: block;
