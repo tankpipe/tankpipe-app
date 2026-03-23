@@ -4,6 +4,7 @@ use std::ffi::{OsString};
 use std::path::PathBuf;
 use std::{path::Path, fs::File, io::Read};
 use std::{io, fs};
+use chrono::{DateTime, Datelike, Duration, Utc};
 use accounts::books::{Books, BooksError};
 use accounts::books_repo::{load_books, save_books, save_new_books};
 use directories::ProjectDirs;
@@ -24,6 +25,10 @@ const FALLBACK_PATH: &'static str = "com.tankpipe.money_test";
 const APP_NAME: &'static str = "money";
 #[cfg(test)]
 const APP_NAME: &'static str = "money_test";
+
+const BACKUP_KEEP_LAST: usize = 20;
+const BACKUP_KEEP_DAILY_DAYS: i64 = 31;
+const BACKUP_KEEP_MONTHS: u32 = 13;
 
 
 /// Manage storage
@@ -103,7 +108,9 @@ impl Repo {
         let new_projection_date = today.checked_add_months(chrono::Months::new(self.config.projection_months)).unwrap();
         let _ = self.books.run_checks_and_update(new_projection_date);
         self.config.projected_to = Some(new_projection_date);
-        let _ = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+        if self.config.current_file.is_some() {
+            let _ = save_books_with_backups(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+        }
         let _ = self.save_config();
     }
 
@@ -149,7 +156,7 @@ impl Repo {
         match self.config.current_books_id  {
             Some(id) => {                
                 if id == self.books.id {
-                    let result = save_books(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+                    let result = save_books_with_backups(self.config.current_file.clone().unwrap().path.clone(), &self.books);
                     
                     match result {
                         Ok(()) => {
@@ -167,6 +174,48 @@ impl Repo {
             },
             None => Err(crate::books_error!("errors.no_file_path_for_current_books"))
         }
+    }
+
+    pub fn list_backups(&self) -> Result<Vec<OsString>, BooksError> {
+        match &self.config.current_file {
+            Some(file_details) => {
+                let current_path = PathBuf::from(file_details.path.clone());
+                let backup_dir = backup_dir_for_file(&current_path).map_err(|e| BooksError{ error: e.to_string() })?;
+                if !backup_dir.exists() {
+                    return Ok(Vec::new());
+                }
+
+                let mut entries = read_backup_entries(&backup_dir).map_err(|e| BooksError{ error: e.to_string() })?;
+                entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+                Ok(entries.into_iter().map(|entry| entry.path.into_os_string()).collect())
+            },
+            None => Err(crate::books_error!("errors.no_file_path_for_current_books"))
+        }
+    }
+
+    pub fn restore_backup(&mut self, backup_path: &OsString) -> Result<(), BooksError> {
+        let current_file = match &self.config.current_file {
+            Some(file) => file.clone(),
+            None => return Err(crate::books_error!("errors.no_file_path_for_current_books"))
+        };
+
+        let current_path = PathBuf::from(current_file.path.clone());
+        let backup_path_buf = PathBuf::from(backup_path.clone());
+        let backup_dir = backup_dir_for_file(&current_path).map_err(|e| BooksError{ error: e.to_string() })?;
+
+        let backup_dir_canonical = backup_dir.canonicalize().map_err(|e| BooksError{ error: e.to_string() })?;
+        let backup_path_canonical = backup_path_buf.canonicalize().map_err(|e| BooksError{ error: e.to_string() })?;
+        if !backup_path_canonical.starts_with(&backup_dir_canonical) {
+            return Err(BooksError{ error: "Backup file is not in this repo's backup directory.".to_string() })
+        }
+
+        let restored_books = load_books(backup_path.clone()).map_err(|e| BooksError{ error: e.to_string() })?;
+        save_books_with_backups(current_file.path.clone(), &restored_books).map_err(|e| BooksError{ error: e.to_string() })?;
+
+        self.books = restored_books;
+        self.config.current_books_id = Some(self.books.id);
+        self.save_config()?;
+        Ok(())
     }
 
     pub fn new_books(&mut self, name: &str) -> Result<(), BooksError> {
@@ -325,6 +374,143 @@ pub fn read_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
 fn write_config<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<()> {
     ::serde_json::to_writer(&File::create(path)?, &config)?;
     Ok(())
+}
+
+#[derive(Clone, Debug)]
+struct BackupEntry {
+    path: PathBuf,
+    timestamp: DateTime<Utc>
+}
+
+fn save_books_with_backups(path: OsString, books: &Books) -> io::Result<()> {
+    create_backup_snapshot(path.as_os_str())?;
+    save_books(path, books)
+}
+
+fn create_backup_snapshot(path: &std::ffi::OsStr) -> io::Result<()> {
+    let path = PathBuf::from(path);
+    if !path.exists() {
+        return Ok(())
+    }
+
+    let backup_dir = backup_dir_for_file(&path)?;
+    fs::create_dir_all(&backup_dir)?;
+
+    let now = Utc::now();
+    let mut backup_path = backup_dir.join(format!("backup-{}.json", now.timestamp_millis()));
+    let mut collision = 1u32;
+    while backup_path.exists() {
+        backup_path = backup_dir.join(format!("backup-{}-{}.json", now.timestamp_millis(), collision));
+        collision += 1;
+    }
+
+    fs::copy(&path, &backup_path)?;
+    prune_backups(&backup_dir, now)
+}
+
+fn backup_dir_for_file(path: &Path) -> io::Result<PathBuf> {
+    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let file_name = path
+        .file_name()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Path must point to a file"))?;
+    Ok(parent.join(".backups").join(file_name))
+}
+
+fn prune_backups(backup_dir: &Path, now: DateTime<Utc>) -> io::Result<()> {
+    let mut entries = read_backup_entries(backup_dir)?;
+    entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+    if entries.len() <= BACKUP_KEEP_LAST {
+        return Ok(())
+    }
+
+    let daily_cutoff = now - Duration::days(BACKUP_KEEP_DAILY_DAYS);
+    let recent_months = recent_month_keys(now, BACKUP_KEEP_MONTHS);
+    let mut keep_paths: std::collections::HashSet<PathBuf> = std::collections::HashSet::new();
+    let mut kept_days: std::collections::HashSet<(i32, u32, u32)> = std::collections::HashSet::new();
+    let mut kept_months: std::collections::HashSet<(i32, u32)> = std::collections::HashSet::new();
+
+    for backup in entries.iter().take(BACKUP_KEEP_LAST) {
+        keep_paths.insert(backup.path.clone());
+    }
+
+    for backup in &entries {
+        if backup.timestamp >= daily_cutoff {
+            let day_key = (backup.timestamp.year(), backup.timestamp.month(), backup.timestamp.day());
+            if kept_days.insert(day_key) {
+                keep_paths.insert(backup.path.clone());
+            }
+        }
+    }
+
+    for backup in &entries {
+        let month_key = (backup.timestamp.year(), backup.timestamp.month());
+        if recent_months.contains(&month_key) && kept_months.insert(month_key) {
+            keep_paths.insert(backup.path.clone());
+        }
+    }
+
+    for backup in entries {
+        if !keep_paths.contains(&backup.path) {
+            fs::remove_file(&backup.path)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn read_backup_entries(backup_dir: &Path) -> io::Result<Vec<BackupEntry>> {
+    let mut backups = Vec::new();
+    for dir_entry in fs::read_dir(backup_dir)? {
+        let dir_entry = dir_entry?;
+        let path = dir_entry.path();
+        if !path.is_file() {
+            continue;
+        }
+
+        let file_name = match path.file_name().and_then(|n| n.to_str()) {
+            Some(name) => name,
+            None => continue,
+        };
+        let timestamp_ms = match parse_backup_timestamp_ms(file_name) {
+            Some(ms) => ms,
+            None => continue,
+        };
+        let timestamp = match DateTime::<Utc>::from_timestamp_millis(timestamp_ms) {
+            Some(ts) => ts,
+            None => continue,
+        };
+
+        backups.push(BackupEntry { path, timestamp });
+    }
+    Ok(backups)
+}
+
+fn parse_backup_timestamp_ms(file_name: &str) -> Option<i64> {
+    if !file_name.starts_with("backup-") || !file_name.ends_with(".json") {
+        return None;
+    }
+    let without_prefix = &file_name["backup-".len()..file_name.len() - ".json".len()];
+    let millis_str = without_prefix.split('-').next()?;
+    millis_str.parse::<i64>().ok()
+}
+
+fn recent_month_keys(now: DateTime<Utc>, months: u32) -> std::collections::HashSet<(i32, u32)> {
+    let mut month_keys = std::collections::HashSet::new();
+    let mut year = now.year();
+    let mut month = now.month();
+
+    for _ in 0..months {
+        month_keys.insert((year, month));
+        if month == 1 {
+            month = 12;
+            year -= 1;
+        } else {
+            month -= 1;
+        }
+    }
+
+    month_keys
 }
 
 pub fn initial_setup() -> Result<Config, BooksError> {

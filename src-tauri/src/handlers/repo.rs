@@ -80,6 +80,19 @@ pub fn about() -> About {
 }
 
 #[tauri::command]
+pub fn list_backups(state: tauri::State<BooksState>) -> Result<Vec<String>, String> {
+    let mutex_guard = state.0.lock().unwrap();
+    let backups = mutex_guard.list_backups().map_err(|e| e.error)?;
+    Ok(backups.into_iter().map(|p| p.to_string_lossy().to_string()).collect())
+}
+
+#[tauri::command]
+pub fn restore_backup(state: tauri::State<BooksState>, backup_path: String) -> Result<(), String> {
+    let mut mutex_guard = state.0.lock().unwrap();
+    mutex_guard.restore_backup(&OsString::from(backup_path)).map_err(|e| e.error)
+}
+
+#[tauri::command]
 pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSettings) -> Result<(), String>  {
     println!("Updating config: {:?}", config_settings);
     let mut mutex_guard = state.0.lock().unwrap();

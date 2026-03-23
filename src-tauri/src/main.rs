@@ -102,6 +102,8 @@ fn main() {
             repo::load_with_path,
             repo::load_config,
             repo::reconcile_csv,
+            repo::list_backups,
+            repo::restore_backup,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
