@@ -19,6 +19,7 @@
     let compoundMode =  $state(false)
     let recorded = $state(false)
     let entries =  $state([])
+    $inspect(entries)
 
     $effect(() => {
         if ($page.mode === modes.VIEW) {
@@ -33,7 +34,8 @@
         entries.push(...curTransaction.entries)
 
         entries.forEach(e => {
-            e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
+            const amount = e.amount ? Number(e.amount).toFixed(2) : "0.00"
+            e.entry_type === "Credit" ? Object.assign(e, {crAmount: amount}) : Object.assign(e, {drAmount: amount})
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
         })
@@ -45,6 +47,7 @@
             entries[0].entry_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
         }
 
+        console.log(entries)
         compoundMode = true
         recorded = curTransaction.status != "Projected"
         calculateTotals()
@@ -105,7 +108,7 @@
 
 <div class="form">
     <div class="form-heading">{$_('transaction.view')}</div>
-    
+
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick={schedule} title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
@@ -165,15 +168,6 @@
 
     :root {
         --date-input-width: 110px;
-    }
-
-    .form-row2, .form-button-row {
-        display: block;
-        text-align: left;
-    }
-
-    .form-row2{
-        min-height: 70px;
     }
 
     .buttons {
@@ -242,7 +236,7 @@
     .recon-msg {
         color: var(--color-success-strong);
     }
-        
+
     .reconciled-cell {
         background-color: transparent;
         color: var(--color-border-light);

@@ -274,6 +274,7 @@
         entries = txEntries.map(e => ({...e}))
 
         entries.forEach(e => {
+            e.amount = e.amount ? Number(e.amount).toFixed(2) : "0.00"
             e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
@@ -433,7 +434,7 @@
         let total = 0
         const amountField = type === "Credit" ? "crAmount" : "drAmount"
         entries.filter(e => isValidAmount(e[amountField])).forEach(e => total += Number(e[amountField]))
-        return total
+        return Number(total).toFixed(2)
     }
 
     const calculateTotals = () => {

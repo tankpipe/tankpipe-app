@@ -167,7 +167,7 @@
         entries
             .filter(e => resolvedEntryType(e) === type)
             .forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
-        return total
+        return Number(total).toFixed(2)
     }
 
     $: drTotal = total("Debit")
