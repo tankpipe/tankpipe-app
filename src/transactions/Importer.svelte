@@ -335,8 +335,6 @@
         color: var(--color-text-strong);
     }
 
-
-
     .shrink-font {
         font-size: .9em;
     }
@@ -357,6 +355,10 @@
         font-size: 0.7em;
         color: var(--color-accent) !important;
         height: 9px;
+    }
+
+    .label-column {
+        color: var(--color-text);
     }
 
 </style>
