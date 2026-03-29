@@ -27,6 +27,7 @@
     let errors = $state(new Errors())
     let msg = $state("")
     let previousAccountId
+    let appliedPayloadAccountId = null
     let topScroll = $state(null)
     let showFilter = $state(false)
     let descriptionFilter = $state("")
@@ -63,11 +64,13 @@
     });
 
     $effect(() => {
-        if ($page.payload && $page.payload.accountId) {
-            const payloadAccount = $accounts.find(account => account.id === $page.payload.accountId)
+        const payloadAccountId = $page.payload?.accountId
+        if (payloadAccountId && payloadAccountId !== appliedPayloadAccountId) {
+            const payloadAccount = $accounts.find(account => account.id === payloadAccountId)
             if (payloadAccount && payloadAccount.id !== curAccount?.id) {
                 curAccount = payloadAccount
             }
+            appliedPayloadAccountId = payloadAccountId
         }
     })
 
@@ -133,6 +136,7 @@
         if (!journalMode) {
             for (const t of allTransactions) {
                 let entry = getEntry(t)
+                if (!entry || !entry.date) continue
                 chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
             }
             chartOptions["series"] = [{data: chartValues}]

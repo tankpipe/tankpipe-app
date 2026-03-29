@@ -6,6 +6,7 @@
 .vscode
 .code-workspace
 .svelte-kit
+.npm-cache
 
 *.code-workspace
 /.idea
