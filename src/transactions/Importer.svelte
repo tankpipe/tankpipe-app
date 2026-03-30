@@ -6,8 +6,8 @@
     import { documentDir } from '@tauri-apps/api/path'
     import { Errors } from '../utils/errors'
     import { page } from '../stores/page'
-    import { config } from '../stores/config.js'
     import { accounts } from '../stores/accounts'
+    import { DATE_FORMATS } from '../utils/dates.js'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
@@ -20,6 +20,8 @@
     let selectedColumns = $state([])
     let columns = $state([])
     let requiredColumnsMatched = $state(false);
+    let dateFormatMatched = $state(false);
+    let mappedDateFormat = $state("");
     let mappingExists = $state(false);
     let path = $state("")
     let fileDialogShown = $state(false)
@@ -27,8 +29,8 @@
     let rememberForNextTime = $state(true)
     let showReverseDrCrMsg = $state(false)
     let originalDrCrColumns = $state([])
+    let importDateFormat = $state(DATE_FORMATS[1].format)
 
-    const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
     const COLUMN_TYPES_MAP = {
         "Date": {name: $_('labels.date'), id: "Date"},
         "Description": {name: $_('labels.description'), id: "Description"},
@@ -103,6 +105,11 @@
         rows = result.sample_rows.slice(0, 20)
         columnTypes = result.column_types.columns
         showReverseDrCrMsg = result.dr_cr_reversed
+        if (result.date_format && DATE_FORMATS.some(dateFormat => dateFormat.format === result.date_format)) {
+            importDateFormat = result.date_format
+            dateFormatMatched = true
+            mappedDateFormat = result.date_format
+        }
         columns = result.column_types.columns.map(c => ({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
@@ -134,6 +141,8 @@
         selectedColumns = []
         columns = []
         requiredColumnsMatched = false
+        dateFormatMatched = false
+        mappedDateFormat = ""
         await invoke('evaluate_csv', {path: path, account: account}).then(loaded, rejected)
     }
 
@@ -151,9 +160,17 @@
 
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
+        const selectedImportDateFormat = importDateFormat || DATE_FORMATS[1].format
 
-        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
-        await invoke('import_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow, importDateFormat: selectedImportDateFormat})
+        await invoke('import_csv', {
+            path: path,
+            accountId: curAccount.id,
+            columnTypes: updatedColumns,
+            saveMapping: rememberForNextTime,
+            hasHeaders: hasHeaderRow,
+            importDateFormat: selectedImportDateFormat
+        }).then(importCompleted, rejected)
     }
 
     let lastReconcileRequest = null
@@ -177,10 +194,17 @@
             path: path,
             accountId: curAccount.id,
             columnTypes: updatedColumns,
-            hasHeaders: hasHeaderRow
+            hasHeaders: hasHeaderRow,
+            importDateFormat: importDateFormat || DATE_FORMATS[1].format
         }
-        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
-        await invoke('reconcile_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
+        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat})
+        await invoke('reconcile_csv', {
+            path: path,
+            accountId: curAccount.id,
+            columnTypes: updatedColumns,
+            hasHeaders: hasHeaderRow,
+            importDateFormat: lastReconcileRequest.importDateFormat
+        }).then(reconciliationCompleted, rejected)
     }
 
     const reconciliationCompleted = (results) => {
@@ -193,6 +217,10 @@
 
     const close = () => {
         onClose()
+    }
+
+    const dateFormatChange = () => {
+        dateFormatMatched = (importDateFormat === mappedDateFormat)
     }
 
 </script>
@@ -227,7 +255,10 @@
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
+            <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={importDateFormat} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={dateFormatChange}/></div>
+            {#if dateFormatMatched}
+            <div class="label label-column"><div class="success-msg" title="{$_('importer.date_format_mapped')}">&nbsp;&check;</div></div>
+            {/if}
         </div>
     </div>
     <div class="form-row2">

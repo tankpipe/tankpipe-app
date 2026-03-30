@@ -252,6 +252,7 @@
         "reverse_dr_cr": "Debit/Credit columns reversed by default",
         "save_mappings": "Remember for next time",
         "required_columns_mapped": "Required columns mapped",
+        "date_format_mapped": "Date format mapped",
         "columns": "Columns",
         "sample_data": "CSV data",
         "reconcileTransactions": "Reconcile transactions"

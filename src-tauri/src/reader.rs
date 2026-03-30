@@ -238,7 +238,7 @@ pub fn read_rows<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<Vec<Ve
 }
 
 pub fn read_transactions <P: AsRef<Path>>(path: &P, account_id: Uuid, fmt: &str, columns: &ColumnTypes, has_headers: bool) -> Result<Vec<Transaction>, BooksError> {
-    println!("read_transactions : {:?}", columns);
+    println!("read_transactions : {:?}, fmt: {}, has_headers: {}", columns, fmt, has_headers);
     validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
         .has_headers(has_headers)
