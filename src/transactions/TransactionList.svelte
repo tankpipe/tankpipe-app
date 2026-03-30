@@ -470,10 +470,9 @@
     td {
         text-align: left;
         overflow: hidden;
-        line-height: 1em;
         color: var(--color-table-cell-text);
         background-color: var(--color-table-cell-bg);
-        padding: 8px;
+        padding: 6px 2px 10px 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }

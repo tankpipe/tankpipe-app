@@ -60,7 +60,7 @@
             loadTransactions()
             previousAccountId = curAccount.id
         }
-       
+
     });
 
     $effect(() => {
@@ -78,7 +78,7 @@
         topScroll = document.getElementById("scroller").scrollTop
     }
 
-    const isAllReconciled = (transaction) => {                
+    const isAllReconciled = (transaction) => {
         return transaction.entries.every(e => e.reconciled_status)
     }
 
@@ -91,7 +91,7 @@
                 targetTransactionId: transaction.targetTransactionId
             }
             : null
-        
+
         // Route to view-only mode for reconciled transactions
         if (isAllReconciled(transaction)) {
             page.set({view: $page.view, mode: modes.VIEW})
@@ -170,7 +170,7 @@
         page.set({view: $page.view, mode: modes.NEW})
     }
 
-    function evaluationResult(result) {        
+    function evaluationResult(result) {
         topScroll = null
         page.set({view: $page.view, mode: modes.LOAD})
     }
@@ -224,11 +224,11 @@
         page.set({view: $page.view, mode: modes.LIST})
     }
 
-    const handleReconciliationResults = (results, request) => {        
+    const handleReconciliationResults = (results, request) => {
         reconciliationResults = results ?? []
         const safeRequest = request ?? null
         lastReconciliationRequest = safeRequest
-        reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null        
+        reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null
         reconciliationMode = RM.GUIDED
         page.set({view: $page.view, mode: modes.LIST})
     }
@@ -240,13 +240,13 @@
         lastReconciliationRequest = null
         loadTransactions()
     }
-    
+
     const loadAccounts = async () => {
         let result = await invoke('accounts')
         updateAccounts(result)
         curAccount = $accounts.find(a => a.id === curAccount.id)
         loadTransactions()
-    };   
+    };
 
     const onManualReconciliationMode = () => {
         reconciliationMode = reconciliationMode === RM.MANUAL ? RM.NONE : RM.MANUAL;
@@ -280,8 +280,8 @@
             .then(path => defaultPath = path)
             .catch(e => console.log("error getting document dir: " + e))
 
-        const defaultFileName = journalMode 
-            ? "all_transactions.csv" 
+        const defaultFileName = journalMode
+            ? "all_transactions.csv"
             : `${curAccount.name || 'transactions'}_${new Date().toISOString().split('T')[0]}.csv`
 
         const selected = await save({
@@ -324,7 +324,7 @@
         >
             <Icon icon="mdi:check" width="24"/>
         </button>
-        <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>        
+        <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
         {/if}
         {#if (curAccount?.id && ! journalMode || (journalMode && ! curAccount?.id)) && transactions.length > 0}
         <button type="button" class="toolbar-icon import-icon" onclick={csvExport} title={$_('transactions.exportCsv')}><Icon icon="mdi:folder-download" width="22"/></button>
@@ -397,7 +397,6 @@
     td {
         text-align: left;
         overflow: hidden;
-        line-height: 1em;
         color: var(--color-table-cell-text);
         background-color: var(--color-table-cell-bg);
         padding: 8px;
@@ -411,7 +410,7 @@
         font-weight: 400;
         font-size: .8em;
     }
-    
+
 
     .form input {
         margin: 0px;
@@ -424,7 +423,7 @@
         text-overflow: ellipsis;
     }
 
-    
+
 
     .chart {
         float: right;
