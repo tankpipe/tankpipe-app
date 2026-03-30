@@ -472,7 +472,7 @@
         overflow: hidden;
         color: var(--color-table-cell-text);
         background-color: var(--color-table-cell-bg);
-        padding: 6px 2px 10px 8px;
+        padding: 6px 8px 10px 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
@@ -521,6 +521,7 @@
         min-width: 92px;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
+        text-align: right;
     }
 
     .description {
