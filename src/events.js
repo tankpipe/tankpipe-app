@@ -67,6 +67,7 @@ const loadFileSuccess = (result) => {
     emit('file-loaded', "")
     updateAccounts(result)
     page.set({view: views.ACCOUNTS, mode: modes.LIST})
+    loadConfig()
 }
 
 const loadFileFailure = (result) => {

@@ -9,6 +9,7 @@
     import { invoke } from "@tauri-apps/api/core"
     import { save } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
+    import { config } from "../stores/config"
 
     let { curAccount, loadAccounts } = $props()
 
@@ -86,14 +87,12 @@
         if (selected) {
             try {
                 await invoke('export_accounts_csv', { path: selected })
-                // Success message could be added here if needed
             } catch (err) {
                 console.log(err)
-                // Error handling could be added here if needed
             }
         }
     }
-    
+
 </script>
 
 {#if isEditMode($page)}
@@ -105,6 +104,7 @@
             <button class="toolbar-icon" onclick={csvExport} title={$_('accounts.exportCsv')}><Icon icon="mdi:folder-download" width="22"/></button>
         </div>
         <div class="form-heading">{$_('accounts.title')}</div>
+        <div class="small-sub-heading" title={$config.current_file?.path || ''}>{$config.current_file?.name || ''}</div>
     </div>
     <div class="scroller">
     <div class="accounts">
@@ -163,5 +163,18 @@
         cursor: pointer;
         color: var(--color-text-hover);
     }
-    
+
+    .small-sub-heading {
+        font-size: 1.5em;
+        color: var(--color-text-dim);
+        margin: -8px 0 -5px 10px;
+        float: left;
+        clear: both;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 350px;
+    }
+
+
 </style>
