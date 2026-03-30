@@ -136,10 +136,13 @@
         "view": "Transaction",
         "recorded": "Recorded",
         "reconciled": "Reconciled",
+        "outstanding": "Reconciliation outstanding",
         "partiallyReconciled": "Partially reconciled",
         "mergePrefill": "Update with reconciliation values",
         "reconcileTransaction": "Reconcile transaction",
         "reconcileTransactions": "Reconcile transactions",
+        "selectedForMerge": "Selected for merge",
+        "mergeTarget": "Merge target",
         "schedule": "Schedule",
         "sourceType": {
             "Interest": "Interest",

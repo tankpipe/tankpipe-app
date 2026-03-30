@@ -402,7 +402,7 @@
                 <td class="{projected(t)} money">{getBalance(e)}</td>
                 <td class="reconciled-cell" onclick={(event) => stopPropagationHandler(event, () => {})}>
                     {#if reconciledContent === 'reconciled'}
-                        <div class="recon-status"><Icon icon="mdi:check" width="16"/></div>
+                        <div class="recon-status" title={$_('transaction.reconciled')}><Icon icon="mdi:check" width="16"/></div>
                     {:else if reconciledContent === 'reconcilable'}
                         <button
                             class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
@@ -412,7 +412,10 @@
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconciledContent === 'merge'}
-                        <button class={"merge-marker " + (isSelectedForMerge(t.id) ? "merge-marker-selected" : "")} onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}>
+                        <button
+                            class={"merge-marker " + (isSelectedForMerge(t.id) ? "merge-marker-selected" : "")}
+                            onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}
+                            title={isSelectedForMerge(t.id) ? $_('transaction.selectedForMerge') : $_('transaction.mergeTarget')}>
                             {#if isSelectedForMerge(t.id)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
                         </button>
                     {:else if reconciledContent === 'manual-reconcile'}
@@ -422,7 +425,7 @@
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconciledContent === 'outstanding'}
-                        <div class="recon-status"><Icon icon="mdi:circle-small" width="16"/></div>
+                        <div class="recon-status" title={$_('transaction.outstanding')}><Icon icon="mdi:circle-small" width="16"/></div>
                     {/if}
                 </td>
             </tr>
