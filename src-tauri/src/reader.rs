@@ -98,6 +98,120 @@ pub fn check_csv_format<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result
     Ok(columns)
 }
 
+pub fn check_date_format(rows: &Vec<Vec<String>>, date_column: usize) -> Option<String> {
+    fn extract_date_token(cell: &str) -> Option<&str> {
+        let trimmed = cell.trim();
+        if trimmed.is_empty() {
+            return None;
+        }
+
+        // Common bank exports append a time portion; keep the date token only.
+        let before_space = trimmed.split_whitespace().next().unwrap_or(trimmed);
+        let before_t = before_space.split('T').next().unwrap_or(before_space);
+        if before_t.is_empty() { None } else { Some(before_t) }
+    }
+
+    fn is_date_like(token: &str) -> bool {
+        // Only allow digits and a single repeated separator (e.g. 1/2/2024, 2024-02-01).
+        let mut separator: Option<char> = None;
+        let mut separator_count = 0usize;
+
+        for ch in token.chars() {
+            if ch.is_ascii_digit() {
+                continue;
+            }
+            if matches!(ch, '/' | '-' | '.') {
+                match separator {
+                    None => separator = Some(ch),
+                    Some(sep) if sep == ch => {}
+                    Some(_) => return false, // mixed separators
+                }
+                separator_count += 1;
+                continue;
+            }
+            return false;
+        }
+
+        if separator_count != 2 {
+            return false;
+        }
+
+        let Some(sep) = separator else { return false };
+        let parts: Vec<&str> = token.split(sep).collect();
+        if parts.len() != 3 {
+            return false;
+        }
+
+        // Require plausible part widths; year commonly 2 or 4 digits.
+        parts.iter().all(|p| {
+            !p.is_empty()
+                && p.len() <= 4
+                && p.chars().all(|c| c.is_ascii_digit())
+        }) && (parts[0].len() == 4 || parts[2].len() == 4 || parts[2].len() == 2)
+    }
+
+    const CANDIDATE_FORMATS: [&str; 18] = [
+        "%d/%m/%Y",
+        "%m/%d/%Y",
+        "%Y/%m/%d",
+        "%d-%m-%Y",
+        "%m-%d-%Y",
+        "%Y-%m-%d",
+        "%d.%m.%Y",
+        "%m.%d.%Y",
+        "%Y.%m.%d",
+        "%d/%m/%y",
+        "%m/%d/%y",
+        "%y/%m/%d",
+        "%d-%m-%y",
+        "%m-%d-%y",
+        "%y-%m-%d",
+        "%d.%m.%y",
+        "%m.%d.%y",
+        "%y.%m.%d",
+    ];
+
+    let mut possible: std::collections::HashSet<&'static str> =
+        CANDIDATE_FORMATS.into_iter().collect();
+
+    let mut considered = 0usize;
+    for row in rows {
+        let Some(cell) = row.get(date_column) else { continue };
+        let Some(token) = extract_date_token(cell) else { continue };
+        if !is_date_like(token) {
+            continue;
+        }
+
+        considered += 1;
+        let mut parsable: std::collections::HashSet<&'static str> = std::collections::HashSet::new();
+        for fmt in CANDIDATE_FORMATS {
+            if NaiveDate::parse_from_str(token, fmt).is_ok() {
+                parsable.insert(fmt);
+            }
+        }
+
+        if parsable.is_empty() {
+            return None;
+        }
+
+        possible.retain(|fmt| parsable.contains(fmt));
+        if possible.is_empty() {
+            return None;
+        }
+
+        // Limit work on huge CSVs (we only need a representative sample).
+        if considered >= 200 {
+            break;
+        }
+    }
+
+    if considered == 0 || possible.len() != 1 {
+        return None;
+    }
+
+    possible.iter().next().map(|fmt| fmt.to_string())
+}
+
 pub fn read_rows<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<Vec<Vec<String>>, BooksError> {
     let columns = read_columns(path, reverse_dr_cr)?;
     let _ = validate_columns(&columns);
@@ -140,12 +254,12 @@ pub fn read_transactions <P: AsRef<Path>>(path: &P, account_id: Uuid, fmt: &str,
                     Err(e) => println!("Skipping row as unabled to process. Error: {:?}", e)
                 }
             }
-            
+
             if transactions_are_reversed(&transactions, account_id) {
                 println!("Detected reversed transaction order, reversing...");
                 transactions.reverse();
             }
-            
+
             Ok(transactions)
         },
         Err(e) => {
@@ -281,12 +395,12 @@ pub fn transactions_are_reversed(transactions: &[Transaction], account_id: Uuid)
     if transactions.len() < 2 {
         return false;
     }
-    
+
     // Check if dates are generally decreasing (newest to oldest)
     let mut decreasing_count = 0;
     let mut total_comparisons = 0;
     let mut currently_decreasing = false;
-    
+
     for window in transactions.windows(2) {
         if let (Some(first_entry), Some(second_entry)) = (
             window[0].find_entry_by_account(&account_id),
@@ -301,7 +415,7 @@ pub fn transactions_are_reversed(transactions: &[Transaction], account_id: Uuid)
             total_comparisons += 1;
         }
     }
-    
+
     // If more than 70% of comparisons show decreasing dates, consider it reversed
     println!("decreasing_count: {}, total_comparisons: {}", decreasing_count, total_comparisons);
     total_comparisons > 0 && (decreasing_count as f64 / total_comparisons as f64) > 0.7
@@ -363,7 +477,7 @@ mod tests {
     use rust_decimal_macros::dec;
     use crate::reader::{balance_impact, read_columns, read_transactions, ColumnType};
 
-    use super::{parse_date_str, detect_columns};
+    use super::{check_date_format, detect_columns, parse_date_str};
 
 
     #[test]
@@ -480,5 +594,67 @@ mod tests {
         assert_eq!(Side::Debit, balance_impact(dec!(100)));
         assert_eq!(Side::Debit, balance_impact(dec!(0)));
         assert_eq!(Side::Credit, balance_impact(dec!(-100)));
+    }
+
+    #[test]
+    fn test_check_date_format_dmy_slash() {
+        let rows = vec![
+            vec!["Date".to_string()],
+            vec!["31/05/2022".to_string()],
+            vec!["1/6/2022".to_string()],
+            vec!["13/6/2022".to_string()],
+        ];
+        assert_eq!(Some("%d/%m/%Y".to_string()), check_date_format(&rows, 0));
+    }
+
+    #[test]
+    fn test_check_date_format_mdy_slash() {
+        let rows = vec![
+            vec!["Date".to_string()],
+            vec!["05/31/2022".to_string()],
+            vec!["6/1/2022".to_string()],
+            vec!["6/13/2022".to_string()],
+        ];
+        assert_eq!(Some("%m/%d/%Y".to_string()), check_date_format(&rows, 0));
+    }
+
+    #[test]
+    fn test_check_date_format_ymd_dash() {
+        let rows = vec![
+            vec!["Posting Date".to_string()],
+            vec!["2022-05-31".to_string()],
+            vec!["2022-06-01".to_string()],
+        ];
+        assert_eq!(Some("%Y-%m-%d".to_string()), check_date_format(&rows, 0));
+    }
+
+    #[test]
+    fn test_check_date_format_ymd_with_time() {
+        let rows = vec![
+            vec!["Date".to_string()],
+            vec!["2022-05-31 00:00:00".to_string()],
+            vec!["2022-06-01T12:34:56".to_string()],
+        ];
+        assert_eq!(Some("%Y-%m-%d".to_string()), check_date_format(&rows, 0));
+    }
+
+    #[test]
+    fn test_check_date_format_ambiguous_dmy_vs_mdy() {
+        let rows = vec![
+            vec!["Date".to_string()],
+            vec!["01/02/2022".to_string()],
+            vec!["03/04/2022".to_string()],
+        ];
+        assert_eq!(None, check_date_format(&rows, 0));
+    }
+
+    #[test]
+    fn test_check_date_format_mixed_separators_none() {
+        let rows = vec![
+            vec!["Date".to_string()],
+            vec!["31/05/2022".to_string()],
+            vec!["2022-06-01".to_string()],
+        ];
+        assert_eq!(None, check_date_format(&rows, 0));
     }
 }

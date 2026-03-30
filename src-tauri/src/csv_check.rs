@@ -10,10 +10,11 @@ pub struct CsvCheck {
     pub sample_rows: Vec<Vec<String>>,
     pub mapping_exists: bool,
     pub dr_cr_reversed: bool,
+    pub date_format: Option<String>,
 }
 
 impl CsvCheck {
-    pub fn create_new(column_types: ColumnTypes, header_row: Vec<String>, sample_rows: Vec<Vec<String>>, reverse_cr_dr_default: bool) -> CsvCheck {
+    pub fn create_new(column_types: ColumnTypes, header_row: Vec<String>, sample_rows: Vec<Vec<String>>, reverse_cr_dr_default: bool, date_format: Option<String>) -> CsvCheck {
         let reversed = reverse_cr_dr_default && (column_types.has_column(ColumnType::Debit) || column_types.has_column(ColumnType::Credit));
         CsvCheck {
             column_types: column_types.clone(),
@@ -21,6 +22,7 @@ impl CsvCheck {
             sample_rows: sample_rows,
             mapping_exists: false,
             dr_cr_reversed: reversed,
+            date_format: date_format,
         }
     }
 
@@ -31,6 +33,7 @@ impl CsvCheck {
             sample_rows: self.sample_rows,
             mapping_exists: mapping_exists,
             dr_cr_reversed: self.dr_cr_reversed,
+            date_format: self.date_format,
         }
     }
 }

@@ -11,7 +11,7 @@ use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::{error_handler};
 use crate::money_repo::Repo;
-use crate::reader::{check_csv_format, read_headers, read_rows, read_transactions, ColumnTypes};
+use crate::reader::{ColumnType, ColumnTypes, check_csv_format, check_date_format, read_headers, read_rows, read_transactions};
 use crate::csv_check::CsvCheck;
 use uuid::Uuid;
 
@@ -131,7 +131,17 @@ fn process_csv_with_column_types(path: &String, column_types: ColumnTypes) -> Re
     // Read the rows as they are to show as a sample.
     let rows = read_rows(path, false);
     match rows {
-        Ok(rows) => Ok(CsvCheck::create_new(column_types, header, rows, true)),
+        Ok(rows) => {
+            let mut date_format: Option<String> = None;
+            if column_types.has_column(ColumnType::Date) {
+                if let Some(df) = check_date_format(&rows, column_types.index_of(ColumnType::Date)) {
+                    println!("Date format: {:?}", df);
+                    date_format = Some(df);
+                }
+            }
+
+            Ok(CsvCheck::create_new(column_types, header, rows, true, date_format))
+        },
         Err(e) => Err(e.error),
     }
 }
