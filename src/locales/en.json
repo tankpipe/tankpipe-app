@@ -344,7 +344,7 @@
         "title": "Settings",
         "enforceDoubleEntry": "Enforce double entry",
         "displayDateFormat": "Display date format",
-        "importDateFormat": "Import date format",
+        "importDateFormat": "Default import date format",
         "theme": "Theme",
         "preview": "Preview",
         "dateFormats": {

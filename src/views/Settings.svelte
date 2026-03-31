@@ -3,15 +3,10 @@
     import {config} from '../stores/config.js'
     import {hasBooks} from '../stores/context.js'
     import Select from '../components/Select.svelte';
+    import { DATE_FORMATS } from '../utils/dates.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
 
-    const DATE_FORMATS = [
-        {value: "Locale", name: $_('settings.dateFormats.localeDefault')}, 
-        {value: "Regular", name: $_('settings.dateFormats.regular'), format: "%d/%m/%Y"}, 
-        {value: "US", name: $_('settings.dateFormats.us'), format: "%m/%d/%Y"}, 
-        {value: "ISO", name: $_('settings.dateFormats.iso'), format: "%Y-%M-%D"}
-    ]
     const THEME_OPTIONS = [
         {value: "System", name: $_('settings.themes.system')},
         {value: "Light", name: $_('settings.themes.light')},
@@ -77,20 +72,9 @@
             <div class="label label-column">{$_('settings.theme')}</div><div class="field"><Select bind:item={$config.theme} items={THEME_OPTIONS} flat={true} valueField="value" onChange={updateConfig} disabled={!hasBooks()}/></div>
         </div>
     </div>
-    <div class="form-row2">
-        <div class="widget">
-            <div class="label label-column">{$_('settings.preview')}</div>
-            <div class="theme-preview">
-                <div class="swatch bg" title="Background"></div>
-                <div class="swatch surface" title="Surface"></div>
-                <div class="swatch text" title="Text"></div>
-                <div class="swatch accent" title="Accent"></div>
-            </div>
-        </div>
-    </div>
 </div>
 <style>
-    
+
 
     .form-row2 {
         display: block;
@@ -148,6 +132,10 @@
 
     .swatch.accent {
         background-color: var(--color-recon-accent);
+    }
+
+    .label-column {
+        min-width: 220px;
     }
 
 </style>

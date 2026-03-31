@@ -47,15 +47,15 @@
     onMount(() => {
         loadSchedules()
         getDate()
-        const date = new Date()        
+        const date = new Date()
         max.setFullYear(date.getFullYear() + 20)
-        min.setFullYear(date.getFullYear() - 10)        
+        min.setFullYear(date.getFullYear() - 10)
     })
 
     const generateSchedule = async () => {
         if (scheduleToDate) {
             loading = true
-            console.log("generateSchedule")         
+            console.log("generateSchedule")
             msg = $_('schedule.generating')
             const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
             console.log("generating to " + isoDateString)
@@ -161,14 +161,14 @@
 <div class="controls">
     <div class="widget-row">
         <div class="widget">
-            <label for="scheduleToDate">{$_('schedules.scheduleUntil')}</label>                      
+            <label for="scheduleToDate">{$_('schedules.scheduleUntil')}</label>
         </div>
-        <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
-        <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>              
+        <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>
+        <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
     </div>
      <div class="msg-row">
         <MessagePanel {errors} {msg} />
-    </div>  
+    </div>
     </div>
 <div class="scroller">
     {#if schedules.length < 1}
@@ -255,7 +255,7 @@
         font-size: .8em;
         margin: 0 !important;
     }
-    
+
     .card-label {
         padding: 0 !important;
         font-size: .7em !important;
@@ -270,6 +270,7 @@
     .card {
         padding: 5px;
         border-radius: 10px;
+        float: none;
     }
 
     .card:hover {
@@ -316,6 +317,7 @@
     hr {
         border: 1px solid var(--color-bg);
         margin: 0 -5px;
+        width: calc(100% + 10px);
     }
 
     .message {
@@ -323,7 +325,7 @@
     }
 
     .msg-row {
-        margin: -10px 0px 0px 10px;        
+        margin: -10px 0px 0px 10px;
     }
 
     .date-input {
