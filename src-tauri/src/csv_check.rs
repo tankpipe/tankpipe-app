@@ -38,4 +38,17 @@ impl CsvCheck {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct CsvMapping {
+    pub column_types: ColumnTypes,
+    pub date_format: Option<String>,
+}
 
+impl CsvMapping {
+    pub fn new(columns: Vec<String>, date_format: Option<String>) -> CsvMapping {
+        CsvMapping {
+            column_types: ColumnTypes::from_vec(columns),
+            date_format,
+        }
+    }
+}

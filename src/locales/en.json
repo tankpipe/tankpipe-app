@@ -35,7 +35,8 @@
         "description": "Description",
         "name": "Name",
         "totals": "Totals",
-        "transaction": "Transaction"
+        "transaction": "Transaction",
+        "none": "None"
     },
     "buttons": {
         "add": "Add",

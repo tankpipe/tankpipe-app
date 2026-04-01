@@ -38,7 +38,7 @@
         "Debit": {name: $_('labels.debit'), id: "Debit"},
         "Amount": {name: $_('labels.amount'), id: "Amount"},
         "Balance": {name: $_('labels.balance'), id: "Balance"},
-        "Unknown": {name: "", id: "Unknown"}
+        "Unknown": {name: $_('labels.none'), id: "Unknown"}
     }
 
     const COLUMN_TYPES = [
@@ -280,7 +280,7 @@
             <tr><th colspan="2">{$_('importer.columns')}</th><th colspan="{columnTypes.length - 2}"><div class="label label-column note">{#if showReverseDrCrMsg}{$_('importer.reverse_dr_cr')}{/if}</div></th></tr>
             <tr class="shrink-font">
             {#each columnTypes as c, i}
-                <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} none={true} flat={true}/></td>
+                <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} flat={true}/></td>
             {/each}
             </tr>
             <tr class="spacer"></tr>

@@ -62,11 +62,10 @@ pub struct Config {
     pub theme: Theme,
     pub display_date_format: DateFormat,
     pub import_date_format: String,
-    pub csv_mappings: HashMap<Uuid, Vec<String>>,
 
     #[serde(default = "default_projection_months")]
     pub projection_months: u32,
-    
+
     #[serde(default)]
     #[serde(serialize_with = "serialize_option_naivedate")]
     #[serde(deserialize_with = "deserialize_option_naivedate")]
@@ -110,18 +109,6 @@ impl Config {
         }
         self.last_file = last_file.clone();
         self.recent_files.insert(0, last_file);
-    }
-
-    pub fn set_csv_mapping(&mut self, id: Uuid, mapping: Vec<String>) {
-        self.csv_mappings.insert(id, mapping);
-    }
-
-    pub fn get_csv_mapping(&self, id: Uuid) -> Option<Vec<String>> {
-        self.csv_mappings.get(&id).cloned()
-    }
-    
-    pub fn remove_csv_mapping(&mut self, id: Uuid) {
-        self.csv_mappings.remove(&id);
     }
 
 }

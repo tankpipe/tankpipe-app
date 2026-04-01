@@ -10,9 +10,9 @@ use crate::about::About;
 use crate::account_display::ConfigSettings;
 use crate::config::Config;
 use crate::handlers::{error_handler};
-use crate::money_repo::Repo;
+use crate::money_repo::{Repo, save_additional_data};
 use crate::reader::{ColumnType, ColumnTypes, check_csv_format, check_date_format, read_headers, read_rows, read_transactions};
-use crate::csv_check::CsvCheck;
+use crate::csv_check::{CsvCheck, CsvMapping};
 use uuid::Uuid;
 
 
@@ -106,42 +106,50 @@ pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSet
 pub fn evaluate_csv(state: tauri::State<BooksState>, path: String, account: Account) -> Result<CsvCheck, String> {
     println!("evaluate_csv: {:?}, for account:{:?}", path, account.id);
     let mutex_guard = state.0.lock().unwrap();
-    let mapping = mutex_guard.config.get_csv_mapping(account.id);
-    match mapping {
+    match mutex_guard.additional_data.get_csv_mapping(account.id) {
         Some(mapping) => {
-            let column_types = ColumnTypes::from_vec(mapping);
-            let csv_check = process_csv_with_column_types(&path, column_types);
+            let csv_check = read_plain_csv(&path, mapping);
             match csv_check {
                 Ok(csv_check) => Ok(csv_check.set_mapping_exists(true)),
                 Err(e) => Err(e),
             }
         }
-        None => {
-            let result = check_csv_format(&path, true);
-            match result {
-                Ok(column_types) => process_csv_with_column_types(&path, column_types),
-                Err(e) => Err(e.error),
-            }
-        }
+        None => check_and_read_plain_csv(&path)
     }
 }
 
-fn process_csv_with_column_types(path: &String, column_types: ColumnTypes) -> Result<CsvCheck, String> {
-    let header = read_headers(path).unwrap();
-    // Read the rows as they are to show as a sample.
-    let rows = read_rows(path, false);
-    match rows {
-        Ok(rows) => {
-            let mut date_format: Option<String> = None;
-            if column_types.has_column(ColumnType::Date) {
-                if let Some(df) = check_date_format(&rows, column_types.index_of(ColumnType::Date)) {
-                    println!("Date format: {:?}", df);
-                    date_format = Some(df);
-                }
-            }
+fn check_and_read_plain_csv(path: &String) -> Result<CsvCheck, String> {
 
-            Ok(CsvCheck::create_new(column_types, header, rows, true, date_format))
-        },
+    match check_csv_format(&path, true) {
+        Ok(column_types) => {
+            let header = read_headers(path).unwrap();
+            match read_rows(path, false) {
+                Ok(rows) => {
+                    let mut date_format: Option<String> = None;
+                    if column_types.has_column(ColumnType::Date) {
+                        if let Some(df) = check_date_format(&rows, column_types.index_of(ColumnType::Date)) {
+                            println!("Date format: {:?}", df);
+                            date_format = Some(df);
+                        }
+                    }
+
+                    Ok(CsvCheck::create_new(column_types, header, rows, true, date_format))
+                },
+                Err(e) => Err(e.error),
+            }
+        }
+        Err(e) => {
+            return Err(e.error);
+        }
+    }
+
+}
+
+fn read_plain_csv(path: &String, csv_mapping: CsvMapping) -> Result<CsvCheck, String> {
+    let header = read_headers(path).unwrap();
+    match read_rows(path, false) {
+        Ok(rows) =>
+            Ok(CsvCheck::create_new(csv_mapping.column_types, header, rows, true, csv_mapping.date_format)),
         Err(e) => Err(e.error),
     }
 }
@@ -149,7 +157,7 @@ fn process_csv_with_column_types(path: &String, column_types: ColumnTypes) -> Re
 #[tauri::command]
 pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, save_mapping: bool, has_headers: bool, import_date_format: Option<String>) -> Result<(), String> {
     println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format);
-    let mut mutex_guard = state.0.lock().unwrap();
+    let mut mutex_guard: std::sync::MutexGuard<'_, Repo> = state.0.lock().unwrap();
 
     // Remove Balance from column types as it is calculated dynamically
     let column_types: Vec<String> = column_types.into_iter().filter(|c| c != "balance").collect();
@@ -170,10 +178,10 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uui
             }
             error_handler(mutex_guard.save())?;
             if save_mapping {
-                let current_mapping = mutex_guard.config.get_csv_mapping(account_id);
-                if current_mapping.is_none() || current_mapping.unwrap() != column_types {
-                    mutex_guard.config.set_csv_mapping(account_id, column_types);
-                    error_handler(mutex_guard.save_config())?;
+                let current_mapping = mutex_guard.additional_data.get_csv_mapping(account_id);
+                if current_mapping.is_none() || current_mapping.unwrap().column_types.to_vec() != column_types {
+                    mutex_guard.additional_data.add_csv_mapping(account_id, CsvMapping::new(column_types.clone(), import_date_format.clone()));
+                    let _ = save_additional_data(&mutex_guard.config.current_file.clone().unwrap().path.clone(), &mutex_guard.additional_data);
                 }
             }
             mutex_guard.check_interest();

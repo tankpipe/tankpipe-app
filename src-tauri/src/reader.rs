@@ -82,6 +82,10 @@ impl ColumnTypes {
     pub fn from_vec(v: Vec<String>) -> ColumnTypes {
         ColumnTypes{columns: v.iter().map(|c| ColumnType::from_str(c).unwrap()).collect()}
     }
+
+    pub fn to_vec(&self) -> Vec<String> {
+        self.columns.iter().map(|c| c.to_string()).collect()
+    }
 }
 
 impl Index<usize> for ColumnTypes {
@@ -94,7 +98,6 @@ impl Index<usize> for ColumnTypes {
 
 pub fn check_csv_format<P: AsRef<Path>>(path: &P, reverse_dr_cr: bool) -> Result<ColumnTypes, BooksError> {
     let columns = read_columns(path, reverse_dr_cr)?;
-    //validate_columns(&columns)?;
     Ok(columns)
 }
 
