@@ -41,6 +41,11 @@ pub fn config(state: tauri::State<BooksState>) -> Config {
 #[tauri::command]
 pub async fn initialise(app_handle: tauri::AppHandle) -> Result<(), String> {
     println!("initialise");
+    if app_handle.try_state::<BooksState>().is_some() {
+        println!("initialise skipped: BooksState already loaded");
+        return Ok(());
+    }
+
     let repo =  Repo::load_startup();
     match repo {
         Ok(repo) => {

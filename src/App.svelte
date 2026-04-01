@@ -35,6 +35,18 @@
     let unlistenLoaded
     let themeMediaQuery
     let removeThemeListener = null
+    const INIT_FLAG_KEY = '__tankpipe_initialise_invoked__'
+
+    const hasInitialiseRun = () => {
+        if (typeof window === 'undefined') return false
+        return window[INIT_FLAG_KEY] === true
+    }
+
+    const markInitialiseRun = (value) => {
+        if (typeof window === 'undefined') return
+        window[INIT_FLAG_KEY] = value
+    }
+
     onMount(async () => {
         unlistenLoaded = await listen('file-loaded', (event) => {
             curAccount = null
@@ -47,10 +59,23 @@
     })
 
     const initialise = async () => {
+        if (hasInitialiseRun()) {
+            console.log('Initialise skipped: already invoked in this session')
+            return
+        }
+
+        markInitialiseRun(true)
         console.log('Initialising...')
         initialising = true
-        await invoke('initialise').then(initialiseBooks, initialiseFailed)
-        initialising = false
+        try {
+            await invoke('initialise')
+            await initialiseBooks()
+        } catch (error) {
+            markInitialiseRun(false)
+            initialiseFailed(error)
+        } finally {
+            initialising = false
+        }
     };
 
     const loadAccounts = async () => {
