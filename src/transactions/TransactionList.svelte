@@ -172,6 +172,7 @@
 
     const getDate = (entry) => {
         const date = new Date(entry.date)
+        console.log($config.display_date_format)
 
         switch ($config.display_date_format) {
             case "Regular": return date.toLocaleDateString("en-GB")

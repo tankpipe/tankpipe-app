@@ -102,7 +102,6 @@ pub fn update_config(state: tauri::State<BooksState>, config_settings: ConfigSet
     println!("Updating config: {:?}", config_settings);
     let mut mutex_guard = state.0.lock().unwrap();
     mutex_guard.config.display_date_format = config_settings.display_date_format;
-    mutex_guard.config.import_date_format = config_settings.import_date_format;
     mutex_guard.config.theme = config_settings.theme;
     error_handler(mutex_guard.save_config())
 }
@@ -160,18 +159,14 @@ fn read_plain_csv(path: &String, csv_mapping: CsvMapping) -> Result<CsvCheck, St
 }
 
 #[tauri::command]
-pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, save_mapping: bool, has_headers: bool, import_date_format: Option<String>) -> Result<(), String> {
+pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, save_mapping: bool, has_headers: bool, import_date_format: String) -> Result<(), String> {
     println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format);
     let mut mutex_guard: std::sync::MutexGuard<'_, Repo> = state.0.lock().unwrap();
 
     // Remove Balance from column types as it is calculated dynamically
     let column_types: Vec<String> = column_types.into_iter().filter(|c| c != "balance").collect();
-    let selected_import_date_format = import_date_format
-        .as_deref()
-        .filter(|f| !f.trim().is_empty())
-        .unwrap_or(&mutex_guard.config.import_date_format)
-        .to_string();
-    let load_result = read_transactions(&path, account_id, &selected_import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
+
+    let load_result = read_transactions(&path, account_id, &import_date_format, &ColumnTypes::from_vec(column_types.clone()), has_headers);
 
     match load_result {
         Ok(transactions) => {
@@ -185,7 +180,7 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uui
             if save_mapping {
                 let current_mapping = mutex_guard.additional_data.get_csv_mapping(account_id);
                 if current_mapping.is_none() || current_mapping.unwrap().column_types.to_vec() != column_types {
-                    mutex_guard.additional_data.add_csv_mapping(account_id, CsvMapping::new(column_types.clone(), import_date_format.clone()));
+                    mutex_guard.additional_data.add_csv_mapping(account_id, CsvMapping::new(column_types.clone(), Some(import_date_format)));
                     let _ = save_additional_data(&mutex_guard.config.current_file.clone().unwrap().path.clone(), &mutex_guard.additional_data);
                 }
             }
@@ -198,15 +193,10 @@ pub fn import_csv(state: tauri::State<BooksState>, path: String, account_id: Uui
 }
 
 #[tauri::command]
-pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool, import_date_format: Option<String>) -> Result<Vec<ReconciliationItem>, String> {
+pub fn reconcile_csv(state: tauri::State<BooksState>, path: String, account_id: Uuid, column_types: Vec<String>, has_headers: bool, import_date_format: String) -> Result<Vec<ReconciliationItem>, String> {
     println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} has_headers:{} import_date_format:{:?}", path, account_id, column_types, has_headers, import_date_format);
     let mutex_guard = state.0.lock().unwrap();
-    let selected_import_date_format = import_date_format
-        .as_deref()
-        .filter(|f| !f.trim().is_empty())
-        .unwrap_or(&mutex_guard.config.import_date_format)
-        .to_string();
-    let load_result = read_transactions(&path, account_id, &selected_import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
+    let load_result = read_transactions(&path, account_id, &import_date_format, &ColumnTypes::from_vec(column_types), has_headers);
 
     match load_result {
         Ok(transactions) => {

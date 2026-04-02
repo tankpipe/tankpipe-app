@@ -142,7 +142,6 @@
 
         const configSettings = {
             display_date_format: $config.display_date_format,
-            import_date_format: $config.import_date_format,
             theme: newTheme
         }
         await updateConfig(configSettings)

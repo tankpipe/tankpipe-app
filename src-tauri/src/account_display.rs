@@ -42,7 +42,6 @@ pub struct DateParam {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ConfigSettings {
     pub display_date_format: DateFormat,
-    pub import_date_format: String,
     pub theme: Theme,
 }
 

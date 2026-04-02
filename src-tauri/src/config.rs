@@ -61,7 +61,6 @@ pub struct Config {
     pub recent_files: Vec<FileDetails>,
     pub theme: Theme,
     pub display_date_format: DateFormat,
-    pub import_date_format: String,
 
     #[serde(default = "default_projection_months")]
     pub projection_months: u32,

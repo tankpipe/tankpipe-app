@@ -333,7 +333,6 @@ impl AppDirectories {
             recent_files: Vec::new(),
             theme: Theme::System,
             display_date_format: DateFormat::Locale,
-            import_date_format: "%d/%m/%Y".to_string(),
             projection_months: DEFAULT_PROJECTION_MONTHS,
             projected_to: None,
         }
