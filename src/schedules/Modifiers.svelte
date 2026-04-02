@@ -2,13 +2,14 @@
     import EditModifier from './EditModifier.svelte'
     import Modifier from './Modifier.svelte'
     import Icon from '@iconify/svelte'
-    import { page, isEditMode, isViewMode, views, modes, isListMode } from '../page'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import { page, isEditMode, isViewMode, views, modes, isListMode } from '../stores/page'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
-    import { Errors  } from '../errors'
-    import Spinner from '../Spinner.svelte'
-    import {config} from '../config.js'
+    import { Errors  } from '../utils/errors'
+    import Spinner from '../components/Spinner.svelte'
+    import {config} from '../stores/config.js'
 
 
     let period = $state({value:"Months", name:"Months"})
@@ -115,13 +116,8 @@
 {#if isListMode($page)}
 <div class="controls">
      <div class="msg-row">
-            {#each errors.getErrorMessages() as e}
-                <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-                <p class="success-msg">{msg}</p>
-            {/if}                
-            </div>  
+        <MessagePanel {errors} {msg} />
+    </div>  
     </div>
 <div class="scroller">
     {#if modifiers.length < 1}
@@ -163,20 +159,6 @@
 {/if}
 
 <style>
-    .error-msg {
-        color: #FBC969;
-        font-size: .8em;
-    }
-
-    .success-msg {
-        color: green;
-        font-size: .8em;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
-    }
-
     .scroller{
         height: 100%;
         width: 100%;
@@ -188,14 +170,11 @@
         display: inline-block;
         text-align: left;
         margin: 10px 10px;
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         vertical-align: top;
     }
 
-    .row {
-        display: block;
-        text-align: left;
-    }
+    
 
     .scroller {
         clear: both;
@@ -204,17 +183,11 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
         margin: 10px 0 0 10px;
     }
 
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 5px;
         border-radius: 10px;
     }
@@ -225,62 +198,32 @@
 
      .edit-icon {
         float: right;
-        color: #524e4e;
+        color: var(--color-surface);
         margin-left: 5px;
     }
 
     .card:hover .edit-icon {
-        color: #666;
+        color: var(--color-border);
     }
 
     .edit-icon:hover {
-        color: #C0C0C0 !important;
+        color: var(--color-text-muted) !important;
         cursor: pointer;
     }
 
-   .card-title {
-        min-width: 500px;
-        white-space: nowrap;
-        font-weight: bold;
-        float: left;
-    }
+   
 
     hr {
-        border: 1px solid #444;
+        border: 1px solid var(--color-bg);
         margin: 0 -5px;
     }
 
     .message {
-        color: #EFEFEF;
         margin-bottom: 20px;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
     }
 
-    .controls {
-        text-align: center;
-    }
+    
 
-    .msg-row {
-        display: block;
-        float: left;
-        clear: both;
-        margin: -10px 0px 0px 10px;        
-    }
-
-    .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
-
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
     
 
 </style>

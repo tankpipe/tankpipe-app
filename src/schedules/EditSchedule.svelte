@@ -1,17 +1,19 @@
 <script>
-    import {Errors} from '../errors.js'
+    import {Errors} from '../utils/errors.js'
     import {onMount} from "svelte"
-    import Select from '../Select.svelte'
-    import {page, modes} from '../page.js'
+    import Select from '../components/Select.svelte'
+    import {page, modes} from '../stores/page.js'
     import Icon from '@iconify/svelte'
-    import {accounts} from '../accounts.js'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import {accounts} from '../stores/accounts.js'
     import {generate} from './generate.js'
-    import {settings} from '../settings.js'
+    import {settings} from '../stores/settings.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import TransactionList from '../transactions/TransactionList.svelte'
     import SchedulePanel from './SchedulePanel.svelte'
-    import { periods } from '../dates.js'
+    import { periods } from '../utils/dates.js'
+    import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems.js'
 
     let { close, curSchedule, loadSchedules, view } = $props()
 
@@ -38,6 +40,14 @@
     let modifiers = $state([])
     let schedule_modifiers = []
     let schedule_modifier = null
+
+    let disabledAccountsByEntryIndex = $derived.by(() =>
+        disabledItemsByIndex(entries, (e) => e?.account?.id)
+    )
+
+    let disabledAccountsKeyByEntryIndex = $derived.by(() =>
+        disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
+    )
 
     const getEntryType = (entry) => {
         if (entry.drAmount > 0) {
@@ -328,6 +338,9 @@
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('schedule.edit_schedule') : $_('schedule.new_schedule')}</div>
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{deleteSchedule}" title={$_('schedule.delete')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick={onCancel} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
     </div>
     <div class="form-row">
         <div class="top-widget">
@@ -344,7 +357,11 @@
             {#each entries as e, i}
             <tr>
                 <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")}/></div></td>
+                <td><div class="select-adjust">
+                    {#key (disabledAccountsKeyByEntryIndex[i] || "") + ":" + (e?.account?.id || "")}
+                        <Select bind:item={e["account"]} items={$accounts} disabledItems={disabledAccountsByEntryIndex[i] || []} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} onChange={() => entries = [...entries]}/>
+                    {/key}
+                </div></td>
                 <td class="money">
                     {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
                     {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
@@ -373,20 +390,13 @@
     <hr/>
     <div class="form-row">
         <div class="top-widget">
-            <label for="desc">{$_('schedule.modifier')}</label>
+            <label for="desc" class="optional">{$_('schedule.modifier')}</label>
             <Select bind:item={modifier} items={modifiers} label="" none={true} flat={true} inError={errors.isInError("modifier")}/>
         </div>
     </div>
     <hr/>
     <div class="form-button-row">
-        <div class="widget">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-            <p class="success-msg">{msg}</p>
-            {/if}
-        </div>
+        <MessagePanel {errors} {msg} />
         <div class="widget buttons">
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
@@ -400,25 +410,22 @@
         <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')} disabled={!curSchedule || !curSchedule.id}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
 </div>
-<TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
+<TransactionList 
+    curAccount={{}} 
+    journalMode={true} 
+    transactions={transactions} 
+    onSelect={()=>{}} 
+    loadAccounts={()=>{}}
+    rerunReconciliationIfNeeded={()=>{}}
+    topScroll={0}
+    setTopScroll={()=>{}}
+    descriptionFilter=""
+/>
 <style>
 
     :root {
         --date-input-width: 110px;
     }
-
-    .error-msg {
-        color: #FBC969;
-    }
-
-    .success-msg {
-        color: green;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
-    }
-
 
     .buttons {
         float: right;
@@ -431,9 +438,8 @@
 
     .form-row {
         display: inline-flex;
-        float: left;
         width: 100%;
-        clear:both;
+        margin-left: 11px;
     }
 
     .form-button-row {
@@ -443,12 +449,6 @@
 
     input {
         margin-right: 0px;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
     }
 
     .widget {
@@ -461,11 +461,6 @@
         font-size: 0.9em;
     }
 
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
-
     td .heading {
         margin-bottom: -1px;
     }
@@ -474,16 +469,8 @@
         width: 100px;
     }
 
-    .float-left {
-        float: left;
-    }
-
     .money-input {
         text-align: right;
-    }
-
-    .description-input {
-        width: 400px;
     }
 
     .total {
@@ -493,13 +480,9 @@
 
     hr {
         border-style: none;
-        border: 1px solid #363636;
+        border: 1px solid var(--color-bg-alt);
         margin-left: -20px;
         width: 100vw;
-    }
-
-    .fat-hr {
-        border: 3px solid #363636;
     }
 
     .entry-buttons {
@@ -510,14 +493,13 @@
         margin-left: 5px;
     }
 
-    .greyed {
-        color: #666;
-        border-color: #666;
-    }
+    .select-adjust {
+        margin-bottom: 0px;
+    }    
 
     .greyed:hover {
-        color: #666 !important;
-        border-color: #666 !important;
+        color: var(--color-border) !important;
+        border-color: var(--color-border) !important;
         cursor: default !important;
     }
 

@@ -6,8 +6,8 @@
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
     "tauri": "tauri",
-    "test": "vitest run tests",
-    "test:watch": "vitest tests"
+    "test": "NODE_OPTIONS=--experimental-require-module vitest run tests",
+    "test:watch": "NODE_OPTIONS=--experimental-require-module vitest tests"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -37,7 +37,7 @@
   "dependencies": {
     "@aptabase/tauri": "github:aptabase/tauri-plugin-aptabase#1.0.0",
     "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/plugin-dialog": "^2.4.2",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-shell": "^2.3.3",
     "apexcharts": "^5.10.3",
     "sirv-cli": "^3.0.1",

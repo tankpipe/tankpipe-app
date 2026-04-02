@@ -1,17 +1,17 @@
 import {listen, emit} from '@tauri-apps/api/event'
 import {open} from '@tauri-apps/plugin-dialog'
-import {page, modes, views} from './page.js'
-import {accounts, updateAccounts} from './accounts.js'
-import {updateSettings} from './settings.js'
-import {updateContext, setInitialising, isInitialising, setHasBooks, hasBooks} from './context.js'
-import {config, updateConfig} from './config.js'
+import {page, modes, views} from './stores/page.js'
+import {accounts, updateAccounts} from './stores/accounts.js'
+import {updateSettings} from './stores/settings.js'
+import {updateContext, setInitialising, isInitialising, setHasBooks, hasBooks} from './stores/context.js'
+import {config, updateConfig} from './stores/config.js'
 import { get } from 'svelte/store'
 import { invoke } from '@tauri-apps/api/core'
 
 
 const listener = async () => {
     listen('file-open', (event) => {
-        console.log(event)        
+        console.log(event)
         openFile()
     })
 
@@ -23,7 +23,12 @@ const listener = async () => {
     listen('preferences', (event) => {
         console.log(event)
         page.set({view: views.SETTINGS, mode: modes.EDIT})
-    })    
+    })
+
+    listen('file-backups', (event) => {
+        console.log(event)
+        page.set({view: views.BACKUPS, mode: modes.LIST})
+    })
 }
 
 listener()
@@ -62,6 +67,7 @@ const loadFileSuccess = (result) => {
     emit('file-loaded', "")
     updateAccounts(result)
     page.set({view: views.ACCOUNTS, mode: modes.LIST})
+    loadConfig()
 }
 
 const loadFileFailure = (result) => {
@@ -71,13 +77,13 @@ const loadFileFailure = (result) => {
 
 const initialiseBooks = async () => {
     console.log("initialiseBooks")
-    await loadAccounts()        
+    await loadAccounts()
     await loadSettings()
     await loadConfig()
     resetMenu()
     setHasBooks(true)
     setInitialising(false)
-    page.set({view: views.ACCOUNTS, mode: modes.LIST})    
+    page.set({view: views.ACCOUNTS, mode: modes.LIST})
     emit('initialised', "")
 }
 
@@ -110,8 +116,7 @@ const resetMenu = async () => {
     updateContext({hasBooks: hasBooksData})
     if (get(accounts).length < 1) {
         page.set({view: views.ACCOUNTS, mode: modes.NEW})
-    }    
+    }
 }
 
 export {showFilePicker, initialiseBooks, initialiseFailed, loadConfig}
-

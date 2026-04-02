@@ -101,18 +101,11 @@
         margin-bottom: 0;
     }
     hr {
-        border: 1px solid #444;
+        border: 1px solid var(--color-bg);
         margin: 0 -5px;
     }
-    .row {
-        display: block;
-        text-align: left;
-    }
+    
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 5px;
     }
 
@@ -120,18 +113,18 @@
         display: inline-block;
         text-align: left !important;
         margin: 10px 10px;
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         vertical-align: top;
     }
 
     .panel-title {
         margin: 10px 10px;
-        color: #A0A0A0;
+        color: var(--color-text-muted-2);
     }
     .license {
         min-width: 360px;
         max-width: 700px;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         font-family: Inconsolata,"DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;
         font-size: .9em;
         line-height: 1.2em;
@@ -139,11 +132,11 @@
         margin: 10px 10px;
     }
     .license h2 {
-        color: #F0F0F0;
+        color: var(--color-text-strong);
     }
 
     a {
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         font-family: Inconsolata,"DejaVu Sans Mono","Bitstream Vera Sans Mono",monospace;
         font-size: .9em;
         line-height: 1.2em;
@@ -152,12 +145,11 @@
     .about {
         min-width: 360px;
         max-width: 700px;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         font-size: .9em;
         text-align: left;
         margin: 10px 10px;
     }
-
 
     .link-text {
         vertical-align: super;

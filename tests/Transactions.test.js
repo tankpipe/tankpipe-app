@@ -1,14 +1,14 @@
 import { render } from '@testing-library/svelte'
 import Transactions from '../src/transactions/Transactions.svelte'
-import {accounts} from '../src/accounts.js'
-import {page, views, modes} from '../src/page'
+import {accounts} from '../src/stores/accounts.js'
+import {page, views, modes} from '../src/stores/page.js'
 import account_data from './data/account_data.json'
 import transaction_data from './data/transaction_data.json'
-import { config } from '../src/config'
+import { config } from '../src/stores/config.js'
 import { vi } from 'vitest'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale } from 'svelte-i18n'
-import '../src/i18n'
+import '../src/utils/i18n'
 
 locale.set('en')
 Element.prototype.scrollTo = () => {}

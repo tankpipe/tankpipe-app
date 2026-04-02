@@ -1,11 +1,11 @@
 import { render } from '@testing-library/svelte'
-import EditBooks from '../src/EditBooks.svelte'
-import {page, views, modes} from '../src/page'
+import EditBooks from '../src/views/EditBooks.svelte'
+import {page, views, modes} from '../src/stores/page.js'
 import { mockIPC } from "@tauri-apps/api/mocks"
 import { locale, init } from 'svelte-i18n'
 import { vi } from 'vitest'
 import account_data from './data/account_data.json'
-import '../src/i18n'
+import '../src/utils/i18n'
 
 // Mock Tauri event APIs
 vi.mock('@tauri-apps/api/event', () => ({

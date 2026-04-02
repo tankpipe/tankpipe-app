@@ -1,13 +1,14 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import {Errors} from '../errors'
-    import {onMount} from "svelte"
-    import Select from '../Select.svelte'
+    import {Errors} from '../utils/errors'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import {accounts} from '../accounts'
-    import {config, dateFormat} from '../config'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import {accounts} from '../stores/accounts'
+    import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
+    import { disabledItemsByIndex } from '../utils/disabledItems'
 
     export let loadTransactions
     export let onClose
@@ -26,11 +27,9 @@
     let recorded = false
     let entries = []
     let curTransaction
+    let disabledAccountsByEntryIndex = []
 
-    onMount(() => {
-        //console.log($page.mode, curAccount, transactions)
-        resetChanges()
-    })
+    $: disabledAccountsByEntryIndex = disabledItemsByIndex(entries, (e) => e?.account?.id)
 
     const resetChanges = () => {
         entries = [
@@ -38,6 +37,9 @@
             {realDate: null, description: "", amount: '', drAmount: '', crAmount: '', entry_type: 'Credit', account: {}},
         ]
     }
+
+    // Ensure form fields render immediately (tests + UI) without waiting for onMount.
+    resetChanges()
 
     const handleAddClick = () => {
         entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}, entry_type: "Debit"}]
@@ -51,6 +53,12 @@
 
     const close = () => {
         onClose()
+    }
+
+    const resolvedEntryType = (entry) => {
+        if (Number(entry?.drAmount) > 0) return "Debit"
+        if (Number(entry?.crAmount) > 0) return "Credit"
+        return entry?.entry_type
     }
 
     const applyChanges = (entry, changeEntry, index, errors) => {
@@ -69,7 +77,7 @@
 
         if (entries[index].account && entries[index].account.id) {
             entry.account_id = entries[index].account.id
-            entry.entry_type = entries[index].entry_type
+            entry.entry_type = resolvedEntryType(entries[index])
         }
 
         console.log(entry, entries[index])
@@ -77,14 +85,14 @@
 
     const needSecondEntry = (transaction) =>  {
         if (transaction.entries.length == 1) {
-            console.log(entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type))
-            return entries.filter(e => e.account && e.account.id && e.entry_type !== transaction.entries[0].entry_type).length > 0
+            console.log(entries.filter(e => e.account && e.account.id && resolvedEntryType(e) !== transaction.entries[0].entry_type))
+            return entries.filter(e => e.account && e.account.id && resolvedEntryType(e) !== transaction.entries[0].entry_type).length > 0
         }
         return false
     }
 
     const sortEntries = (entries) => {
-        return entries.sort((a, b) => {
+        return [...entries].sort((a, b) => {
             if (a.entry_type === "Debit" && b.entry_type === "Credit") return -1
             if (a.entry_type === "Credit" && b.entry_type === "Debit") return 1
             return 0
@@ -97,7 +105,9 @@
 
         const changedTransactions = []
         transactions.forEach(t => {
-            const transaction = structuredClone(t)
+            // `transactions` may come from reactive proxy objects; use JSON cloning
+            // to produce a plain payload for safe processing.
+            const transaction = JSON.parse(JSON.stringify(t))
 
             if (needSecondEntry(transaction)) {
                 console.log("Creating second entry ", transaction)
@@ -124,15 +134,14 @@
       msg = "Transactions saved."
       curTransaction = result
       loadTransactions()
-      //close()
+      close()
     }
 
     const createSecondEntry = (transaction) => {
-        const newEntry = Object.assign({}, transaction.entries[0], {
+            const newEntry = Object.assign({}, transaction.entries[0], {
                 id: zeros,
                 transaction_id: transaction.id,
                 account_id: '',
-                account: {},
                 entry_type: transaction.entries[0].entry_type == "Credit" ? "Debit" : "Credit"
             })
 
@@ -153,38 +162,16 @@
         await invoke('update_transactions', {transactions: transactions}).then(resolved, rejected)
     }
 
-    const showAmount = (entry, type) => {
-        if (entry["drAmount"] > 0) {
-            entry["entry_type"] = "Debit"
-            return type === "Debit"
-        }
-
-        if (entry["crAmount"] > 0) {
-            entry["entry_type"] = "Credit"
-            return type === "Credit"
-        }
-
-        return true
-    }
-
     const total = (type) => {
         let total = 0
-        entries.filter(e => e.entry_type === type).forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
-        return total
+        entries
+            .filter(e => resolvedEntryType(e) === type)
+            .forEach(e => total += Number(e[type === "Credit" ? "crAmount" : "drAmount"]))
+        return Number(total).toFixed(2)
     }
 
-    const calculateTotals = () => {
-        drTotal = total("Debit")
-        crTotal = total("Credit")
-    }
-
-    const afterToggle = () => {
-        //if (compoundMode) syncSecondEntry()
-    }
-
-    $: {
-        calculateTotals()
-    }
+    $: drTotal = total("Debit")
+    $: crTotal = total("Credit")
 
     /*
      * Transaction list functions.
@@ -226,38 +213,36 @@
         }
     }
 
-    const getDescription = (transaction) => {
-        return transaction.description
-    }
-    const getEntry = (transaction) => {
-        return transaction.entries.find(e => e.account_id == curAccount.id)
-    }
-
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
 </script>
 <div class="form">
     <div class="form-heading">{$_('editMultiple.form.editMultiple')}</div>
-    {#if curTransaction && curTransaction.entries}
-    <div class="toolbar">
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" on:click={close} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
     </div>
-    {/if}
+     <div class="form-row">
+        <div class="small-text">{$_('editMultiple.overview')}</div>
+    </div>
         {#if entries.length > 0 && !compoundMode}
         <div class="entries">
             <table>
                 <tbody>
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
+
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput value={entries[0].realDate} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount} disabled="disabled"></td>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} value={entries[0].amount} disabled="disabled"></td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <div class="form-row2">
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true}/>
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true}/>
+            <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true}/>
+            <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true}/>
         </div>
         {/if}
         {#if compoundMode}
@@ -267,16 +252,24 @@
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.account')}</div></td><td><div class="heading">{$_('labels.debit')}</div></td><td><div class="heading">{$_('labels.credit')}</div></td></tr>
                 {#each entries as e, i}
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
-                    <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} /></div></td>
+                    <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput value={entries[i]["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
+                    <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={entries[i].description}></td>
+                    <td><div class="select-adjust">
+                        <Select
+                            bind:item={entries[i].account}
+                            items={$accounts}
+                            disabledItems={disabledAccountsByEntryIndex[i] || []}
+                            label=""
+                            none={true}
+                            flat={true}
+                            inError={errors.isInError(i + "_account")}
+                        />
+                    </div></td>
                     <td class="money">
-                        {#if showAmount(e, "Debit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount}>{/if}
-                        {#if !showAmount(e, "Debit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
+                        <input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={entries[i].drAmount}>
                     </td>
                     <td class="money">
-                        {#if showAmount(e, "Credit")}<input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={e.crAmount}>{/if}
-                        {#if !showAmount(e, "Credit")}<input id="amount" class="money-input disabled" disabled="disabled">{/if}
+                        <input id="amount" class="money-input" class:error={errors.isInError(i + "_crAmount")} bind:value={entries[i].crAmount}>
                     </td>
                 </tr>
                 {/each}
@@ -287,15 +280,21 @@
                     </div></td>
                     <td></td>
                     <td><div class="total">{$_('labels.totals')}</div></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={drTotal} disabled="disabled"></td>
-                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} bind:value={crTotal} disabled="disabled"></td></tr>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} value={drTotal} disabled="disabled"></td>
+                    <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("totals")} value={crTotal} disabled="disabled"></td></tr>
                 </tbody>
             </table>
         </div>
         {/if}
     <div class="form-button-row">
         <div class="widget2 buttons-left">
-            <input id="compound" type=checkbox bind:checked={compoundMode} on:change={afterToggle} disabled={false}>
+            <input
+                id="compound"
+                type=checkbox
+                checked={compoundMode}
+                on:change={(event) => compoundMode = event.currentTarget.checked}
+                disabled={false}
+            >
             <label for="compound">{$_('editMultiple.form.compoundEntry')}</label>
         </div>
         <div class="widget2 buttons-left">
@@ -307,14 +306,7 @@
             <button class="og-button" on:click={onSave}>{addButtonLabel}</button>
         </div>
     </div>
-    <div class="widget errors">
-        {#each errors.getErrorMessages() as e}
-        <div class="error-msg">{e}</div>
-        {/each}
-        {#if msg}
-        <div class="success-msg">{msg}</div>
-        {/if}
-    </div>
+    <MessagePanel {errors} {msg} />
 </div>
 <div class="section-heading">
     <div class="form-heading">{$_('editMultiple.form.selectedTransactions')}</div>
@@ -366,38 +358,33 @@
         margin: 10px 12px 0 0;
     }
     .error-msg {
-        color: #FBC969;
+        color: var(--color-warning);
         text-align: left;
         margin-bottom: 3px;
         font-size: 0.9em;
     }
 
     .success-msg {
-        color: green;
+        color: var(--color-success);
         text-align: left;
     }
 
     .disabled {
-        background-color: #F0F0F0;
-    }
-
-    .greyed {
-        color: #666;
-        border-color: #666;
+        background-color: var(--color-text-strong);
     }
 
     .greyed:hover {
-        color: #666 !important;
-        border-color: #666 !important;
+        color: var(--color-border) !important;
+        border-color: var(--color-border) !important;
         cursor: default !important;
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .buttons {
@@ -409,12 +396,6 @@
         min-width: 80px;
     }
 
-    .buttons-left {
-        float: left;
-        margin: 10px 12px 0 0;
-        padding: 5px 0px 5px 0px;
-    }
-
     .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
@@ -422,11 +403,6 @@
 
     input {
         margin-right: 0px;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
     }
 
     .total {
@@ -437,11 +413,6 @@
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
-    }
-
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
     }
 
     .widget2 label {
@@ -459,10 +430,6 @@
 
     .money-input {
         text-align: right;
-    }
-
-    .description-input {
-        width: 400px;
     }
 
     .date-input {
@@ -483,18 +450,8 @@
         margin: 0px;
     }
 
-    .select-adjust {
-        margin-bottom: -8px;
-    }
-
     .entries {
-        padding: 5px 5px 10px 10px;
         clear: left;
-    }
-
-
-    .bottom-toolbar {
-        float: left;
     }
 
     .bottom-toolbar div {
@@ -522,34 +479,25 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
 
-    .align_right {
-        text-align: right;
-    }
-
     .projected {
-        color: #878787;
+        color: var(--color-text-dim);
     }
 
     .scroller th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
 
     .money {
-        text-align: right !important;
         min-width: 92px;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
@@ -564,11 +512,8 @@
 
     .tiny {
         font-size: 0.5em;
-        color: #878787;
+        color: var(--color-text-dim);
         margin: 3px 0 -5px 2px;
     }
 
-    .account {
-        float: left;
-    }
 </style>

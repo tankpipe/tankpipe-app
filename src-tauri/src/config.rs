@@ -1,6 +1,11 @@
-use std::{collections::HashMap, ffi::{OsStr, OsString}, path::PathBuf};
+use std::{ffi::{OsStr, OsString}, path::PathBuf};
+use chrono::NaiveDate;
 use serde::{Deserializer, Serializer, Serialize, Deserialize};
 use uuid::Uuid;
+use accounts::serializer::{serialize_option_naivedate, deserialize_option_naivedate};
+
+
+pub const DEFAULT_PROJECTION_MONTHS: u32 = 12;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub struct FileDetails {
@@ -25,6 +30,14 @@ impl FileDetails {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+pub enum Theme {
+    Dark,
+    Light,
+    System,
+}
+
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
 pub enum DateFormat {
     Locale,
     Regular,
@@ -46,9 +59,16 @@ pub struct Config {
     pub current_books_id: Option<Uuid>,
     pub last_file: FileDetails,
     pub recent_files: Vec<FileDetails>,
+    pub theme: Theme,
     pub display_date_format: DateFormat,
-    pub import_date_format: String,
-    pub csv_mappings: HashMap<Uuid, Vec<String>>
+
+    #[serde(default = "default_projection_months")]
+    pub projection_months: u32,
+
+    #[serde(default)]
+    #[serde(serialize_with = "serialize_option_naivedate")]
+    #[serde(deserialize_with = "deserialize_option_naivedate")]
+    pub projected_to: Option<NaiveDate>,
 }
 
 impl Config {
@@ -90,18 +110,14 @@ impl Config {
         self.recent_files.insert(0, last_file);
     }
 
-    pub fn set_csv_mapping(&mut self, id: Uuid, mapping: Vec<String>) {
-        self.csv_mappings.insert(id, mapping);
-    }
+}
 
-    pub fn get_csv_mapping(&self, id: Uuid) -> Option<Vec<String>> {
-        self.csv_mappings.get(&id).cloned()
-    }
-    
-    pub fn remove_csv_mapping(&mut self, id: Uuid) {
-        self.csv_mappings.remove(&id);
-    }
+fn default_projection_months() -> u32 {
+    DEFAULT_PROJECTION_MONTHS
+}
 
+fn default_theme() -> Theme {
+    Theme::System
 }
 
 pub fn deserialize_osstring<'de, D>(deserializer: D) -> Result<OsString, D::Error>

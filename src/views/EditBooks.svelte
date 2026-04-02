@@ -1,14 +1,16 @@
 <script>
-    import {Errors} from './errors.js'
+    import {Errors} from '../utils/errors.js'
     import {onMount} from "svelte"
-    import {page, modes, views} from "./page"
-    import {accounts} from './accounts'
-    import {context} from './context.js';
-    import {config} from './config'
-    import {loadConfig} from './events.js'
+    import {page, modes, views} from "../stores/page.js"
+    import {accounts} from '../stores/accounts.js'
+    import {context} from '../stores/context.js';
+    import {config} from '../stores/config.js'
+    import {loadConfig} from '../events.js'
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
+    import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
 
     let msg = ""
     let errors = new Errors()
@@ -69,6 +71,11 @@
 {/if}
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('editBooks.labels.edit_books') : $_('editBooks.labels.new_books')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" on:click={onCancel} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
+    </div>
     <div class="form-row">
         <div class="widget">
             <label for="name">{$_('labels.name')}</label>
@@ -77,12 +84,7 @@
     </div>
     <div class="form-button-row">
         <div class="msg-panel">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg}
-            <p class="success-msg">{msg}</p>
-            {/if}
+            <MessagePanel {errors} {msg} />
         </div>
         <div class="widget buttons">
             {#if context.hasBooks}
@@ -95,7 +97,7 @@
 
 <style>
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
     }
@@ -104,31 +106,22 @@
         --date-input-width: 110px;
     }
 
-    .msg-panel {
-        padding-left: 2px;
-        font-size: 0.9em;
-        float:left;
+
+    .form-button-row {
+        display: block;
+        text-align: left;
+        margin-left: 7px;
+        margin-right: 2px;
+        clear: both;
     }
 
-    .msg-panel p {
-        margin: 8px 0;
-        max-width: 500px;
+    input {
+        margin-right: 0px;
     }
 
-    .error-msg {
-        color: #FBC969;
-    }
-
-    .success-msg {
-        color: green;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
-    }
-
-    :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+    .widget {
+        display: inline-block;
+        padding: 5px 0px 5px 10px;
     }
 
     .buttons {
@@ -140,38 +133,4 @@
         min-width: 80px;
     }
 
-    .form-row {
-        display: inline-flex;
-        float: left;
-        width: 100%;
-        clear:both;
-    }
-
-    .form-button-row {
-        display: block;
-        text-align: left;
-    }
-
-    .form-button-row {
-        margin-left: 7px;
-        margin-right: 2px;
-    }
-
-    input {
-        margin-right: 0px;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
-
-    .widget {
-        display: inline-block;
-        padding: 5px 0px 5px 10px;
-    }
-
-    .description-input {
-        width: 400px;
-    }
 </style>

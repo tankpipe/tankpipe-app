@@ -1,11 +1,12 @@
 <script>
-    import {Errors} from '../errors.js'
+    import {Errors} from '../utils/errors.js'
     import {onMount} from "svelte"
-    import {page, modes} from '../page.js'
+    import {page, modes} from '../stores/page.js'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
-    import { periods } from '../dates.js'
+    import { periods } from '../utils/dates.js'
     import SchedulePanel from './SchedulePanel.svelte'
 
     const zeros = '00000000-0000-0000-0000-000000000000'
@@ -143,14 +144,7 @@
     <SchedulePanel {frequency} {period} {date} {hasEnd} {endDate} {errors} />
     <hr/>
     <div class="form-button-row">
-        <div class="widget">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-            <p class="success-msg">{msg}</p>
-            {/if}
-        </div>
+        <MessagePanel {errors} {msg} />
         <div class="widget buttons">
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
@@ -159,39 +153,9 @@
 </div>
 
 <style>    
-    .error-msg {
-        color: #FBC969;
-        font-size: .8em;
-    }
-
-    .success-msg {
-        color: green;
-        font-size: .8em;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
-    }
-
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
-    }
-
-    .widget p {
-        max-width: 500px;
-        font-size: 0.9em;
-    }
-
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
     }
 
     .money-input {
@@ -209,10 +173,9 @@
     }
 
     .form-row {
-        display: block;
-        float: left;
-        clear: both;
-        margin-top: 10px;
+        display: inline-flex;
+        width: 100%;
+        margin-left: 11px;
     }
 
     .form-button-row {
@@ -222,11 +185,9 @@
 
     hr {
         border-style: none;
-        border: 1px solid #363636;
+        border: 1px solid var(--color-bg-alt);
         margin-left: -20px;
         width: 100vw;
         clear: both;
     }
- 
-
 </style>

@@ -1,9 +1,9 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import { _ } from 'svelte-i18n'
     import { onMount } from 'svelte';
-    import { periods } from '../dates.js'
+    import { periods } from '../utils/dates.js'
 
     let { 
         frequency =$bindable(), 
@@ -59,10 +59,7 @@
         font-size: 0.9em;
     }
 
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
-    }
+    
 
     .widget2 label {
         display: inline-block;
@@ -76,12 +73,10 @@
     .frequency-input {
         width: 40px;
         text-align: right;
-        background-color: #F0F0F0;
+        background-color: var(--color-text-strong);
     }
 
-    .raise {
-        margin-top: -7px;
-    }
+    
 
     .left {
         padding-left: 0px;

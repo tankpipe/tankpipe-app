@@ -9,8 +9,10 @@ use std::error::Error;
 use std::sync::Mutex;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{App, Emitter, Manager};
-use crate::handlers::{account, transaction, schedule, modifier, repo};
+use crate::handlers::{account, transaction, schedule, modifier, interest, repo};
 use crate::money_repo::Repo;
+
+rust_i18n::i18n!("locales");
 
 pub mod account_display;
 pub mod config;
@@ -18,6 +20,7 @@ pub mod about;
 pub mod money_repo;
 pub mod reader;
 pub mod csv_check;
+mod i18n;
 mod handlers;
 
 pub struct BooksState(Mutex<Repo>);
@@ -80,6 +83,9 @@ fn main() {
             modifier::add_modifier,
             modifier::update_modifier,
             modifier::delete_modifier,
+            interest::get_interest,
+            interest::add_interest,
+            interest::update_interest,
             repo::update_settings,
             repo::settings,
             repo::config,
@@ -87,16 +93,21 @@ fn main() {
             repo::update_config,
             repo::evaluate_csv,
             repo::import_csv,
+            repo::export_csv,
+            repo::export_csv_all,
+            repo::export_accounts_csv,
             repo::load_file,
             repo::new_file,
             repo::initialise,
             repo::load_with_path,
             repo::load_config,
             repo::reconcile_csv,
+            repo::list_backups,
+            repo::restore_backup,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-        
+
 }
 
 
@@ -123,6 +134,11 @@ fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
         .accelerator("CmdOrCtrl+O")
         .build(app)?;
 
+    let file_backups = MenuItemBuilder::new("Backups...")
+        .id("file-backups")
+         .accelerator("CmdOrCtrl+B")
+        .build(app)?;
+
     let file_new = MenuItemBuilder::new("New...")
         .id("file-new")
         .accelerator("CmdOrCtrl+N")
@@ -131,6 +147,7 @@ fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
     let file_submenu = SubmenuBuilder::new(app, "File")
         .item(&file_new)
         .item(&file_open)
+        .item(&file_backups)
         .build()?;
 
     let edit_submenu = SubmenuBuilder::new(app, "Edit")

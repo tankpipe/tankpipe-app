@@ -2,16 +2,17 @@
     import EditSchedule from './EditSchedule.svelte'
     import Schedule from './Schedule.svelte'
     import Icon from '@iconify/svelte'
-    import { page, isEditMode, isViewMode, views, modes, isListMode } from '../page'
-    import {accounts} from '../accounts'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import { page, isEditMode, isViewMode, views, modes, isListMode } from '../stores/page'
+    import {accounts} from '../stores/accounts'
     import { getEndDate} from './generate'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
     import { onMount, untrack } from 'svelte'
-    import { selector } from '../selector';
-    import { Errors  } from '../errors';
+    import { selector } from '../transactions/selector';
+    import { Errors  } from '../utils/errors';
     import DateInput from 'date-picker-svelte/DateInput.svelte';
-    import Spinner from '../Spinner.svelte';
+    import Spinner from '../components/Spinner.svelte';
 
     let curSchedule = $state()
     let schedules = $state([])
@@ -46,17 +47,16 @@
     onMount(() => {
         loadSchedules()
         getDate()
-        const date = new Date()        
+        const date = new Date()
         max.setFullYear(date.getFullYear() + 20)
-        min.setFullYear(date.getFullYear() - 10)        
+        min.setFullYear(date.getFullYear() - 10)
     })
 
     const generateSchedule = async () => {
-        loading = true
-        console.log("generateSchedule")         
-        msg = $_('schedule.generating')
-        
         if (scheduleToDate) {
+            loading = true
+            console.log("generateSchedule")
+            msg = $_('schedule.generating')
             const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
             console.log("generating to " + isoDateString)
             invoke('generate', {date: {date: isoDateString}}).then(resolved, rejected)
@@ -159,21 +159,16 @@
 {/if}
 {#if isListMode($page)}
 <div class="controls">
-    <div class="form-row">
+    <div class="widget-row">
         <div class="widget">
-            <div class="label label-column">{$_('schedules.scheduleUntil')} </div>            
-            <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-            <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>            
-        </div>        
+            <label for="scheduleToDate">{$_('schedules.scheduleUntil')}</label>
+        </div>
+        <div class="date-input field"><DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/></div>
+        <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
     </div>
      <div class="msg-row">
-            {#each errors.getErrorMessages() as e}
-                <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-                <p class="success-msg">{msg}</p>
-            {/if}                
-            </div>  
+        <MessagePanel {errors} {msg} />
+    </div>
     </div>
 <div class="scroller">
     {#if schedules.length < 1}
@@ -221,26 +216,11 @@
 
 <style>
     .inline-button {
-        float: right;
         margin: 0px 0px 0px 3px;
     }
 
     .inline-button button {
         height: 33px !important;
-    }
-
-    .error-msg {
-        color: #FBC969;
-        font-size: .8em;
-    }
-
-    .success-msg {
-        color: green;
-        font-size: .8em;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
     }
 
     .scroller{
@@ -254,7 +234,7 @@
         display: inline-block;
         text-align: left;
         margin: 10px 10px;
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         vertical-align: top;
     }
 
@@ -262,26 +242,20 @@
         display: inline-block;
         text-align: left;
         margin: 0px 10px 5px 15px;
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         vertical-align: top;
     }
 
     .schedule-entries {
         font-size: .8em;
-        color: #C0C0C0;
-    }
-
-    .row {
-        display: block;
-        text-align: left;
+        color: var(--color-text-muted);
     }
 
     .label {
         font-size: .8em;
-        color: #aaa !important;
         margin: 0 !important;
     }
-    
+
     .card-label {
         padding: 0 !important;
         font-size: .7em !important;
@@ -294,12 +268,9 @@
     }
 
     .card {
-        float: left;
-        clear: both;
-        margin: 10px;
-        background-color: #524e4e;
         padding: 5px;
         border-radius: 10px;
+        float: none;
     }
 
     .card:hover {
@@ -308,28 +279,20 @@
 
      .edit-icon {
         float: right;
-        color: #524e4e;
+        color: var(--color-surface);
     }
 
     .card:hover .edit-icon {
-        color: #666;
+        color: var(--color-border);
     }
 
     .edit-icon:hover {
-        color: #C0C0C0 !important;
+        color: var(--color-text-muted) !important;
         cursor: pointer;
     }
 
     .money {
-        text-align: right !important;
         min-width: 100px;
-    }
-
-    .card-title {
-        min-width: 500px;
-        white-space: nowrap;
-        font-weight: bold;
-        float: left;
     }
 
     .description {
@@ -341,7 +304,7 @@
 
     .tiny {
         font-size: 0.5em;
-        color: #878787;
+        color: var(--color-text-dim);
     }
 
     .last-date {
@@ -352,59 +315,21 @@
     }
 
     hr {
-        border: 1px solid #444;
+        border: 1px solid var(--color-bg);
         margin: 0 -5px;
+        width: calc(100% + 10px);
     }
 
     .message {
-        color: #EFEFEF;
         margin-bottom: 20px;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
-    }
-
-    .controls {
-        text-align: center;
-    }
-
-    .form-row {
-        display: block;
-        float: left;
-        clear: both;
-        margin-top: -10px;
     }
 
     .msg-row {
-        display: block;
-        float: left;
-        clear: both;
-        margin: -10px 0px 0px 10px;        
+        margin: -10px 0px 0px 10px;
     }
 
     .date-input {
         float: right;
-    }
-
-    .label {
-        font-size: .9em;
-        color: #aaa !important;
-        margin: 0 5px 5px 0;
-        display: inline-block;
-        text-align: left;
-        line-height: 36px;
-        padding-right: .5em;
-    }
-
-    .field {
-        text-align: left;
-        display: inline-block;
-    }
-
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
     }
 
 </style>

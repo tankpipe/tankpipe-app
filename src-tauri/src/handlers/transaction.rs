@@ -70,6 +70,7 @@ pub fn add_transaction(
 
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.add_transaction(transaction.clone()))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())?;
     Ok(transaction)
 }
@@ -83,6 +84,7 @@ pub fn update_transaction(
     update_transaction_entries(&mut transaction);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.update_transaction(transaction))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -98,7 +100,7 @@ pub fn update_transactions(
         update_transaction_entries(transaction);
         error_handler(mutex_guard.books.update_transaction(transaction.clone()))?;
     }
-
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -107,6 +109,7 @@ pub fn delete_transaction(state: tauri::State<BooksState>, id: Uuid) -> Result<(
     println!("Deleting transactions {:?}", id);
     let mut mutex_guard = state.0.lock().unwrap();
     error_handler(mutex_guard.books.delete_transaction(&id))?;
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 
@@ -117,6 +120,7 @@ pub fn delete_transactions(state: tauri::State<BooksState>, ids: Vec<Uuid>) -> R
     for id in ids.iter() {
         error_handler(mutex_guard.books.delete_transaction(&id))?;
     }
+    mutex_guard.check_interest();
     error_handler(mutex_guard.save())
 }
 

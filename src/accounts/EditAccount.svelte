@@ -1,14 +1,16 @@
 <script module>
-    import {Errors} from './errors.js'
+    import {Errors} from '../utils/errors.js'
     import {onMount} from "svelte"
-    import Select from './Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes} from './page.js'
-    import {accounts} from './accounts.js'
-    import {config, formatAmount, formatDate} from './config.js'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import {page, modes} from '../stores/page.js'
+    import {accounts} from '../stores/accounts.js'
+    import {config, formatAmount, formatDate, dateFormat} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import {DateInput} from 'date-picker-svelte'
+    import InterestPanel from './InterestPanel.svelte'
 
     const ACCOUNT_TYPES = [{value:"Asset", name:"Asset"}, {value:"Liability", name:"Liability"}, {value:"Revenue", name:"Revenue"}, {value:"Expense", name:"Expense"}, {value:"Equity", name:"Equity"}]
 </script>
@@ -24,15 +26,10 @@
     let addButtonLabel = $state($_('buttons.add'))
     let transactions = $state([])
     let rollbackDate = $state()
+    let format = dateFormat($config)
 
     onMount(() => {
-        if ($page.mode === modes.EDIT) {
-            name = curAccount.name
-            startingBalance = curAccount.starting_balance
-            accountType = matchAccountType(curAccount.account_type)
-            addButtonLabel = $_('buttons.update')
-            console.log(curAccount)
-        } else {
+        if ($page.mode !== modes.EDIT) {
             addButtonLabel = $_('buttons.add')
             startingBalance = "0"
             curAccount = null
@@ -43,11 +40,21 @@
         if (curAccount && curAccount.id) loadTransactions()
     })
 
+    $effect(() => {
+        if (curAccount && $page.mode === modes.EDIT) {
+            name = curAccount.name || ''
+            startingBalance = curAccount.starting_balance || '0'
+            accountType = matchAccountType(curAccount.account_type)
+            addButtonLabel = $_('buttons.update')
+        }
+    })
+
     const loadTransactions = async () => {
         console.log("loadTransactions: " + curAccount.id)
         transactions = await invoke('transactions', {accountId: curAccount.id})
         console.log(transactions)
     }
+
 
     const matchAccountType = (value) =>  {
         if (!value) return null
@@ -59,9 +66,10 @@
         close()
     }
 
-    const onAdd = () => {
+    const onAdd = async () => {
         msg = ""
         errors = new Errors()
+
         if (!name || name.length < 1) {
             errors.addError("name", $_('account.form.errors.nameRequired'))
         }
@@ -79,7 +87,8 @@
                 const account = {
                     name: name,
                     starting_balance: startingBalance,
-                    account_type: accountType.value
+                    account_type: accountType.value,
+                    interest_id: null
                 }
                 addAccount(account)
             } else if ($page.mode === modes.EDIT) {
@@ -88,12 +97,14 @@
                     starting_balance: startingBalance,
                     account_type: curAccount.account_type,
                     id: curAccount.id,
-                    balance: 0
+                    balance: 0,
+                    interest_id: curAccount.interest_id
                 }
                 saveAccount(account)
             }
         }
     }
+
 
     function resolved(result) {
         msg = $_('account.form.success.saved')
@@ -104,10 +115,12 @@
         errors.addError("all", $_('errors.genericError', { values: { 0: result } }))
     }
 
+
     const addAccount = async (account) => {
         await invoke('add_account', {account: account}).then(resolved, rejected)
         loadAccounts()
         initialize = false
+        close()
     }
 
     const saveAccount = async (account) => {
@@ -141,15 +154,20 @@
 
         // Convert Date to ISO string for backend
         const rollbackDateString = rollbackDate.toISOString().split('T')[0]
-        
-        await invoke('rollback_reconciliation', { 
-            accountId: curAccount.id, 
-            toDate: {date: rollbackDateString} 
+
+        await invoke('rollback_reconciliation', {
+            accountId: curAccount.id,
+            toDate: {date: rollbackDateString}
         }).then(() => {
-            msg = $_('account.form.success.rollback')            
+            msg = $_('account.form.success.rollback')
         }, rejected)
         loadAccounts()
     }
+
+    const canSupportInterest = () => {
+        return curAccount && (curAccount.account_type === "Asset" || curAccount.account_type === "Liability")
+    }
+
 </script>
 
 {#if $accounts.length < 1 && $config.recent_files.length < 2}
@@ -162,6 +180,9 @@
         {#if transactions.length < 1}
         <button class="toolbar-icon" onclick={deleteAccount(curAccount)} title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
         {/if}
+        <button class="toolbar-icon" onclick={onCancel} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline"  width="24"/>
+        </button>
     </div>
     <div class="form-row">
         <div class="widget">
@@ -174,54 +195,53 @@
         </div>
     </div>
     <div class="form-row">
-        <Select bind:item={accountType} items={ACCOUNT_TYPES} label={$_('account.form.labels.type')} none={false} inError={errors.isInError("accountType")} disabled={$page.mode === modes.EDIT} flat={true}/>
+        <Select bind:item={accountType} items={ACCOUNT_TYPES} label={$_('account.form.labels.type')} none={false} inError={errors.isInError("accountType")} disabled={!transactions || transactions.length > 0} flat={true}/>
     </div>
     <div class="form-button-row">
         <div class="msg-panel">
-            {#each errors.getErrorMessages() as e}
-            <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg}
-            <p class="success-msg">{msg}</p>
-            {/if}
+            <MessagePanel {errors} {msg} />
         </div>
         <div class="widget buttons">
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
-    </div>    
-    {#if curAccount && curAccount.reconciliation_info}               
+    </div>
+    {#if curAccount && curAccount.reconciliation_info}
         <hr/>
         <div class="info-title">{$_('account.reconciliationInfo')}</div>
         <div class="info-row">
-                <div class="info-label">{$_('account.reconciledTo')}&nbsp;</div>
-                <div class="info-value">{formatDate(curAccount.reconciliation_info.date)}</div>              
+            <div class="info-label">{$_('account.reconciledTo')}&nbsp;</div>
+            <div class="info-value">{formatDate(curAccount.reconciliation_info.date)}</div>
         </div>
         <div class="info-row">
-                <div class="info-label">{$_('account.reconciledBalance')}&nbsp;</div>
-                <div class="info-value">{formatAmount(curAccount.reconciliation_info.balance)}</div>              
+            <div class="info-label">{$_('account.reconciledBalance')}&nbsp;</div>
+            <div class="info-value">{formatAmount(curAccount.reconciliation_info.balance)}</div>
         </div>
         <div class="info-row">&nbsp;</div>
-        <div class="rollback-row">
+        <div class="widget-row">
             <div class="widget">
                 <label for="rollbackDate">{$_('account.rollbackTo')}</label>
-                <div class="date-input" id="rollbackDate">
-                    <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
-                </div>
+            </div>
+            <div class="date-input" id="rollbackDate">
+                <DateInput bind:value={rollbackDate} placeholder="" closeOnSelection={true}/>
             </div>
             <div class="widget">
                 <button class="og-button" onclick={rollbackReconciliation} disabled={!rollbackDate}>{$_('account.rollbackButton')}</button>
             </div>
         </div>
         <div class="info-row">&nbsp;</div>
+    {/if}
+    {#if curAccount && canSupportInterest()}
         <hr/>
+        <InterestPanel {curAccount} {loadAccounts} />
     {/if}
 </div>
+<hr/>
 
 <style>
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
     }
@@ -230,40 +250,21 @@
         --date-input-width: 110px;
     }
 
-    .msg-panel {
-        padding-left: 2px;
-        font-size: 0.9em;
-        float:left;
-    }
-
     :global(.message) {
         color: #EFEFEF;
         margin-bottom: 20px;
         text-align: left;
-        background-color: #303030;
+        background-color: var(--color-surface-2);
         padding:10px;
         border-radius: 10px;
     }
 
-    .msg-panel p {
-        margin: 8px 0;
-        max-width: 500px;
-    }
-
-    .error-msg {
-        color: #FBC969;
-    }
-
-    .success-msg {
-        color: green;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
+    :global(.error) {
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     .buttons {
@@ -271,35 +272,18 @@
         margin: 10px 12px 0 0;
     }
 
-    .buttons button {
-        min-width: 80px;
-    }
-
-    .form-row {
-        display: inline-flex;
-        float: left;
-        width: 100%;
-        clear:both;
-    }
-
     .form-button-row {
         display: block;
         text-align: left;
-    }
-
-    .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
+        clear: both;
     }
 
     input {
         margin-right: 0px;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
 
     .widget {
         display: inline-block;
@@ -314,11 +298,8 @@
         text-align: right;
     }
 
-    .description-input {
-        width: 400px;
-    }
 
-    .info-row {
+    :global(.info-row) {
         padding: 5px 0 0px 10px;
         margin: 0 0 0 0;
         display: inline-flex;
@@ -327,21 +308,21 @@
         clear: both;
     }
 
-    .info-label {
+    :global(.info-label) {
         font-size: 0.75em;
-        color: #aaa;
+        color: var(--color-input-bg);
     }
 
-    .info-value {
+    :global(.info-value) {
         font-size: 0.75em;
-        color: #aaa;
+        color: var(--color-input-bg);
     }
-    
-    .info-title {
+
+    :global(.info-title) {
         white-space: nowrap;
         font-weight: 200;
         font-size: 1em;
-        color: #757575;
+        color: var(--color-text-subtle);
         margin-bottom: 10px;
         display: inline-flex;
         float: left;
@@ -349,36 +330,9 @@
         clear: both;
     }
 
-    .rollback-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0px 0 0px 10px;
-        margin: 0 0 0 0;
-        float: left;
-        width: 100%;
-        clear: both;
-    }
-
-    .rollback-row .widget {
-        display: flex;
-        align-items: center;
-        padding: 5px 0px 5px 0px;
-    }
-
-    .rollback-row label {
-        margin-right: 10px;
-        white-space: nowrap;
-    }
-
-    .rollback-row button {
-        min-height: 33px;
-        margin-bottom: 0px;
-    }
-
-    hr {
+    :global(hr) {
         border-style: none;
-        border: 1px solid #363636;
+        border: 1px solid var(--color-bg-alt);
         margin-left: -20px;
         width: 100vw;
     }

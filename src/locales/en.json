@@ -6,7 +6,24 @@
         "net_assets": "Net Assets",
         "settings": "Settings",
         "schedules": "Schedules",
-        "transactions": "Transactions"
+        "transactions": "Transactions",
+        "toggleTheme": "Toggle light/dark mode",
+        "loading": "Loading..."
+    },
+    "backups": {
+        "title": "Backups",
+        "loading": "Loading backups...",
+        "empty": "No backups available.",
+        "selectPrompt": "Choose a backup to restore:",
+        "restoreButtonTitle": "Restore this backup",
+        "messages": {
+            "restored": "Backup restored."
+        },
+        "errors": {
+            "load": "Unable to load backups: {error}",
+            "restore": "Unable to restore backup: {error}",
+            "reload": "Backup restored, but account refresh failed: {error}"
+        }
     },
     "labels": {
         "account": "Account",
@@ -18,7 +35,8 @@
         "description": "Description",
         "name": "Name",
         "totals": "Totals",
-        "transaction": "Transaction"
+        "transaction": "Transaction",
+        "none": "None"
     },
     "buttons": {
         "add": "Add",
@@ -47,7 +65,8 @@
     "accounts": {
         "title": "Accounts",
         "buttons": {
-            "createNew": "Create a new account"
+            "createNew": "Create a new account",
+            "exportCsv": "Export accounts to CSV"
         }
     },
     "account": {
@@ -70,14 +89,15 @@
             "success": {
                 "deleted": "Account deleted.",
                 "saved": "Account saved."
-            }            
+            }
         },
         "reconciliationInfo": "Reconciliation",
         "reconciledTo": "Reconciled to",
         "reconciledBalance": "Reconciled balance",
         "reconcilationRollbackSuccess": "Reconciliation rolled back successfully.",
         "rollbackTo": "Rollback reconciliation to",
-        "rollbackButton": "Rollback"
+        "rollbackButton": "Rollback",
+        "interestInfo": "Interest"
     },
     "dialog": {
         "close": "Close dialog"
@@ -97,6 +117,7 @@
         }
     },
     "editMultiple": {
+        "overview": "Edits are applied in template form, you only need to enter the values that you want to be changed.",
         "form": {
             "compoundEntry": "Compound entry",
             "editMultiple": "Edit Multiple Transactions",
@@ -116,11 +137,18 @@
         "view": "Transaction",
         "recorded": "Recorded",
         "reconciled": "Reconciled",
+        "outstanding": "Reconciliation outstanding",
         "partiallyReconciled": "Partially reconciled",
         "mergePrefill": "Update with reconciliation values",
         "reconcileTransaction": "Reconcile transaction",
         "reconcileTransactions": "Reconcile transactions",
+        "selectedForMerge": "Selected for merge",
+        "mergeTarget": "Merge target",
         "schedule": "Schedule",
+        "sourceType": {
+            "Interest": "Interest",
+            "Schedule": "Scheduled"
+        },
         "errors": {
             "accountRequired": "Account is required",
             "amountRequired": "A valid amount is required",
@@ -175,9 +203,11 @@
         "netAssets": "Net assets",
         "title": "Net Assets",
         "totalAssets": "Total assets",
-        "totalLiabilities": "Total liabilities"
+        "totalLiabilities": "Total liabilities",
+        "balance": "Balance"
     },
     "transactions": {
+        "editAccount": "Edit account details",
         "addTransaction": "Add a transaction",
         "clearFilter": "Clear filter",
         "editSelected": "Edit selected transactions",
@@ -189,6 +219,8 @@
         "importTransactions": "Import transactions",
         "manualReconciliation": "Manual reconciliation",
         "openCsv": "Open CSV file",
+        "exportCsv": "Export CSV file",
+        "exportSuccess": "Transactions exported successfully",
         "noTransactions": "No transactions",
         "showFilter": "Show filter",
         "showSelect": "Show select transactions",
@@ -221,6 +253,7 @@
         "reverse_dr_cr": "Debit/Credit columns reversed by default",
         "save_mappings": "Remember for next time",
         "required_columns_mapped": "Required columns mapped",
+        "date_format_mapped": "Date format mapped",
         "columns": "Columns",
         "sample_data": "CSV data",
         "reconcileTransactions": "Reconcile transactions"
@@ -242,5 +275,89 @@
         "increase": "% increase.",
         "decrease": "% decrease.",
         "percent": "%"
+    },
+    "interest": {
+        "title": "Interest Terms",
+        "paidType": "Paid",
+        "calculatedType": "Calculated",
+        "interestRate": "Interest Rate",
+        "paidToDate": "Paid To Date",
+        "startDate": "Start",
+        "endDate": "End",
+        "description": "Transaction description",
+        "rate": "Rate %",
+        "saved": "Interest details updated",
+        "addTerms": "Add an interest entry",
+        "removeTerms": "Remove the last interest entry",
+        "descriptionDefault": "Interest",
+        "advanced": "Advanced",
+        "minBalance": "Minimum balance",
+        "maxBalance": "Maximum balance",
+        "Debit": {
+            "paidFrequency": "Paid frequency",
+            "paidDay": "Paid day",
+            "paidEvery": "Paid every month",
+            "paidOn": "on day",
+            "incomeAccount": "Revenue account",
+            "interestAccount": "Pay interest to",
+            "tooltips": {
+                "paidEvery": "The day of the month that interest will be paid on. Interest is calculated for the month up to the preceeding day.",
+                "interestAccount": "Pay interest to a different account. Default is the current account.",
+                "incomeAccount": "The Revenue Account to track interest earned. Default is none."
+            }
+        },
+        "Credit": {
+            "paidFrequency": "Charge frequency",
+            "paidDay": "Charged day",
+            "paidEvery": "Charged every month",
+            "paidOn": "on day",
+            "incomeAccount": "Expense account",
+            "interestAccount": "Charge interest to",
+            "tooltips": {
+                "paidEvery": "The day of the month that interest will be charged on. Interest is calculated for the month up to the preceeding day.",
+                "interestAccount": "Charge interest to a different account. Default is the current account.",
+                "incomeAccount": "The Expense Account to track interest charged. Default is none."
+            }
+        },
+        "tooltips": {
+            "startDate": "The first day that interest is calculated from.",
+            "endDate": "The last day that interest is calculated for. Default is no end date.",
+            "rate": "Interest rate as a percentage.",
+            "minBalance": "The minimum balance required to earn interest for this rate. The default is 0.",
+            "maxBalance": "The maximum balance that can earn interest for this rate. Default is no limit."
+        },
+        "calculatedTypes": {
+            "daily": "Daily - End of day balance"
+        },
+        "paidPeriods": {
+            "days": "Days",
+            "weeks": "Weeks",
+            "months": "Months"
+        },
+        "errors": {
+            "startDateRequired": "Start date is required",
+            "rateRequired": "Interest rate is required",
+            "paidDayRequired": "Paid on day must be between 1 and 31",
+            "descriptionRequired": "Description is required"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "enforceDoubleEntry": "Enforce double entry",
+        "displayDateFormat": "Display date format",
+        "importDateFormat": "Default import date format",
+        "theme": "Theme",
+        "preview": "Preview",
+        "dateFormats": {
+            "localeDefault": "Locale default",
+            "regular": "D/M/YYYY",
+            "us": "M/D/YYYY",
+            "iso": "YYYY-MM-DD"
+        },
+        "themes": {
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
+        }
     }
 }

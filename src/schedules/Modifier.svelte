@@ -2,7 +2,7 @@
     import Icon from '@iconify/svelte'
     import { _ } from 'svelte-i18n'
     import { onMount } from 'svelte'
-    import {config} from '../config.js'
+    import {config} from '../stores/config.js'
 
     let { close, edit, curModifier } = $props()
 
@@ -45,7 +45,7 @@
 </script>
 
 <div class="form">
-    <div class="form-heading">{$_('modifier.title')}</div>    
+    <div class="form-heading">{$_('modifier.title')}</div>
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick="{edit}" title={$_('schedule.edit')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button class="toolbar-icon" onclick="{close}" title={$_('buttons.close')}><Icon icon="mdi:close-box-outline"  width="24"/></button>
@@ -58,15 +58,15 @@
     <div class="form-row">
         <div class="small-text">
             {#if percentage >= 0}
-            {percentage * 100}{$_('modifier.increase')}                        
+            {percentage * 100}{$_('modifier.increase')}
             {/if}
             {#if percentage < 0}
-            {percentage * -100}{$_('modifier.decrease')}                        
+            {percentage * -100}{$_('modifier.decrease')}
             {/if}
         </div>
         <div class="small-text">
             {$_('schedule.every')}&nbsp;{frequency}&nbsp;{period.name}
-            {$_('schedule.starting_from')}&nbsp;{formatDate(date)} 
+            {$_('schedule.starting_from')}&nbsp;{formatDate(date)}
         </div>
     </div>
     {#if hasEnd}
@@ -77,7 +77,7 @@
     </div>
     {/if}
     <hr/>
-    
+
 </div>
 
 <style>
@@ -86,42 +86,17 @@
         --date-input-width: 110px;
     }
 
-    .form-row {
-        display: inline-flex;
-        float: left;
-        width: 100%;
-        clear:both;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
-    }
-
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
 
     hr {
         border-style: none;
-        border: 1px solid #363636;
+        border: 1px solid var(--color-bg-alt);
         margin-left: -20px;
         width: 100vw;
     }
 
-   
-    .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
 
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
-    }
+
+
+
 
 </style>

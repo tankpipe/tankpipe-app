@@ -1,4 +1,5 @@
 /node_modules/
+/e2e-tests/node_modules/
 /public/build/
 /src-tauri/gen/
 
@@ -6,6 +7,7 @@
 .vscode
 .code-workspace
 .svelte-kit
+.npm-cache
 
 *.code-workspace
 /.idea

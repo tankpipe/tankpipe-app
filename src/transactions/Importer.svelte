@@ -1,12 +1,13 @@
 <script>
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import { open } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
-    import { Errors } from '../errors'
-    import { page } from '../page'
-    import { config } from '../config.js'
-    import { accounts } from '../accounts'
+    import { Errors } from '../utils/errors'
+    import { page } from '../stores/page'
+    import { accounts } from '../stores/accounts'
+    import { DATE_FORMATS } from '../utils/dates.js'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
@@ -19,6 +20,8 @@
     let selectedColumns = $state([])
     let columns = $state([])
     let requiredColumnsMatched = $state(false);
+    let dateFormatMatched = $state(false);
+    let mappedDateFormat = $state("");
     let mappingExists = $state(false);
     let path = $state("")
     let fileDialogShown = $state(false)
@@ -26,8 +29,8 @@
     let rememberForNextTime = $state(true)
     let showReverseDrCrMsg = $state(false)
     let originalDrCrColumns = $state([])
+    let importDateFormat = $state(DATE_FORMATS[1].format)
 
-    const DATE_FORMATS = [{value: "Locale", name:"Locale default"}, {value: "Regular", name: "Regular (D/M/Y)", format: "%d/%m/%Y"}, {value: "US", name:"US (M/D/Y)", format: "%m/%d/%Y"}, {value: "ISO", name:"ISO (Y-M-D)", format: "%Y-%M-%D"} ]
     const COLUMN_TYPES_MAP = {
         "Date": {name: $_('labels.date'), id: "Date"},
         "Description": {name: $_('labels.description'), id: "Description"},
@@ -35,7 +38,7 @@
         "Debit": {name: $_('labels.debit'), id: "Debit"},
         "Amount": {name: $_('labels.amount'), id: "Amount"},
         "Balance": {name: $_('labels.balance'), id: "Balance"},
-        "Unknown": {name: "", id: "Unknown"}
+        "Unknown": {name: $_('labels.none'), id: "Unknown"}
     }
 
     const COLUMN_TYPES = [
@@ -68,12 +71,12 @@
 
         if (showReverseDrCrMsg) {
             const curDrCrColumns = selectedColumns.filter(col => col && (col.id === 'Debit' || col.id === 'Credit'))
-            if (originalDrCrColumns.length === 0 && curDrCrColumns.length > 0) {         
+            if (originalDrCrColumns.length === 0 && curDrCrColumns.length > 0) {
                 originalDrCrColumns = [...curDrCrColumns]
             } else {
-                let changed = curDrCrColumns.length > 0 &&  (originalDrCrColumns.length !== curDrCrColumns.length || 
-                     originalDrCrColumns.some((col, index) => col.id !== curDrCrColumns[index].id))        
-                showReverseDrCrMsg = !changed            
+                let changed = curDrCrColumns.length > 0 &&  (originalDrCrColumns.length !== curDrCrColumns.length ||
+                     originalDrCrColumns.some((col, index) => col.id !== curDrCrColumns[index].id))
+                showReverseDrCrMsg = !changed
             }
         }
     });
@@ -101,7 +104,12 @@
         console.log(result)
         rows = result.sample_rows.slice(0, 20)
         columnTypes = result.column_types.columns
-        showReverseDrCrMsg = result.dr_cr_reversed      
+        showReverseDrCrMsg = result.dr_cr_reversed
+        if (result.date_format && DATE_FORMATS.some(dateFormat => dateFormat.format === result.date_format)) {
+            importDateFormat = result.date_format
+            dateFormatMatched = true
+            mappedDateFormat = result.date_format
+        }
         columns = result.column_types.columns.map(c => ({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
@@ -133,53 +141,70 @@
         selectedColumns = []
         columns = []
         requiredColumnsMatched = false
+        dateFormatMatched = false
+        mappedDateFormat = ""
         await invoke('evaluate_csv', {path: path, account: account}).then(loaded, rejected)
     }
 
     const importCsv = async () => {
-        
+
         if (!path) {
             errors.addError("all", "No file selected")
             return
         }
-        
+
         if (!curAccount || !curAccount.id) {
             errors.addError("all", "No account selected")
             return
         }
-        
+
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        
-        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow})
-        await invoke('import_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow}).then(importCompleted, rejected)
+        const selectedImportDateFormat = importDateFormat || DATE_FORMATS[1].format
+
+        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow, importDateFormat: selectedImportDateFormat})
+        await invoke('import_csv', {
+            path: path,
+            accountId: curAccount.id,
+            columnTypes: updatedColumns,
+            saveMapping: rememberForNextTime,
+            hasHeaders: hasHeaderRow,
+            importDateFormat: selectedImportDateFormat
+        }).then(importCompleted, rejected)
     }
 
     let lastReconcileRequest = null
 
     const reconcileCsv = async () => {
-        
+
         if (!path) {
             errors.addError("all", "No file selected")
             return
         }
-        
+
         if (!curAccount || !curAccount.id) {
             errors.addError("all", "No account selected")
             return
         }
-        
+
         let updatedColumns = []
         selectedColumns.forEach(c => updatedColumns.push(c.id))
-        
+
         lastReconcileRequest = {
             path: path,
             accountId: curAccount.id,
             columnTypes: updatedColumns,
-            hasHeaders: hasHeaderRow
+            hasHeaders: hasHeaderRow,
+            importDateFormat: importDateFormat || DATE_FORMATS[1].format
         }
-        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg})
-        await invoke('reconcile_csv', {path: path, accountId: curAccount.id, columnTypes: updatedColumns, hasHeaders: hasHeaderRow}).then(reconciliationCompleted, rejected)
+        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat})
+        await invoke('reconcile_csv', {
+            path: path,
+            accountId: curAccount.id,
+            columnTypes: updatedColumns,
+            hasHeaders: hasHeaderRow,
+            importDateFormat: lastReconcileRequest.importDateFormat
+        }).then(reconciliationCompleted, rejected)
     }
 
     const reconciliationCompleted = (results) => {
@@ -192,6 +217,10 @@
 
     const close = () => {
         onClose()
+    }
+
+    const dateFormatChange = () => {
+        dateFormatMatched = (importDateFormat === mappedDateFormat)
     }
 
 </script>
@@ -215,14 +244,7 @@
     </div>
 </div>
 
-<div class="widget errors">
-    {#each errors.getErrorMessages() as e}
-    <div class="error-msg">{e}</div>
-    {/each}
-    {#if msg}
-    <div class="success-msg">{msg}</div>
-    {/if}
-</div>
+<MessagePanel {errors} {msg} />
 
 <div class="controls">
     <div class="form-heading"></div>
@@ -233,9 +255,12 @@
     </div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={$config.import_date_format} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" /></div>
+            <div class="label label-column">{$_('importer.import_date_format')}</div><div class="field"><Select bind:item={importDateFormat} items={DATE_FORMATS.slice(1)} flat={true} valueField="format" onChange={dateFormatChange}/></div>
+            {#if dateFormatMatched}
+            <div class="label label-column"><div class="success-msg" title="{$_('importer.date_format_mapped')}">&nbsp;&check;</div></div>
+            {/if}
         </div>
-    </div>    
+    </div>
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
@@ -255,7 +280,7 @@
             <tr><th colspan="2">{$_('importer.columns')}</th><th colspan="{columnTypes.length - 2}"><div class="label label-column note">{#if showReverseDrCrMsg}{$_('importer.reverse_dr_cr')}{/if}</div></th></tr>
             <tr class="shrink-font">
             {#each columnTypes as c, i}
-                <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} none={true} flat={true}/></td>
+                <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} flat={true}/></td>
             {/each}
             </tr>
             <tr class="spacer"></tr>
@@ -275,9 +300,7 @@
 </div>
 
 <style>
-    .controls {
-        text-align: center;
-    }
+
 
     .form-row2 {
         display: block;
@@ -291,26 +314,16 @@
 
     .label {
         font-size: .9em;
-        color: #aaa !important;
         margin: 0 5px 5px 0;
         display: inline-block;
         text-align: left;
         min-width: 11em;
     }
 
-    .field {
-        text-align: left;
-        display: inline-block;
-    }
+
 
     .controls input {
-        background-color: #aaa;
-    }
-
-    .scroller{
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
+        background-color: var(--color-input-bg);
     }
 
     .csv-table td {
@@ -333,16 +346,16 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
         text-align: left;
@@ -350,11 +363,7 @@
 
     .scroller tr:hover td {
         cursor: pointer;
-        color: #FFF;
-    }
-
-    .account {
-        float: left;
+        color: var(--color-text-strong);
     }
 
     .shrink-font {
@@ -362,33 +371,25 @@
     }
 
     .matched {
-        background-color: rgb(0, 71, 0);
+        background-color: var(--color-success-bg);
     }
 
     .message {
-        color: #EFEFEF;
         margin: 5px 0 20px 0;
-        text-align: left;
-        background-color: #303030;
-        padding:10px;
-        border-radius: 10px;
-    }
-
-    .error-msg {
-        color: rgb(252, 0, 0);
-        text-align: left;
-        margin-bottom: 3px;
-        font-size: 0.9em;
     }
 
     .success-msg {
-        color: rgb(0, 187, 0);
+        color: var(--color-success-strong);
         text-align: left;
     }
     .note {
         font-size: 0.7em;
-        color: #daae3e !important;
+        color: var(--color-accent) !important;
         height: 9px;
+    }
+
+    .label-column {
+        color: var(--color-text);
     }
 
 </style>

@@ -24,8 +24,8 @@
 </dialog>
 <style>
     dialog {
-        border: 1px solid #333 !important;
-        background-color: #444;
+        border: 1px solid var(--color-text-base) !important;
+        background-color: var(--color-bg);
         border-radius: 10px;
     }
 

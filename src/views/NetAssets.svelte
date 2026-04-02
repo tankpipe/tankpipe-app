@@ -1,8 +1,8 @@
 <!-- NetAssets.svelte -->
 <script>
-    import {page, modes, views} from "./page"
-    import {config} from './config'
-    import {accounts} from './accounts'
+    import {page, modes, views} from "../stores/page"
+    import {config} from '../stores/config'
+    import {accounts} from '../stores/accounts'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
 
@@ -16,7 +16,7 @@
 
     let assetsTotal = 0
     let liabilitiesTotal = 0
-    const today = new Date().setUTCHours(0,0,0,0)
+    const today = new Date().setHours(0, 0, 0, 0)
 
     const loadEmUp = async () => {
         for (const account of $accounts) {
@@ -104,29 +104,36 @@
 
 </script>
 
-<div class="bs-form-heading">{$_('netAssets.title')}</div>
-<div class="bs-sub-heading">{$_('netAssets.asAt')} {formatDate(today)}</div>
+<a href="#scroller" class="skip-link">{$_('a11y.skipToContent')}</a>
+
+<div class="bs-form-heading" role="heading" aria-level="1">{$_('netAssets.title')}</div>
+<div class="bs-sub-heading" aria-live="polite">{$_('netAssets.asAt')} {formatDate(today)}</div>
 {#await loadEmUp()}
 {$_('common.loading')}
 {:then _nothin}
 
 <div class="scroller" id="scroller">
-    <table>
+    <table aria-label="{$_('netAssets.title')}">
+        <thead>
+            <tr>
+                <th scope="col" class="justify-left">{$_('netAssets.accountName')}</th>
+                <th scope="col">{$_('netAssets.assets')}</th>
+                <th scope="col">{$_('netAssets.liabilities')}</th>
+            </tr>
+        </thead>
         <tbody>
-            <tr ><th colspan="3" class="justify-left"></th></tr>
-            <tr ><th colspan="3" class="justify-left">{$_('netAssets.assets')}</th></tr>
 
         {#each assetAccounts as a}
             <tr id={a.id}>
-                <td title="{a.name}"><div class="description" onclick={() => selectAccount(a)}>{a.name}</div></td>
-                <td class="money">{formatAmount(bsBalances[a.id])}</td>
+                <td title="{a.name}"><button class="description" onclick={() => selectAccount(a)} aria-label="{$_('netAssets.viewAccount')}: {a.name}">{a.name}</button></td>
+                <td class="money" aria-label="{$_('netAssets.assetBalance')}: {formatAmount(bsBalances[a.id])}">{formatAmount(bsBalances[a.id])}</td>
                 <td class="money"></td>
             </tr>
         {/each}
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr class="sub-total">
-            <td title="balance"><div class="description indent">{$_('netAssets.totalAssets')}</div></td>
-            <td class="money sub-total" >{formatAmount(assetsTotal)}</td>
+            <td title="balance"><div class="description indent" aria-label="{$_('netAssets.totalAssets')}">{$_('netAssets.totalAssets')}</div></td>
+            <td class="money sub-total" aria-label="{$_('netAssets.totalAssets')}: {formatAmount(assetsTotal)}">{formatAmount(assetsTotal)}</td>
             <td class="money"></td>
         </tr>
 
@@ -136,24 +143,24 @@
 
         {#each liabilityAccounts as a}
             <tr id={a.id}>
-                <td title="{a.name}"><div class="description" onclick={() => selectAccount(a)}>{a.name}</div></td>
+                <td title="{a.name}"><button class="description" onclick={() => selectAccount(a)} aria-label="{$_('netAssets.viewAccount')}: {a.name}">{a.name}</button></td>
                 <td class="money"></td>
-                <td class="money">{formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}</td>
+                <td class="money" aria-label="{$_('netAssets.liabilityBalance')}: {formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}">{formatAmount(bsBalances[a.id] == 0?bsBalances[a.id]:bsBalances[a.id])}</td>
             </tr>
         {/each}
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr class="sub-total">
-            <td title="balance"><div class="description indent">{$_('netAssets.totalLiabilities')}</div></td>
+            <td title="balance"><div class="description indent" aria-label="{$_('netAssets.totalLiabilities')}">{$_('netAssets.totalLiabilities')}</div></td>
             <td class="money"></td>
-            <td class="money sub-total" >{formatAmount(liabilitiesTotal)}</td>
+            <td class="money sub-total" aria-label="{$_('netAssets.totalLiabilities')}: {formatAmount(liabilitiesTotal)}">{formatAmount(liabilitiesTotal)}</td>
         </tr>
 
         <tr ><th colspan="3" class="justify-left"></th></tr>
         <tr ><th colspan="3" class="justify-left">{$_('netAssets.balance')}</th></tr>
 
         <tr>
-            <td title="balance"><div class="description indent">{$_('netAssets.netAssets')}</div></td>
-            <td class="money total">{formatAmount(balance)}</td>
+            <td title="balance"><div class="description indent" aria-label="{$_('netAssets.netAssets')}">{$_('netAssets.netAssets')}</div></td>
+            <td class="money total" aria-label="{$_('netAssets.netAssets')}: {formatAmount(balance)}">{formatAmount(balance)}</td>
             <td class="money"></td>
         </tr>
 
@@ -163,6 +170,24 @@
 {/await}
 
 <style>
+    .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 6px;
+        background: var(--color-bg);
+        color: var(--color-text);
+        padding: 8px;
+        text-decoration: none;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        z-index: 1000;
+        transition: top 0.3s;
+    }
+
+    .skip-link:focus {
+        top: 6px;
+    }
+
     .scroller{
         height: 100%;
         width: 100%;
@@ -176,7 +201,7 @@
         margin: 0px 0 20px 0;
         text-align: left;
         overflow: visible;
-        color: #757575;
+        color: var(--color-text-subtle);
     }
 
     .bs-sub-heading {
@@ -185,23 +210,16 @@
         margin: -10px 0 0px 1px;
         text-align: left;
         overflow: visible;
-        color: #757575;
-    }
-
-
-    .scroller{
-        height: 100%;
-        width: 100%;
-        overflow: scroll;
+        color: var(--color-text-subtle);
     }
 
     .sub-total {
-        border-top: 1px solid #C0C0C0;
+        border-top: 1px solid var(--color-text-muted);
     }
 
     .total {
-        border-top: 1px solid #C0C0C0;
-        border-bottom: 1px solid #C0C0C0
+        border-top: 1px solid var(--color-text-muted);
+        border-bottom: 1px solid var(--color-text-muted)
     }
 
     table {
@@ -212,8 +230,8 @@
         text-align: left;
         overflow: hidden;
         line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
@@ -224,24 +242,19 @@
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+
 
     tr:hover td {
         cursor: pointer;
-        color: #FFF;
+        color: var(--color-text-strong);
     }
 
-
     .money {
-        text-align: right !important;
         min-width: 92px;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
@@ -252,5 +265,25 @@
         max-width: 33vw;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .description:focus {
+        outline: 2px solid var(--color-border);
+        outline-offset: 2px;
+    }
+
+    button.description {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    button.description:hover {
+        color: var(--color-text-strong);
     }
 </style>

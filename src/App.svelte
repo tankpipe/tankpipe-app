@@ -1,47 +1,81 @@
 <script>
-    import Accounts from './Accounts.svelte'
+    import Accounts from './accounts/Accounts.svelte'
     import Schedules from './schedules/Schedules.svelte'
     import Modifiers from './schedules/Modifiers.svelte'
     import Transactions from './transactions/Transactions.svelte'
-    import Settings from './Settings.svelte'
-    import {page, modes, views} from './page.js'
+    import Settings from './views/Settings.svelte'
+    import Backups from './views/Backups.svelte'
+    import {page, modes, views} from './stores/page.js'
     import {initialiseBooks, initialiseFailed} from'./events'
-    import {accounts, updateAccounts} from './accounts'
-    import {initializeContext, context} from './context'
-    import {config} from './config'
-    import EditBooks from './EditBooks.svelte'
+    import {accounts, updateAccounts} from './stores/accounts'
+    import {initializeContext, context} from './stores/context'
+    import {config} from './stores/config'
+    import EditBooks from './views/EditBooks.svelte'
     import {onDestroy, onMount} from 'svelte'
     import {listen} from '@tauri-apps/api/event'
-    import Dialog from './Dialog.svelte'
-    import About from './About.svelte'
+    import Dialog from './components/Dialog.svelte'
+    import About from './views/About.svelte'
     import { invoke } from '@tauri-apps/api/core'
-    import NetAssets from './NetAssets.svelte'
+    import NetAssets from './views/NetAssets.svelte'
     import { _, waitLocale, isLoading } from 'svelte-i18n'
-    import './i18n'
-    import ErrorMsg from './ErrorMsg.svelte'
-    import { updateConfig } from './config'
+    import './utils/i18n'
+    import ErrorMsg from './components/ErrorMsg.svelte'
+    import { updateConfig } from './stores/config'
+    import { get } from 'svelte/store'
+    import Icon from '@iconify/svelte'
 
-    export let curAccount = null
+    let curAccount = $state(null)
+    let dialog = $state(null)
+    let supportedVersion = $state(false);
 
-    let dialog
-    
     initializeContext()
 
-    export let transactions = []
-
+    let transactions = $state([])
+    let initialising = $state(false)
     let unlistenLoaded
+    let themeMediaQuery
+    let removeThemeListener = null
+    const INIT_FLAG_KEY = '__tankpipe_initialise_invoked__'
+
+    const hasInitialiseRun = () => {
+        if (typeof window === 'undefined') return false
+        return window[INIT_FLAG_KEY] === true
+    }
+
+    const markInitialiseRun = (value) => {
+        if (typeof window === 'undefined') return
+        window[INIT_FLAG_KEY] = value
+    }
+
     onMount(async () => {
         unlistenLoaded = await listen('file-loaded', (event) => {
             curAccount = null
-        })         
+        })
     })
 
     onDestroy(async () => {
         unlistenLoaded()
+        if (removeThemeListener) removeThemeListener()
     })
 
-    const initialise = async () => {        
-        await invoke('initialise').then(initialiseBooks, initialiseFailed)
+    const initialise = async () => {
+        if (hasInitialiseRun()) {
+            console.log('Initialise skipped: already invoked in this session')
+            return
+        }
+
+        markInitialiseRun(true)
+        console.log('Initialising...')
+        initialising = true
+        try {
+            await invoke('initialise')
+            await initialiseBooks()
+        } catch (error) {
+            markInitialiseRun(false)
+            initialiseFailed(error)
+        } finally {
+            initialising = false
+        }
     };
 
     const loadAccounts = async () => {
@@ -50,20 +84,17 @@
         updateAccounts(result)
     };
 
-    let supportedVersion = false;
-
     (async () => {
         supportedVersion = (typeof HTMLDialogElement === 'function')
 
         if (supportedVersion) {
              await waitLocale()
-             //await initialise()
              await invoke('load_config').then(loadConfigSuccess, loadConfigFailed)
              if ($config && ($config.current_books_id || $config.current_file)) {
                  initialise()
              } else {
-                 console.log('No books history found')                 
-                 page.set({view: views.BOOKS, mode: modes.NEW}) 
+                 console.log('No books history found')
+                 page.set({view: views.BOOKS, mode: modes.NEW})
              }
         }
 
@@ -71,7 +102,7 @@
 
     const loadConfigSuccess = (result) => {
         console.log(result)
-        updateConfig(result)        
+        updateConfig(result)
     }
 
     const loadConfigFailed = (error) => {
@@ -91,37 +122,103 @@
 
     let closeIcon = true
 
+    const getSystemTheme = () => {
+        if (typeof window === 'undefined' || !window.matchMedia) return 'dark'
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+
+    const applyTheme = (theme) => {
+        if (typeof document === 'undefined') return
+        const resolved = theme === 'system' ? getSystemTheme() : theme
+        document.documentElement.dataset.theme = resolved
+    }
+
+    const toggleTheme = async () => {
+        let currentTheme = $config?.theme || 'System'
+        if (currentTheme === 'System') {
+            currentTheme = getSystemTheme()
+        }
+        const newTheme = (currentTheme === 'Light' || currentTheme === 'light') ? 'Dark' : 'Light'
+
+        const configSettings = {
+            display_date_format: $config.display_date_format,
+            theme: newTheme
+        }
+        await updateConfig(configSettings)
+        invoke('update_config', {configSettings: configSettings})
+    }
+
+    $effect(() => {
+        const theme = $config?.theme?.toLowerCase() || 'system'
+        applyTheme(theme)
+    })
+
+    onMount(() => {
+        if (typeof window === 'undefined' || !window.matchMedia) return
+        themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+        const handler = () => {
+            const theme = get(config)?.theme?.toLowerCase() || 'system'
+            if (theme === 'system') applyTheme(theme)
+        }
+        if (themeMediaQuery.addEventListener) {
+            themeMediaQuery.addEventListener('change', handler)
+            removeThemeListener = () => themeMediaQuery.removeEventListener('change', handler)
+        } else {
+            themeMediaQuery.addListener(handler)
+            removeThemeListener = () => themeMediaQuery.removeListener(handler)
+        }
+        handler()
+    })
+
 </script>
 
 <main>
-    <div class="app">                
+    <div class="app">
         {#if !supportedVersion}
         <div class="column middle">
             <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
             <div class="loading">User Agent: {window.navigator.userAgent}</div>
         </div>
         {/if}
-        {#if supportedVersion && !$isLoading}
+        {#if initialising && !$isLoading}
+        <div class="column left">
+            <div class="menu-left"></div>
+        </div>
+        <div class="column middle">
+            <div class="form-heading">{$_('app.loading')}</div>
+            <div class="loading"></div>
+        </div>
+        {/if}
+        {#if supportedVersion && !$isLoading && !initialising}
             <div class="column left">
                 <div class="menu-left">
                     <ul>
                         {#if $context.hasBooks}
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.ACCOUNTS, mode: modes.LIST})} class:menu-selected={$page.view === views.ACCOUNTS}>{$_('app.accounts')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.accounts')}</li>
                         {/if}
                         {#if $accounts.length > 0 }
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.MODIFIERS, mode: modes.LIST})} class:menu-selected={$page.view === views.MODIFIERS}>{$_('app.modifiers')}</button></li>
-                        <li><button class="og-button" type="button" on:click={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.TRANSACTIONS, mode: modes.LIST})} class:menu-selected={$page.view === views.TRANSACTIONS}>{$_('app.transactions')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.JOURNAL, mode: modes.LIST})} class:menu-selected={$page.view === views.JOURNAL}>{$_('app.journal')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.SCHEDULES, mode: modes.LIST})} class:menu-selected={$page.view === views.SCHEDULES}>{$_('app.schedules')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.MODIFIERS, mode: modes.LIST})} class:menu-selected={$page.view === views.MODIFIERS}>{$_('app.modifiers')}</button></li>
+                        <li><button class="og-button" type="button" onclick={() => page.set({view: views.NET_ASSETS, mode: modes.LIST})} class:menu-selected={$page.view === views.NET_ASSETS}>{$_('app.net_assets')}</button></li>
                         {:else}
                         <li class="disabled">{$_('app.transactions')}</li>
                         <li class="disabled">{$_('app.schedules')}</li>
-                        <li class="disabled">{$_('app.modifiers')}</li>                        
-                        {/if}                    
+                        <li class="disabled">{$_('app.modifiers')}</li>
+                        {/if}
                     </ul>
+                </div>
+                <div class="theme-toggle">
+                    <button class="toolbar-icon" onclick={toggleTheme} title="{$_('app.toggleTheme')}">
+                        {#if $config?.theme === 'Light'}
+                            <Icon icon="mdi:weather-sunny" width="20"/>
+                        {:else}
+                            <Icon icon="mdi:weather-night" width="20"/>
+                        {/if}
+                    </button>
                 </div>
 
             </div>
@@ -143,6 +240,8 @@
                 <Settings />
                 {:else if $page.view === views.BOOKS}
                 <EditBooks />
+                {:else if $page.view === views.BACKUPS}
+                <Backups />
                 {:else if $page.view === views.ABOUT}
                 <About />
                 {/if}
@@ -157,7 +256,7 @@
 <style>
     .loading {
         margin: 50px 50px;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         text-align: left;
     }
 
@@ -172,7 +271,7 @@
 
     .column.left {
         min-width: 150px;
-        background-color: #363636;
+        background-color: var(--color-bg-alt);
         min-height:100%;
         position:relative;
         padding-top: 30px;
@@ -184,9 +283,9 @@
         margin: 40px 20px 0px 20px;
         min-width: 200px;
     }
-    
+
     .app {
-        background-color: #444;
+        background-color: var(--color-bg);
         height: 100%;
         display: flex;
     }
@@ -206,7 +305,7 @@
         background: none !important;
         border: none;
         font-weight: bold;
-        color: #C0C0C0;
+        color: var(--color-text-muted);
         padding: 0;
         text-align: left;
         cursor: pointer;
@@ -217,15 +316,15 @@
     }
 
     .menu-left button:hover {
-        color: #F0F0F0;
+        color: var(--color-text-strong);
     }
 
     .menu-selected {
-        color: #F0F0F0 !important;
+        color: var(--color-text-strong) !important;
     }
 
     .disabled {
-        color: #555555 !important;
+        color: var(--color-text-disabled) !important;
     }
 
     main {
@@ -242,30 +341,28 @@
     }
 
     :global(.account-heading select) {
-        color: #C0C0C0;
-        background-color: #444 !important;
+        color: var(--color-text-muted);
+        background-color: var(--color-bg) !important;
     }
-
 
     :global(.form label, .heading, .total) {
         text-align: left;
         font-size: .8em;
         margin-bottom: 3px;
-        color: #DDDDDD;
+        color: var(--color-text);
     }
 
     :global(.form input) {
-        background-color: #aaa !important;
+        background-color: var(--color-input-bg) !important;
     }
 
-
     :global(.form input, .form select) {
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
 
     }
 
     :global(.form input:focus, .form select:focus) {
-        outline: #fff solid 1px;
+        outline: var(--color-focus) solid 1px;
 
     }
 
@@ -273,7 +370,7 @@
         font-size: 0.8em;
         font-weight: 500;
         text-align: left;
-        color: #757575;
+        color: var(--color-text-subtle);
         margin: 1px 0 7px 0;
     }
 
@@ -282,10 +379,10 @@
         font-weight: 500;
         margin: 0px 0 20px 0;
         text-align: left;
-        color: #757575;
+        color: var(--color-text-subtle);
         float: left;
     }
-   
+
     :global(.selectable-text) {
         -webkit-user-select: all; /* Chrome/Safari */
         -moz-user-select: all; /* Firefox */
@@ -298,6 +395,26 @@
         main {
             max-width: none;
         }
+    }
+
+    .theme-toggle {
+        position: absolute;
+        bottom: 20px;
+    }
+
+    .theme-toggle .toolbar-icon {
+        margin-left: 5px;
+        color: var(--color-text-muted);
+    }
+
+    .theme-toggle .toolbar-icon:hover {
+        color: var(--color-text-strong);
+        cursor: pointer;
+    }
+
+    .theme-toggle button {
+        background-color: transparent;
+        border: none;
     }
 
 </style>

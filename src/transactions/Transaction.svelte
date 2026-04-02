@@ -1,10 +1,10 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes, views} from '../page.js'
-    import {accounts} from '../accounts'
-    import {config, dateFormat} from '../config.js'
+    import {page, modes, views} from '../stores/page.js'
+    import {accounts} from '../stores/accounts'
+    import {config, dateFormat} from '../stores/config.js'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
 
@@ -19,6 +19,7 @@
     let compoundMode =  $state(false)
     let recorded = $state(false)
     let entries =  $state([])
+    $inspect(entries)
 
     $effect(() => {
         if ($page.mode === modes.VIEW) {
@@ -33,7 +34,8 @@
         entries.push(...curTransaction.entries)
 
         entries.forEach(e => {
-            e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
+            const amount = e.amount ? Number(e.amount).toFixed(2) : "0.00"
+            e.entry_type === "Credit" ? Object.assign(e, {crAmount: amount}) : Object.assign(e, {drAmount: amount})
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
         })
@@ -45,6 +47,7 @@
             entries[0].entry_type === "Credit" ? entries[1].drAmount = entries[1].amount : entries[1].crAmount = entries[1].amount
         }
 
+        console.log(entries)
         compoundMode = true
         recorded = curTransaction.status != "Projected"
         calculateTotals()
@@ -105,13 +108,19 @@
 
 <div class="form">
     <div class="form-heading">{$_('transaction.view')}</div>
-    
+
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
         <button class="toolbar-icon" onclick={schedule} title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
+        <button class="toolbar-icon" onclick={close} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
     </div>
     {/if}
-    <div class="recon-msg"><span>{$_('transaction.reconciled')}</span><Icon icon="mdi:check" width="18"/></div>
+    {#if (curTransaction.source_type)}
+    <div class="indicator source-msg"><span>{$_('transaction.sourceType.' + curTransaction.source_type)}</span></div>
+    {/if}
+    <div class="indicator recon-msg"><span>{$_('transaction.reconciled')}</span><Icon icon="mdi:check" width="16"/></div>
     {#if compoundMode}
     <div class="entries">
         <table>
@@ -128,7 +137,7 @@
                 <td class="money">
                     <input id="cramount" class="money-input" bind:value={e.crAmount} disabled/>
                 </td>
-                <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}{e.reconciled_status}</td>
+                <td class="reconciled-cell">{#if e.reconciled_status == "Reconciled"}<Icon icon="mdi:check" width="16"/>{:else if e.reconciled_status == "Outstanding"}<Icon icon="mdi:circle-small" width="16"/>{/if}</td>
             </tr>
             {/each}
             <tr>
@@ -151,23 +160,14 @@
 <style>
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
     }
 
     :root {
         --date-input-width: 110px;
-    }
-
-    .form-row2, .form-button-row {
-        display: block;
-        text-align: left;
-    }
-
-    .form-row2{
-        min-height: 70px;
     }
 
     .buttons {
@@ -179,12 +179,6 @@
         min-width: 80px;
     }
 
-    .buttons-left {
-        float: left;
-        margin: 10px 12px 0 0;
-        padding: 5px 0px 5px 0px;
-    }
-
     .form-button-row {
         margin-left: 7px;
         margin-right: 2px;
@@ -192,11 +186,6 @@
 
     input {
         margin-right: 0px;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
     }
 
     .total {
@@ -235,39 +224,22 @@
         margin: 0px;
     }
 
-    .select-adjust {
-        margin-bottom: -8px;
-    }
-
     .entries {
-        padding: 5px 5px 10px 10px;
         clear: both;
     }
 
-    .bottom-toolbar {
-        float: left;
+    .indicator span {
+        padding-top: 6px;
+        font-size: 0.75em;
     }
 
     .recon-msg {
-        color: #74d965;
-        float: left;
-        margin: 0px 0px 0px 20px;        
-        display: flex;
-        align-items: center;
+        color: var(--color-success-strong);
     }
 
-    .recon-msg span {
-        padding-top: 5px;
-        font-size: .85em;
-    }
-    
     .reconciled-cell {
-        background-color: #444 !important;
-        color: #ccc;
-        font-size: .8em;
-        font-weight: bold;
-        padding: 0 0 4px 3px;
-        text-align: center;
+        background-color: transparent;
+        color: var(--color-border-light);
     }
 
 </style>

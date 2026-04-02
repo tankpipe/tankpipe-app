@@ -1,4 +1,4 @@
-import { Errors } from "../src/errors"
+import { Errors } from "../src/utils/errors"
 
 it('can be in error', async () => {
     let errors = new Errors()

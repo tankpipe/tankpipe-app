@@ -1,19 +1,22 @@
 <script>
     import EditTransaction from './EditTransaction.svelte'
     import Transaction from './Transaction.svelte'
-    import Select from '../Select.svelte'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import { Errors } from '../errors'
-    import { page, modes, isEditMode, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../page'
-    import { settings } from '../settings'
-    import { accounts, updateAccounts } from '../accounts'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import { Errors } from '../utils/errors'
+    import { page, modes, views, isMultiEditMode, isSingleEditMode, isListMode, isViewMode } from '../stores/page'
+    import { settings } from '../stores/settings'
+    import { accounts, updateAccounts } from '../stores/accounts'
     import { invoke } from "@tauri-apps/api/core"
+    import { save } from '@tauri-apps/plugin-dialog'
+    import { documentDir } from '@tauri-apps/api/path'
     import { chart } from "svelte-apexcharts"
     import EditMultipleTransactions from './EditMultipleTransactions.svelte'
     import { _ } from 'svelte-i18n'
     import Importer from './Importer.svelte'
-    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from '../selector'
-    import { chartOptions } from '../chart-options'
+    import { selector, toggleAllSelected, toggleMultipleSelect, clearSelected, isSelected, getSelected } from './selector'
+    import { chartOptions } from './chart-options'
     import TransactionList from './TransactionList.svelte'
     import { ReconciliationMode as RM } from './reconciliation.js'
 
@@ -24,6 +27,7 @@
     let errors = $state(new Errors())
     let msg = $state("")
     let previousAccountId
+    let appliedPayloadAccountId = null
     let topScroll = $state(null)
     let showFilter = $state(false)
     let descriptionFilter = $state("")
@@ -35,10 +39,12 @@
     let lastReconciliationRequest = $state(null)
     let reconciliationMode = $state(RM.NONE)
     let chartValues = []
+    let multiEditTransactions = $state([])
 
     $effect(() => {
         if (journalMode && !curAccount) {
-            curAccount = {}
+            curAccount = null
+            loadTransactions()
         } else if (!journalMode && (!curAccount || !curAccount.id) && $accounts.length > 0) {
             curAccount = $accounts[0]
         } else if (curAccount && curAccount.id !== previousAccountId) {
@@ -54,14 +60,25 @@
             loadTransactions()
             previousAccountId = curAccount.id
         }
-       
+
     });
+
+    $effect(() => {
+        const payloadAccountId = $page.payload?.accountId
+        if (payloadAccountId && payloadAccountId !== appliedPayloadAccountId) {
+            const payloadAccount = $accounts.find(account => account.id === payloadAccountId)
+            if (payloadAccount && payloadAccount.id !== curAccount?.id) {
+                curAccount = payloadAccount
+            }
+            appliedPayloadAccountId = payloadAccountId
+        }
+    })
 
     const setCurrentScroll = () => {
         topScroll = document.getElementById("scroller").scrollTop
     }
 
-    const isAllReconciled = (transaction) => {                
+    const isAllReconciled = (transaction) => {
         return transaction.entries.every(e => e.reconciled_status)
     }
 
@@ -74,7 +91,7 @@
                 targetTransactionId: transaction.targetTransactionId
             }
             : null
-        
+
         // Route to view-only mode for reconciled transactions
         if (isAllReconciled(transaction)) {
             page.set({view: $page.view, mode: modes.VIEW})
@@ -87,7 +104,10 @@
 
     const editTransactions = () => {
         setCurrentScroll()
-        page.set({view: $page.view, mode: modes.MULTI_EDIT})
+        multiEditTransactions = getSortedSelectedTransactions().map((t) => JSON.parse(JSON.stringify(t)))
+        queueMicrotask(() => {
+            page.set({view: $page.view, mode: modes.MULTI_EDIT})
+        })
     }
 
     const deleteTransactions = async () => {
@@ -116,6 +136,7 @@
         if (!journalMode) {
             for (const t of allTransactions) {
                 let entry = getEntry(t)
+                if (!entry || !entry.date) continue
                 chartValues.push([new Date(entry.date).valueOf(), chartBalance(entry.balance)])
             }
             chartOptions["series"] = [{data: chartValues}]
@@ -138,12 +159,18 @@
         return transaction.entries.find(e => e.account_id == curAccount.id)
     }
 
-    const handleAddClick = () => {
+    const editAccount = () => {
+        if (curAccount && curAccount.id) {
+            page.set({view: views.ACCOUNTS, mode: modes.EDIT, payload: {accountId: curAccount.id, previousView: views.TRANSACTIONS}})
+        }
+    }
+
+    const handleAddClick = (account) => {
         setCurrentScroll()
         page.set({view: $page.view, mode: modes.NEW})
     }
 
-    function evaluationResult(result) {        
+    function evaluationResult(result) {
         topScroll = null
         page.set({view: $page.view, mode: modes.LOAD})
     }
@@ -185,6 +212,7 @@
     }
 
     const onCloseMultiEdit = async () => {
+        multiEditTransactions = []
         await loadTransactions()
         await rerunReconciliationIfNeeded()
         page.set({view: $page.view, mode: modes.LIST})
@@ -196,11 +224,11 @@
         page.set({view: $page.view, mode: modes.LIST})
     }
 
-    const handleReconciliationResults = (results, request) => {        
+    const handleReconciliationResults = (results, request) => {
         reconciliationResults = results ?? []
         const safeRequest = request ?? null
         lastReconciliationRequest = safeRequest
-        reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null        
+        reconciliationAccountId = safeRequest?.accountId ?? curAccount?.id ?? null
         reconciliationMode = RM.GUIDED
         page.set({view: $page.view, mode: modes.LIST})
     }
@@ -212,13 +240,13 @@
         lastReconciliationRequest = null
         loadTransactions()
     }
-    
+
     const loadAccounts = async () => {
         let result = await invoke('accounts')
         updateAccounts(result)
         curAccount = $accounts.find(a => a.id === curAccount.id)
         loadTransactions()
-    };   
+    };
 
     const onManualReconciliationMode = () => {
         reconciliationMode = reconciliationMode === RM.MANUAL ? RM.NONE : RM.MANUAL;
@@ -246,6 +274,37 @@
         }
     }
 
+    const csvExport = async () => {
+        let defaultPath
+        await documentDir()
+            .then(path => defaultPath = path)
+            .catch(e => console.log("error getting document dir: " + e))
+
+        const defaultFileName = journalMode
+            ? "all_transactions.csv"
+            : `${curAccount.name || 'transactions'}_${new Date().toISOString().split('T')[0]}.csv`
+
+        const selected = await save({
+            filters: [{name: 'CSV Files', extensions: ['csv']}],
+            defaultPath: `${defaultPath}/${defaultFileName}`,
+        })
+
+        if (selected) {
+            try {
+                if (journalMode && !curAccount?.id) {
+                    await invoke('export_csv_all', { path: selected })
+                } else {
+                    await invoke('export_csv', { path: selected, accountId: curAccount.id })
+                }
+                msg = $_('transactions.exportSuccess')
+            } catch (err) {
+                console.log(err)
+                errors = new Errors()
+                errors.addError("all", $_('transactions.error', { values: {error: err} }))
+            }
+        }
+    }
+
 </script>
 
 <div class="account-heading">
@@ -254,6 +313,7 @@
         <Select bind:item={curAccount} items={$accounts} none={journalMode || settings.require_double_entry} flat={true} onChange={() => {console.log("onChange"); reconciliationMode = RM.NONE; reconciliationResults = []; reconciliationAccountId = null}}/>
     </div>
     <div class="toolbar">
+        <button type="button" class="toolbar-icon" onclick={editAccount} title={$_('transactions.editAccount')}><Icon icon="mdi:text-box-edit-outline"  width="24"/></button>
         <button type="button" class="toolbar-icon" onclick="{() => handleAddClick(curAccount)}" title={$_('transactions.addTransaction')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
         <button type="button" class="{showFilter ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleShowFilter()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.showFilter')}"><Icon icon="mdi:filter-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
@@ -265,6 +325,9 @@
             <Icon icon="mdi:check" width="24"/>
         </button>
         <button type="button" class="toolbar-icon import-icon" onclick={evaluationResult} title={$_('transactions.openCsv')}><Icon icon="mdi:folder-upload" width="22"/></button>
+        {/if}
+        {#if (curAccount?.id && ! journalMode || (journalMode && ! curAccount?.id)) && transactions.length > 0}
+        <button type="button" class="toolbar-icon import-icon" onclick={csvExport} title={$_('transactions.exportCsv')}><Icon icon="mdi:folder-download" width="22"/></button>
         {/if}
     </div>
     {#if transactions.length > 0}
@@ -280,20 +343,13 @@
 <EditTransaction {loadTransactions} transactionId={curTransaction.id} onClose={onCloseEdit} reconciliationSource={curTransaction} {editSource}/>
 {/if}
 {#if isMultiEditMode($page)}
-<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={getSortedSelectedTransactions()}/>
+<EditMultipleTransactions {loadTransactions} onClose={onCloseMultiEdit} {curAccount} transactions={multiEditTransactions}/>
 {/if}
 {#if $page.mode == modes.LOAD}
 <Importer {curAccount} onClose={onCloseEdit} onReconciliationResults={handleReconciliationResults} />
 {/if}
 {#if isListMode($page)}
-<div class="widget errors">
-    {#each errors.getErrorMessages() as e}
-    <div class="error-msg">{e}</div>
-    {/each}
-    {#if msg}
-    <div class="success-msg">{msg}</div>
-    {/if}
-</div>
+<MessagePanel {errors} {msg} />
 {#if reconciliationMode === RM.GUIDED}
 <div class="reconciliation-header">
     <div class="reconciliation-title">{$_('transactions.reconciliationHeader')}</div>
@@ -341,24 +397,20 @@
     td {
         text-align: left;
         overflow: hidden;
-        line-height: 1em;
-        color: #ccc;
-        background-color: #393939;
+        color: var(--color-table-cell-text);
+        background-color: var(--color-table-cell-bg);
         padding: 8px;
         white-space: nowrap;
         font-size: 0.9em;
     }
 
     th {
-        color:#666666;
-        background-color: #444;
+        color:var(--color-border);
+        background-color: var(--color-bg);
         font-weight: 400;
         font-size: .8em;
     }
-    .justify-left {
-        text-align: left;
-        padding-left: 10px;
-    }
+
 
     .form input {
         margin: 0px;
@@ -371,13 +423,11 @@
         text-overflow: ellipsis;
     }
 
-    .account {
-        float: left;
-    }
+
 
     .chart {
         float: right;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
         margin: 0 30px 5px 10px;
         display: flex;
         padding-right: 13px;
@@ -386,7 +436,7 @@
 
     :global(.toolbar) {
         float: left;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
         margin-left: 10px;
         display: flex;
         padding-right: 9px;
@@ -404,37 +454,37 @@
 
     :global(.toolbar-icon) {
         margin-left: 5px;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
     }
 
     :global(.toolbar-icon:hover) {
-        color: #F0F0F0;
+        color: var(--color-text-strong);
         cursor: pointer;
     }
 
     :global(.toolbar-icon-disabled) {
         margin-left: 5px;
-        color: #303030;
+        color: var(--color-surface-2);
     }
 
     :global(.toolbar-icon:disabled) {
         margin-left: 5px;
-        color: #303030;
+        color: var(--color-surface-2);
         cursor: default;
     }
 
     :global(.toolbar-icon-on) {
         margin-left: 5px;
-        color: #43bd6e; /*#55e688*/
+        color: var(--color-toolbar-on);
     }
 
     :global(.toolbar-icon-on:hover) {
-        color: #55e688;
+        color: var(--color-toolbar-on-hover);
         cursor: pointer;
     }
 
     :global(.warning:hover) {
-        color: #e68843;
+        color: var(--color-warning-strong);
     }
 
     :global(.import-icon) {
@@ -449,35 +499,35 @@
         border: none;
         cursor: pointer;
         padding: 0px;
-        color: #c0c0c0;
+        color: var(--color-text-muted);
     }
 
     :global(.single-button:hover) {
         cursor: pointer;
-        color: #e0e0e0;
+        color: var(--color-text-strong-2);
     }
 
     .reconciliation-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #2a2a2a;
+        background-color: var(--color-recon-header-bg);
         padding: 10px 15px;
         margin: 10px 35px 10px 0;
         border-radius: 5px;
-        border-left: 4px solid #4CAF50;
+        border-left: 4px solid var(--color-recon-accent);
     }
 
     .reconciliation-title {
-        color: #4CAF50;
+        color: var(--color-recon-accent);
         font-weight: bold;
         font-size: 1.1em;
     }
 
     .exit-reconciliation {
-        background-color: #555;
+        background-color: var(--color-text-disabled);
         border: none;
-        color: #fff;
+        color: var(--color-white);
         padding: 5px 10px;
         border-radius: 3px;
         cursor: pointer;
@@ -488,19 +538,7 @@
     }
 
     .exit-reconciliation:hover {
-        background-color: #666;
-    }
-
-    .error-msg {
-        color: red;
-        text-align: left;
-        margin-bottom: 3px;
-        font-size: 0.9em;
-    }
-
-    .success-msg {
-        color: green;
-        text-align: left;
+        background-color: var(--color-border);
     }
 
     @media (min-width: 1010px) {

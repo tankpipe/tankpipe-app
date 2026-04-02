@@ -1,16 +1,18 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
     import { untrack } from 'svelte'
-    import {Errors} from '../errors'
-    import Select from '../Select.svelte'
+    import {Errors} from '../utils/errors'
+    import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
-    import {page, modes, views} from '../page'
-    import {settings} from '../settings'
-    import {accounts} from '../accounts'
-    import {config, dateFormat} from '../config'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import {page, modes, views} from '../stores/page'
+    import {settings} from '../stores/settings'
+    import {accounts} from '../stores/accounts'
+    import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
-    
+    import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems'
+
 
     let { loadTransactions, transactionId, onClose, reconciliationSource, editSource } = $props()
 
@@ -25,24 +27,41 @@
     let crTotal = $state(0)
     let simpleAllowed = $state(false)
     let compoundMode =  $state(false)
-    let recorded = $state(false)
+    let recorded = $state(true)
     let entries =  $state([])
-    $inspect(entries)
     let pendingEditPatch = $state(null)
-    $inspect(pendingEditPatch)
     let prefillHint = $state("")
+    let disabledAccountsByEntryIndex = $derived.by(() =>
+        disabledItemsByIndex(entries, (e) => e?.account?.id)
+    )
+    let disabledAccountsKeyByEntryIndex = $derived.by(() =>
+        disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
+    )
+
+
+    $effect(() => {
+        // Explicitly track entries for reactivity
+        entries
+
+        const allFuture = allEntriesInFuture()
+        const hasReconciled = entries.some(e => e.reconciled_status)
+
+        if (allFuture) {
+            recorded = false
+        }
+    })
 
     const isEditMode = $derived($page.mode === modes.EDIT)
 
     const initNewTransaction = () => {
         curTransaction = {id: zeros, status:"Recorded"}
-        
+
         let date = new Date()
         entries = [
             {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Debit", account: {}},
             {realDate: new Date(date), description: "", amount: 0, drAmount: '', crAmount: '', entry_type: "Credit", account: {}},
         ]
-        
+
         addButtonLabel = "Add"
         simpleAllowed = true
     }
@@ -70,7 +89,21 @@
     })
 
     const handleAddClick = () => {
-        entries = [...entries, {id: zeros, transaction_id: curTransaction.id, date: new Date(), description: "", amount: 0, drAmount: '', crAmount: '', account: {}}]
+        const lastEntry = entries[entries.length - 1]
+        const defaultDate = lastEntry?.realDate || new Date()
+        const defaultDescription = lastEntry?.description || ""
+
+        entries = [...entries, {
+            id: zeros,
+            transaction_id: curTransaction.id,
+            date: defaultDate,
+            realDate: defaultDate,
+            description: defaultDescription,
+            amount: 0,
+            drAmount: '',
+            crAmount: '',
+            account: {}
+        }]
     }
 
     const handleRemoveClick = () => {
@@ -88,6 +121,7 @@
     }
 
     const validateEntry = (entry, index, errors) => {
+
         const prefix = compoundMode ? index + "_" : ""
         if (!entry.description || entry.description.length < 1) {
              errors.addError(prefix + "description", $_('transaction.errors.descriptionRequired'))
@@ -111,7 +145,7 @@
             }
         }
 
-        if (!entry.account || !entry.account.id || entry.account.id < 1) {
+        if (!entry.account || !entry.account.id || entry.account.id.length < 1) {
             if (settings.require_double_entry || compoundMode) {
                 errors.addError(index + "_account", $_('transaction.errors.accountRequired'))
             }
@@ -124,6 +158,19 @@
         return date.getFullYear()+ "-" + (date.getMonth()+1) + "-" + date.getDate()
     }
 
+    const allEntriesInFuture = () => {
+        const today = new Date().setHours(0, 0, 0, 0)
+
+        // In simple mode, only check the first entry since second entry syncs after date changes
+        const entriesToCheck = !compoundMode && entries.length > 0 ? [entries[0]] : entries
+
+        return entriesToCheck.length > 0 && entriesToCheck.every(entry => {
+            if (!entry.realDate) return false
+            const entryDate = new Date(entry.realDate).setHours(0, 0, 0, 0)
+            return entryDate > today
+        })
+    }
+
     const onSave = () => {
         console.log("onSave")
         msg = ""
@@ -132,13 +179,18 @@
         calculateTotals()
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
+        const hasAccountSelected = entries.some(e => e.account && e.account.id && e.account.id.length > 0)
+        if (!hasAccountSelected) {
+            errors.addError("account", $_('transaction.errors.accountRequired'))
+        }
+
         if (compoundMode && (drTotal != crTotal)) {
             errors.addError("totals", $_('transaction.errors.totalsBalance'))
         }
 
         if (!errors.hasErrors()) {
-            const transaction = Object.assign(curTransaction, {entries: [...entries]})
-            
+            const transaction = Object.assign({}, curTransaction, {entries: [...entries]})
+
             if (!compoundMode && !settings.require_double_entry) {
                  transaction.entries = transaction.entries.filter(e => (e["account"] && e["account"]["id"]))
             }
@@ -148,7 +200,6 @@
                     e["date"] = toDateStr(e.realDate)
                     e["account_id"] = e["account"]["id"]
                     if (compoundMode) {
-                        //console.log(e)
                         if (isValidAmount(e.crAmount)) {
                             e["entry_type"] = "Credit"
                             e["amount"] =  e["crAmount"]
@@ -160,10 +211,9 @@
                 }
             )
 
-            if (!transaction["status"] || (transaction["status"] != "Recorded")) {
-                transaction["status"] = recorded?"Recorded":"Projected"
-            }
+            transaction.status = recorded ? "Recorded" : "Projected"
 
+            console.log("transaction", transaction)
             if ($page.mode === modes.NEW) {
                 transaction.entries.forEach (
                     e => {
@@ -185,11 +235,10 @@
     }
 
     function resolved(result) {
+        console.log(result)
         msg = $_('transaction.errors.saved')
-        curTransaction = result
-        if ($page.mode === modes.EDIT || reconciliationSource?.isReconciliationResult) {
-            close()
-        }
+        loadTransactions()
+        close()
     }
 
     const syncSecondEntry = () => {
@@ -225,6 +274,7 @@
         entries = txEntries.map(e => ({...e}))
 
         entries.forEach(e => {
+            e.amount = e.amount ? Number(e.amount).toFixed(2) : "0.00"
             e.entry_type === "Credit" ? Object.assign(e, {crAmount: e.amount}) : Object.assign(e, {drAmount: e.amount})
             e.realDate = new Date(e.date)
             e.account = matchAccount(e.account_id)
@@ -243,7 +293,7 @@
         }
 
         recorded = curTransaction.status != "Projected"
-        if (pendingEditPatch) {            
+        if (pendingEditPatch) {
             const targetId = pendingEditPatch.targetTransactionId ?? pendingEditPatch.id
             if (targetId === curTransaction.id) {
                 applyEditPatch(pendingEditPatch)
@@ -348,19 +398,19 @@
     }
 
     function rejected(result) {
+        console.log(result)
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", result)
     }
+
     const addTransaction = async (transaction) => {
         console.log(transaction)
         await invoke('add_transaction', {transaction: transaction}).then(resolved, rejected)
-        loadTransactions()
     }
 
     const saveTransaction = async (transaction) => {
         console.log(transaction)
         await invoke('update_transaction', {transaction: transaction}).then(resolved, rejected)
-        loadTransactions()
     }
 
     function resolvedDelete(result) {
@@ -384,7 +434,7 @@
         let total = 0
         const amountField = type === "Credit" ? "crAmount" : "drAmount"
         entries.filter(e => isValidAmount(e[amountField])).forEach(e => total += Number(e[amountField]))
-        return total
+        return Number(total).toFixed(2)
     }
 
     const calculateTotals = () => {
@@ -408,16 +458,24 @@
 
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('transaction.edit') : $_('transaction.new')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick={close} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
+    </div>
+    {#if (curTransaction.source_type)}
+    <div class="indicator source-msg"><span>{$_('transaction.sourceType.' + curTransaction.source_type)}</span></div>
+    {/if}
     {#if entries.some(e => e.reconciled_status)}
-    <div class="recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
+    <div class="indicator recon-msg"><span>{$_('transaction.partiallyReconciled')}</span></div>
     {/if}
     {#if prefillHint}
-    <div class="recon-msg"><span>{prefillHint}</span></div>
+    <div class="indicator recon-msg"><span>{prefillHint}</span></div>
     {/if}
     {#if curTransaction && curTransaction.entries}
     <div class="toolbar toolbar-right">
-        <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
-        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled_status)}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button class="toolbar-icon" onclick="{schedule}" title={$_('transaction.schedule')}><Icon icon="mdi:clipboard-text-clock" width="24"/></button>
+        <button class="toolbar-icon" onclick="{deleteTransaction}" title={$_('transaction.delete')} disabled={entries.some(e => e.reconciled_status)}><Icon icon="mdi:trash-can-outline" width="24"/></button>
     </div>
     {/if}
         {#if entries.length > 0 && !compoundMode}
@@ -426,7 +484,7 @@
                 <tbody>
                 <tr><td><div class="heading">{$_('labels.date')}</div></td><td><div class="heading">{$_('labels.description')}</div></td><td><div class="heading">{$_('labels.amount')}</div></td><td></td><td></td></tr>
                 <tr>
-                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" closeOnSelection={true}/></div></td>
+                    <td><div class="date-input" class:error={errors.isInError("date")} ><DateInput bind:value={entries[0].realDate} {format} placeholder="" closeOnSelection={true} /></div></td>
                     <td class="description"><input id="desc" class="description-input" class:error={errors.isInError("description")} bind:value={entries[0].description}></td>
                     <td class="money"><input id="amount" class="money-input" class:error={errors.isInError("amount")} bind:value={entries[0].amount}></td>
                 </tr>
@@ -436,12 +494,20 @@
         <div class="form-row2">
             {#if entries.length > 1}
             {#if entries[0].entry_type !== "Credit"}
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true} />
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true} />
+            {#key disabledAccountsKeyByEntryIndex[0] + ":" + (entries[0]?.account?.id || "")}
+                <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
+            {#key disabledAccountsKeyByEntryIndex[1] + ":" + (entries[1]?.account?.id || "")}
+                <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
             {/if}
             {#if entries[0].entry_type === "Credit"}
-            <Select bind:item={entries[1].account} items={$accounts} label={$_('labels.debit')} none={true} flat={true} />
-            <Select bind:item={entries[0].account} items={$accounts} label={$_('labels.credit')} none={true} flat={true} />
+            {#key disabledAccountsKeyByEntryIndex[1] + ":" + (entries[1]?.account?.id || "")}
+                <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
+            {#key disabledAccountsKeyByEntryIndex[0] + ":" + (entries[0]?.account?.id || "")}
+                <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]} />
+            {/key}
             {/if}
             {/if}
         </div>
@@ -455,7 +521,11 @@
                 <tr>
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput bind:value={e["realDate"]} {format} placeholder="" disabled={!editable(e)} closeOnSelection={true}/></div></td>
                     <td class="description"><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={e.description} disabled={!editable(e)}></td>
-                    <td><div class="select-adjust"><Select bind:item={e["account"]} items={$accounts} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={!editable(e)}/></div></td>
+                    <td><div class="select-adjust">
+                        {#key (disabledAccountsKeyByEntryIndex[i] || "") + ":" + (e?.account?.id || "")}
+                            <Select bind:item={e["account"]} items={$accounts} disabledItems={disabledAccountsByEntryIndex[i] || []} label="" none={false} flat={true} inError={errors.isInError(i + "_account")} disabled={!editable(e)} onChange={() => entries = [...entries]}/>
+                        {/key}
+                    </div></td>
                     <td class="money">
                         <input id="dramount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={e.drAmount} disabled={!editable(e)}>
                     </td>
@@ -484,20 +554,15 @@
             <label for="compound">{$_('transaction.compound')}</label>
         </div>
         <div class="widget2 buttons-left">
-            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status)}>
+            <input id="recorded" type=checkbox bind:checked={recorded} disabled={entries.some(e => e.reconciled_status) || allEntriesInFuture()}>
             <label for="recorded">{$_('transaction.recorded')}</label>
         </div>
-        <div class="widget buttons">
-            <button class="og-button" onclick={close}>{$_('buttons.close')}</button>
-            <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
-        </div>
-        <div class="widget errors">
-            {#each errors.getErrorMessages() as e}
-            <div class="error-msg selectable-text">{e}</div>
-            {/each}
-            {#if msg}
-            <div class="success-msg selectable-text">{msg}</div>
-            {/if}
+        <div class="buttons-panel">
+            <MessagePanel {errors} {msg} />
+            <div class="widget buttons">
+                <button class="og-button" onclick={close}>{$_('buttons.close')}</button>
+                <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
+            </div>
         </div>
     </div>
 </div>
@@ -505,10 +570,10 @@
 <style>
 
     :global(.date-time-field input) {
-        border: 1px solid #CCC !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 2px !important;
         height: 33px;
-        background-color: #aaa;
+        background-color: var(--color-input-bg);
     }
 
     :root {
@@ -524,59 +589,31 @@
         min-height: 70px;
     }
 
-    .errors {
-        float: right;
-        margin: 10px 12px 0 0;
-    }
-    .error-msg {
-        color: #FBC969;
-        text-align: left;
-        margin-bottom: 3px;
-        font-size: 0.9em;
-        max-width: 350px;
-    }
-
-    .success-msg {
-        color: green;
-        text-align: left;
-    }
-
-    .disabled {
-        background-color: #F0F0F0;
-    }
-
-    .greyed {
-        color: #666;
-        border-color: #666;
-    }
-
     .greyed:hover {
-        color: #666 !important;
-        border-color: #666 !important;
+        color: var(--color-border) !important;
+        border-color: var(--color-border) !important;
         cursor: default !important;
     }
 
     .error {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
     :global(.error-input input) {
-        border: 1px solid #FBC969 !important;
+        border: 1px solid var(--color-warning) !important;
     }
 
-    .buttons {
+    .buttons-panel {
+        clear: both;
+        padding: 5px 0 0 7px;
+    }
+
+    .buttons-panel .buttons {
         float: right;
-        margin: 10px 12px 0 0;
     }
 
     .buttons button {
         min-width: 80px;
-    }
-
-    .buttons-left {
-        float: left;
-        margin: 10px 12px 0 0;
-        padding: 5px 0px 5px 0px;
     }
 
     .form-button-row {
@@ -588,11 +625,6 @@
         margin-right: 0px;
     }
 
-    .form {
-        float: left;
-        border-radius: 10px;
-    }
-
     .total {
         text-align: right;
         margin: 0px 5px -3px 0px;
@@ -601,11 +633,6 @@
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
-    }
-
-    .widget2 {
-        padding: 5px 0px 5px 10px;
-        margin: 13px 12px 0px 0px;
     }
 
     .widget2 label {
@@ -623,10 +650,6 @@
 
     .money-input {
         text-align: right;
-    }
-
-    .description-input {
-        width: 400px;
     }
 
     .date-input {
@@ -647,39 +670,30 @@
         margin: 0px;
     }
 
-    .select-adjust {
-        margin-bottom: -8px;
-    }
+
 
     .entries {
-        padding: 5px 5px 10px 10px;
         clear: both;
     }
 
-    .bottom-toolbar {
-        float: left;
+
+
+
+
+    .indicator span {
+        padding-top: 6px;
+        font-size: 0.75em;
     }
 
     .recon-msg {
-        color: #daae3e;
-        float: left;
-        margin: 0px 0px 0px 20px;        
-        display: flex;
-        align-items: center;
+        color: var(--color-accent);
     }
 
-    .recon-msg span {
-        padding-top: 5px;
-        font-size: 0.85em;
-    }
+
 
     .reconciled-cell {
-        background-color: #444 !important;
-        color: #ccc;
-        font-size: .8em;
-        font-weight: bold;
-        padding: 0 0 4px 3px;
-        text-align: center;
+        background-color: transparent;
+        color: var(--color-border-light);
     }
 
 </style>

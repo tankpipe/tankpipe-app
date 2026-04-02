@@ -1,14 +1,15 @@
 <script>
     import {DateInput} from 'date-picker-svelte'
-    import {Errors} from '../errors.js'
+    import {Errors} from '../utils/errors.js'
     import Icon from '@iconify/svelte'
+    import MessagePanel from '../components/MessagePanel.svelte'
     import {generate} from './generate.js'
-    import {config} from '../config.js'
+    import {config} from '../stores/config.js'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import TransactionList from '../transactions/TransactionList.svelte'
     import { onMount } from 'svelte';
-    import Spinner from '../Spinner.svelte';
+    import Spinner from '../components/Spinner.svelte';
 
     let { close, edit, curSchedule } = $props()
 
@@ -43,7 +44,7 @@
         console.log("hasEnd: ",(endDate != null))
         date = new Date(curSchedule.start_date)
         max.setFullYear(date.getFullYear() + 20)
-        min.setFullYear(date.getFullYear() - 10)        
+        min.setFullYear(date.getFullYear() - 10)
     })
 
     const matchPeriod = (value) =>  {
@@ -80,7 +81,7 @@
 
     function rejected(result) {
         errors = new Errors()
-        errors.addError("all", "We hit a snag: " + result)
+        errors.addError("all", result)
         loading = false
         msg = ""
     }
@@ -90,22 +91,23 @@
         errors = new Errors()
         msg = loadingMsg
     }
-    
+
     const saveSchedule = async (schedule) => {
         console.log(schedule)
            await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
     const generateSchedule = async () => {
-        showLoading($_('schedule.generating'))        
-        
-        const isoDateString = scheduleToDate ? scheduleToDate.toISOString().split('T')[0] : null
-        invoke('generate_by_schedule', { 
-            date: {date: isoDateString}, 
-            scheduleId: curSchedule.id 
-        }).then(resolvedGenerateSchedule, rejected)
+        if (scheduleToDate) {
+            showLoading($_('schedule.generating'))
+            const isoDateString = scheduleToDate.toISOString().split('T')[0]
+            invoke('generate_by_schedule', {
+                date: {date: isoDateString},
+                scheduleId: curSchedule.id
+            }).then(resolvedGenerateSchedule, rejected)
+        }
     }
-    
+
     function resolvedGenerateSchedule(result) {
         loadTransactions()
         msg = $_('schedule.generation_complete')
@@ -113,12 +115,12 @@
     }
 
     const deleteTransactions = async () => {
-        showLoading($_('schedule.deleting_transactions'))        
+        showLoading($_('schedule.deleting_transactions'))
         const transactionIds = transactions.map(t => t.id)
-        invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)        
+        invoke('delete_transactions', {ids: transactionIds}).then(resolvedDeleteTransactions, rejected)
     }
 
-    const resolvedDeleteTransactions = async (result) => {      
+    const resolvedDeleteTransactions = async (result) => {
       loadTransactions()
       await loadSchedule()
       await invoke('reset_schedule_last_date', {scheduleId: curSchedule.id}).then(loadSchedule, rejected)
@@ -148,7 +150,7 @@
     <div class="form-row">
         <div class="small-text">
             {$_('schedule.every')}&nbsp;{frequency}&nbsp;{period.name}
-            {$_('schedule.starting_from')}&nbsp;{formatDate(date)} 
+            {$_('schedule.starting_from')}&nbsp;{formatDate(date)}
         </div>
     </div>
     {#if hasEnd}
@@ -167,22 +169,17 @@
     {/if} 
     <hr/>
     <div class="form-row">
-        <div class="schedule-row">
+        <div class="widget-row">
             <div class="widget left float-left">
-                <label for="scheduleToDate">{$_('schedule.schedule_until')}&nbsp;</label>
-                <div class="inline-button"><button class="og-button" disabled={loading} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
-                <div id="scheduleToDate" class="date-input raise">
-                    <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
-                </div>
+                <label for="scheduleToDate">{$_('schedule.schedule_until')}</label>
             </div>
+            <div id="scheduleToDate" class="date-input raise">
+                <DateInput bind:value={scheduleToDate} {format} placeholder="" {min} {max} closeOnSelection={true}/>
+            </div>
+            <div class="inline-button"><button class="og-button" disabled={loading || !scheduleToDate} onclick={generateSchedule}>{$_('schedule.generate')}</button></div>
             <div class="msg-row">
-            {#each errors.getErrorMessages() as e}
-                <p class="error-msg">{e}</p>
-            {/each}
-            {#if msg} 
-                <p class="success-msg">{msg}</p>
-            {/if}                
-            </div>            
+                <MessagePanel {errors} {msg} />
+            </div>
         </div>
     </div>
 </div>
@@ -195,47 +192,21 @@
         </button>
 </div>
 </div>
-<TransactionList curAccount={{}} journalMode={true} transactions={transactions} onSelect={()=>{}} />
+<TransactionList
+    curAccount={{}}
+    journalMode={true}
+    transactions={transactions}
+    onSelect={()=>{}}
+    loadAccounts={()=>{}}
+    rerunReconciliationIfNeeded={()=>{}}
+    topScroll={0}
+    setTopScroll={()=>{}}
+    descriptionFilter=""
+/>
 <style>
 
     :root {
         --date-input-width: 110px;
-    }
-
-    .msg-row {
-        display: block;
-        float: left;
-        clear: both;
-        margin: -10px 0px 0px 5px;        
-    }
-
-    .error-msg {
-        color: #FBC969;
-        font-size: .8em;
-        float: left;
-    }
-
-    .success-msg {
-        color: green;
-        font-size: .8em;
-        float: left;
-    }
-
-    .error {
-        border: 1px solid #FBC969 !important;
-    }
-
-    .form-row {
-        display: inline-flex;
-        float: left;
-        width: 100%;
-        clear:both;
-    }
-
-    .form {
-        float: left;
-        border-radius: 10px;
-        color: #DDDDDD;
     }
 
     .widget {
@@ -243,35 +214,9 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .schedule-row {
-        padding: 5px 0 0px 0;
-        margin: 0 0 -6px 0;
-    }
-
-    .schedule-row label {
-        display: inline-block;
-        font-size: 1.0em;
-    }
-
-    .schedule-row button {
-        min-height: 33px;
-    }
-
-    .top-widget {
-        display: inline-block;
-        padding: 5px 0px 5px 0px;
-    }
-
-    .raise {
-        margin-top: -7px;
-    }
 
     .left {
         padding-left: 0px;
-    }
-
-    .float-left {
-        float: left;
     }
 
     .date-input {
@@ -280,27 +225,13 @@
 
     hr {
         border-style: none;
-        border: 1px solid #363636;
+        border: 1px solid var(--color-bg-alt);
         margin-left: -20px;
         width: 100vw;
     }
 
-
     .inline-button {
-        float: right;
         margin: -7px 0px 0px 3px;
-    }
-
-     .small-text {
-        font-size: 0.7em;
-        color: #878787;
-        margin: 3px 0 -5px 2px;
-        min-height: 27px;
-    }
-
-    .heading-spinner {
-        margin: 3px 0 0 10px;
-        float: left;
     }
 
 </style>

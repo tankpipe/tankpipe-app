@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => ({
     include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     globals: true,
     environment: 'jsdom',
+    setupFiles: ['tests/setup.js'],
   },
   resolve: {
     conditions: mode === 'test' ? ['browser'] : [],

@@ -1,13 +1,13 @@
 import { render, fireEvent, waitFor, vi } from 'vitest'
 import '@testing-library/jest-dom'
 import { render as svelteRender } from '@testing-library/svelte'
-import EditAccount from '../src/EditAccount.svelte'
-import {accounts} from '../src/accounts.js'
-import {page, views, modes} from '../src/page'
-import {setHasBooks} from '../src/context'
+import EditAccount from '../src/accounts/EditAccount.svelte'
+import {accounts} from '../src/stores/accounts.js'
+import {page, views, modes} from '../src/stores/page.js'
+import {setHasBooks} from '../src/stores/context.js'
 import account_data from './data/account_data.json'
 import { locale } from 'svelte-i18n'
-import '../src/i18n'
+import '../src/utils/i18n'
 
 // Mock the invoke function using vitest
 vi.mock('@tauri-apps/api/core', () => ({
