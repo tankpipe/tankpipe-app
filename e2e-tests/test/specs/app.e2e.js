@@ -1,4 +1,4 @@
-describe('Tankpipe app e2e', () => {
+describe('tankpipe app e2e', () => {
   const selectors = {
     heading: '.form-heading',
     menuButton: '.menu-left .og-button',
@@ -199,7 +199,7 @@ describe('Tankpipe app e2e', () => {
     const backgroundColor = await body.getCSSProperty('background-color');
     expect(luma(backgroundColor.parsed.hex)).toBeLessThan(100);
   });
-  
+
   function luma(hex) {
     if (hex.startsWith('#')) {
       hex = hex.substring(1);

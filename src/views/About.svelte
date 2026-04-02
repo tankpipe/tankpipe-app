@@ -104,7 +104,7 @@
         border: 1px solid var(--color-bg);
         margin: 0 -5px;
     }
-    
+
     .card {
         padding: 5px;
     }
@@ -142,6 +142,10 @@
         line-height: 1.2em;
     }
 
+    a:hover {
+        text-decoration: underline;
+    }
+
     .about {
         min-width: 360px;
         max-width: 700px;
@@ -155,6 +159,10 @@
         vertical-align: super;
         display: initial;
         padding-left: 5px;
+    }
+
+    .link-text:hover {
+        text-decoration: underline;
     }
 
     .link {

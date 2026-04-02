@@ -228,23 +228,23 @@
         "reconciliationHeader": "Reconciliation"
     },
     "about": {
-        "logo_alt": "Tankpipe logo",
-        "title": "Tankpipe",
-        "subtitle": "Cashflow Manager",
+        "logo_alt": "tankpipe logo",
+        "title": "tankpipe",
+        "subtitle": "cashflow manager",
         "version": "Version {version}",
         "questions_title": "Got questions?",
         "github_link": "Raise an issue on Github",
         "discord_link": "Reach out on Discord",
         "privacy_title": "Privacy policy",
         "privacy_text": "Our Privacy Policy is available at <a target=\"_blank\" href=\"https://tankpipe.com/app/privacy\">tankpipe.com/app/privacy</a>.",
-        "license_title": "Tankpipe is available under the MIT License",
+        "license_title": "tankpipe is available under the MIT License",
         "mit_license": "The MIT License (MIT)",
-        "copyright": "Copyright © 2025 Tankpipe.com",
+        "copyright": "Copyright © 2026 tankpipe.com",
         "license_permission": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
         "license_notice": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
         "license_warranty": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
         "disclaimer_title": "Advice disclaimer",
-        "disclaimer_text": "Material, content, and functionality available on the Tankpipe app <span class=\"highlight\">does not represent financial, tax, or legal advice</span>. As per the license, the Tankpipe App is provided \"AS IS\" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters. You should consult with a qualified professional for advice on anything relating to these matters. See also the Tankpipe <a target=\"_blank\" href=\"https://tankpipe.com/app/terms\">terms.</a>"
+        "disclaimer_text": "Material, content, and functionality available on the tankpipe app <span class=\"highlight\">does not represent financial, tax, or legal advice</span>. As per the license, the tankpipe app is provided \"AS IS\" and no warranty is made on its suitablity for any purpose including financial, tax, or legal matters. You should consult with a qualified professional for advice on anything relating to these matters. See also the tankpipe <a target=\"_blank\" href=\"https://tankpipe.com/app/terms\">terms.</a>"
     },
     "importer": {
         "no_data": "No data was read",

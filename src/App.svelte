@@ -176,7 +176,7 @@
     <div class="app">
         {#if !supportedVersion}
         <div class="column middle">
-            <div class="loading">Unfortunately the webview version on this computer is not supported for running Tankpipe. Updating your OS to a more recent version may help.</div>
+            <div class="loading">Unfortunately the webview version on this computer is not supported for running tankpipe. Updating your OS to a more recent version may help.</div>
             <div class="loading">User Agent: {window.navigator.userAgent}</div>
         </div>
         {/if}

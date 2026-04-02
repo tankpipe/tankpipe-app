@@ -1,6 +1,6 @@
-# Tankpipe
+# tankpipe
 
-This is the source code repository for the Tankpipe Cashflow Manager.
+This is the source code repository for the tankpipe cashflow manager.
 
 Visit [tankpipe.com](https://tankpipe.com) to learn more about his app.
 
@@ -23,7 +23,7 @@ npm test
 
 MIT License
 
-Copyright (c) 2023 tankpipe.com
+Copyright (c) 2026 tankpipe.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
