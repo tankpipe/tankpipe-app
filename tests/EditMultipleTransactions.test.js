@@ -36,7 +36,10 @@ it('disables already-selected accounts in other entry selects (simple)', async (
 
     const selectOption = async (selectEl, text) => {
         const option = getOptionByText(selectEl, text)
-        selectEl.value = option.value
+        const options = Array.from(selectEl.querySelectorAll('option'))
+        const optionIndex = options.indexOf(option)
+        selectEl.selectedIndex = optionIndex
+        option.selected = true
         await fireEvent.change(selectEl)
         await new Promise(resolve => setTimeout(resolve, 0))
     }
@@ -48,6 +51,9 @@ it('disables already-selected accounts in other entry selects (simple)', async (
     let creditSelect = selects[1]
 
     await selectOption(debitSelect, 'Account 1')
+
+    selects = Array.from(container.querySelectorAll('select'))
+    creditSelect = selects[1]
 
     expect(getOptionByText(creditSelect, 'Account 1').disabled).toBe(true)
 })
