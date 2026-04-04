@@ -9,7 +9,7 @@
   "bundle": {
     "active": true,
     "category": "Finance",
-    "copyright": "© 2026 tankpipe.com",
+    "copyright": "© 2026 Tankpipe.com",
     "targets": "all",
     "externalBin": [],
     "icon": [
@@ -41,8 +41,8 @@
     },
     "createUpdaterArtifacts": "v1Compatible"
   },
-  "productName": "tankpipe",
-  "mainBinaryName": "tankpipe",
+  "productName": "Tankpipe",
+  "mainBinaryName": "Tankpipe",
   "version": "0.1.2-alpha",
   "identifier": "com.tankpipe.money",
   "plugins": {
@@ -60,7 +60,7 @@
         "fullscreen": false,
         "height": 1200,
         "resizable": true,
-        "title": "tankpipe",
+        "title": "Tankpipe",
         "width": 1100,
         "minWidth": 600,
         "theme": "Dark",

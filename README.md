@@ -1,8 +1,8 @@
-# tankpipe
+# Tankpipe
 
-This is the source code repository for the tankpipe cashflow manager.
+This is the source code repository for the Tankpipe cashflow manager.
 
-Visit [tankpipe.com](https://tankpipe.com) to learn more about his app.
+Visit [tankpipe.com](https://tankpipe.com) to learn more about this app.
 
 # Build
 
