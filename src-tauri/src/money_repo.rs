@@ -179,7 +179,10 @@ impl Repo {
                 self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str(), self.books.id);
                 let save_result = write_config( &self.config.settings_path(), &self.config);
                 match save_result {
-                    Ok(()) => Ok(()),
+                    Ok(()) => {
+                        self.run_checks();
+                        Ok(())
+                    },
                     Err(e) => Err(BooksError{ error: e.to_string() })
                 }
             },
