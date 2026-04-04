@@ -12,6 +12,8 @@
     let loading = false
     let restoringPath = ""
     let msg = ""
+
+    let runChecks = true
     let errors = new Errors()
 
     const loadBackups = async () => {
@@ -36,7 +38,7 @@
         restoringPath = backupPath
         msg = ""
         errors = new Errors()
-        await invoke('restore_backup', { backupPath }).then(restoreBackupSuccess, restoreBackupRejected)
+        await invoke('restore_backup', { backupPath, runChecks }).then(restoreBackupSuccess, restoreBackupRejected)
     }
 
     const restoreBackupSuccess = async () => {
@@ -111,6 +113,13 @@
 {:else if backups.length === 0}
     <div class="status">{$_('backups.empty')}</div>
 {:else}
+    <div class="controls">
+        <div class="form-row2">
+            <div class="widget">
+                <div class="label label-column">{$_('backups.runChecks')}</div><input type="checkbox" bind:checked={runChecks} />
+            </div>
+        </div>
+    </div>
     <div class="status">{$_('backups.selectPrompt')}</div>
     <div class="scroller" id="scroller">
     <ul class="backup-list">
@@ -169,4 +178,27 @@
         font-variant-numeric: tabular-nums;
         font-size: 0.9em;
     }
+
+    .form-row2 {
+        display: block;
+    }
+
+    .widget {
+        padding: 5px 0px 5px 10px;
+        float: left;
+        clear: both;
+    }
+
+    .label {
+        font-size: .9em;
+        margin: 0 5px 5px 0;
+        display: inline-block;
+        text-align: left;
+        min-width: 11em;
+    }
+
+    .label-column {
+        color: var(--color-text);
+    }
+
 </style>

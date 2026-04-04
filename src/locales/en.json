@@ -16,6 +16,7 @@
         "empty": "No backups available.",
         "selectPrompt": "Choose a backup to restore:",
         "restoreButtonTitle": "Restore this backup",
+        "runChecks": "Project schedules and interest",
         "messages": {
             "restored": "Backup restored."
         },

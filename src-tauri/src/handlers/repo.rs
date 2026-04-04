@@ -95,11 +95,9 @@ pub fn list_backups(state: tauri::State<BooksState>) -> Result<Vec<String>, Stri
 }
 
 #[tauri::command]
-pub fn restore_backup(state: tauri::State<BooksState>, backup_path: String) -> Result<(), String> {
+pub fn restore_backup(state: tauri::State<BooksState>, backup_path: String, run_checks: bool) -> Result<(), String> {
     let mut mutex_guard = state.0.lock().unwrap();
-    mutex_guard
-        .restore_backup(&OsString::from(backup_path))
-        .map_err(|e| e.error)
+    mutex_guard.restore_backup(&OsString::from(backup_path), run_checks).map_err(|e| e.error)
 }
 
 #[tauri::command]

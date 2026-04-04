@@ -265,7 +265,7 @@ impl Repo {
         }
     }
 
-    pub fn restore_backup(&mut self, backup_path: &OsString) -> Result<(), BooksError> {
+    pub fn restore_backup(&mut self, backup_path: &OsString, run_checks: bool) -> Result<(), BooksError> {
         let current_file = match &self.config.current_file {
             Some(file) => file.clone(),
             None => return Err(crate::books_error!("errors.no_file_path_for_current_books")),
@@ -300,7 +300,13 @@ impl Repo {
 
         self.books = restored_books;
         self.config.current_books_id = Some(self.books.id);
-        self.save_config()?;
+
+        if run_checks {
+            self.run_checks();
+        } else {
+            self.save_config()?;
+        }
+        
         Ok(())
     }
 
