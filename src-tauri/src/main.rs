@@ -2,37 +2,36 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-
 #![allow(dead_code)]
 
+use crate::handlers::{account, interest, modifier, repo, schedule, transaction};
+use crate::money_repo::Repo;
 use std::error::Error;
 use std::sync::Mutex;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{App, Emitter, Manager};
-use crate::handlers::{account, transaction, schedule, modifier, interest, repo};
-use crate::money_repo::Repo;
 
 rust_i18n::i18n!("locales");
 
+pub mod about;
 pub mod account_display;
 pub mod config;
-pub mod about;
+pub mod csv_check;
+mod handlers;
+mod i18n;
 pub mod money_repo;
 pub mod reader;
-pub mod csv_check;
-mod i18n;
-mod handlers;
 
 pub struct BooksState(Mutex<Repo>);
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {}
 
-
 fn main() {
     let repo: Option<Repo> = Repo::load_startup().ok();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
@@ -107,15 +106,10 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-
 }
 
-
 fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
-
-    let about = MenuItemBuilder::new("About...")
-        .id("about")
-        .build(app)?;
+    let about = MenuItemBuilder::new("About...").id("about").build(app)?;
 
     let preferences = MenuItemBuilder::new("Settings...")
         .id("preferences")
@@ -136,7 +130,7 @@ fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
 
     let file_backups = MenuItemBuilder::new("Backups...")
         .id("file-backups")
-         .accelerator("CmdOrCtrl+B")
+        .accelerator("CmdOrCtrl+B")
         .build(app)?;
 
     let file_new = MenuItemBuilder::new("New...")
@@ -170,12 +164,12 @@ fn build_menus(app: &mut App) -> Result<(), Box<dyn Error>> {
         .build()?;
 
     app.set_menu(menu)?;
-    app.on_menu_event(move |app, event| {
-        match app.emit(event.id().as_ref(), Payload {}) {
-            Ok(_) => {},
+    app.on_menu_event(
+        move |app, event| match app.emit(event.id().as_ref(), Payload {}) {
+            Ok(_) => {}
             Err(e) => println!("Error on {} event: {}", event.id().as_ref(), e),
-        }
-    });
+        },
+    );
     Ok(())
 }
 

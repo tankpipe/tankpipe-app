@@ -1,13 +1,15 @@
-use std::{ffi::{OsStr, OsString}, path::PathBuf};
+use accounts::serializer::{deserialize_option_naivedate, serialize_option_naivedate};
 use chrono::NaiveDate;
-use serde::{Deserializer, Serializer, Serialize, Deserialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::{
+    ffi::{OsStr, OsString},
+    path::PathBuf,
+};
 use uuid::Uuid;
-use accounts::serializer::{serialize_option_naivedate, deserialize_option_naivedate};
-
 
 pub const DEFAULT_PROJECTION_MONTHS: u32 = 12;
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct FileDetails {
     pub name: String,
     #[serde(serialize_with = "serialize_osstring")]
@@ -17,27 +19,35 @@ pub struct FileDetails {
 
 impl FileDetails {
     pub fn empty() -> FileDetails {
-        FileDetails{ name: "".to_string(), path: OsString::from("") }
+        FileDetails {
+            name: "".to_string(),
+            path: OsString::from(""),
+        }
     }
 
     pub fn from_path(name: &str, path: PathBuf) -> FileDetails {
-        FileDetails{ name: name.to_string(), path: path.into_os_string() }
+        FileDetails {
+            name: name.to_string(),
+            path: path.into_os_string(),
+        }
     }
 
     pub fn from_os_string(name: &str, path: OsString) -> FileDetails {
-        FileDetails{ name: name.to_string(), path: path }
+        FileDetails {
+            name: name.to_string(),
+            path: path,
+        }
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Theme {
     Dark,
     Light,
     System,
 }
 
-
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum DateFormat {
     Locale,
     Regular,
@@ -45,7 +55,7 @@ pub enum DateFormat {
     ISO,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq  )]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Config {
     pub id: Uuid,
     pub version: String,
@@ -91,25 +101,31 @@ impl Config {
         self.last_file.name = name.to_string();
         self.current_file = Some(self.last_file.clone());
         self.current_books_id = Some(books_id);
-        let index = self.recent_files.iter().position(|f| *f.path == os_string_path);
+        let index = self
+            .recent_files
+            .iter()
+            .position(|f| *f.path == os_string_path);
         match index {
             Some(i) => {
                 last_file = self.recent_files.get(i).unwrap().clone();
                 self.recent_files.remove(index.unwrap());
-            },
-            None =>last_file = FileDetails::from_os_string(name, os_string_path)
+            }
+            None => last_file = FileDetails::from_os_string(name, os_string_path),
         }
         self.recent_files.insert(0, last_file);
     }
 
     pub fn set_last(&mut self, last_file: FileDetails) {
-        if let Some(index) = self.recent_files.iter().position(|f| *f.path == last_file.path) {
+        if let Some(index) = self
+            .recent_files
+            .iter()
+            .position(|f| *f.path == last_file.path)
+        {
             self.recent_files.remove(index);
         }
         self.last_file = last_file.clone();
         self.recent_files.insert(0, last_file);
     }
-
 }
 
 fn default_projection_months() -> u32 {
@@ -121,14 +137,16 @@ fn default_theme() -> Theme {
 }
 
 pub fn deserialize_osstring<'de, D>(deserializer: D) -> Result<OsString, D::Error>
-    where D: Deserializer<'de>
+where
+    D: Deserializer<'de>,
 {
     let path = String::deserialize(deserializer)?;
     Ok(OsString::from(path))
 }
 
 pub fn serialize_osstring<S>(path: &OsString, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer,
+where
+    S: Serializer,
 {
     serializer.serialize_some(&PathBuf::from(path.as_os_str()))
 }

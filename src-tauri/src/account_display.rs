@@ -1,18 +1,21 @@
-use accounts::account::{AccountType, Account};
+use accounts::account::{Account, AccountType};
+use accounts::serializer::*;
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
-use accounts::serializer::*;
 use rust_decimal_macros::dec;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::{config::{DateFormat, Theme}, money_repo::Repo};
+use crate::{
+    config::{DateFormat, Theme},
+    money_repo::Repo,
+};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NewAccount {
     pub name: String,
     pub account_type: AccountType,
-    pub starting_balance: Decimal
+    pub starting_balance: Decimal,
 }
 
 impl NewAccount {
@@ -27,17 +30,14 @@ impl NewAccount {
             interest_id: None,
         }
     }
-
 }
-
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct DateParam {
     #[serde(serialize_with = "serialize_naivedate")]
     #[serde(deserialize_with = "deserialize_naivedate")]
-    pub date: NaiveDate
+    pub date: NaiveDate,
 }
-
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ConfigSettings {
@@ -57,11 +57,11 @@ pub struct Analytics {
 impl Analytics {
     pub fn from_repo(repo: &Repo) -> Analytics {
         Analytics {
-            id: repo.config.id, num_books:
-            repo.config.recent_files.len(),
+            id: repo.config.id,
+            num_books: repo.config.recent_files.len(),
             num_accounts: repo.books.accounts().len(),
             num_schedules: repo.books.schedules().len(),
-            num_transactions: repo.books.transactions().len()
+            num_transactions: repo.books.transactions().len(),
         }
     }
 }

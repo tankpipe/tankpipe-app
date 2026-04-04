@@ -39,6 +39,7 @@
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-shell": "^2.3.3",
+    "@tauri-apps/plugin-updater": "^2.10.0",
     "apexcharts": "^5.10.3",
     "sirv-cli": "^3.0.1",
     "sv": "^0.10.6",

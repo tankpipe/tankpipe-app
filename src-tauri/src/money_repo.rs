@@ -1,20 +1,20 @@
 #![allow(dead_code)]
-use std::collections::HashMap;
-use std::ffi::{OsString};
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::{path::Path, fs::File, io::Read};
-use std::{io, fs};
-use chrono::{DateTime, Datelike, Duration, Utc};
 use accounts::books::{Books, BooksError};
 use accounts::books_repo::{load_books, save_books, save_new_books};
+use chrono::{DateTime, Datelike, Duration, Utc};
 use directories::ProjectDirs;
-use regex::Regex;
 use dirs::home_dir;
-use uuid::Uuid;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::ffi::OsString;
+use std::io::BufReader;
+use std::path::PathBuf;
+use std::{fs, io};
+use std::{fs::File, io::Read, path::Path};
+use uuid::Uuid;
 
-use crate::config::{Config, DEFAULT_PROJECTION_MONTHS, DateFormat, FileDetails, Theme};
+use crate::config::{Config, DateFormat, FileDetails, Theme, DEFAULT_PROJECTION_MONTHS};
 use crate::csv_check::CsvMapping;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -35,16 +35,18 @@ const BACKUP_KEEP_LAST: usize = 20;
 const BACKUP_KEEP_DAILY_DAYS: i64 = 31;
 const BACKUP_KEEP_MONTHS: u32 = 13;
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AdditionalData {
-     pub books_id: Uuid,
-     pub csv_mappings: HashMap<Uuid, CsvMapping>,
+    pub books_id: Uuid,
+    pub csv_mappings: HashMap<Uuid, CsvMapping>,
 }
 
 impl AdditionalData {
     pub fn new(books_id: Uuid) -> AdditionalData {
-        AdditionalData {books_id, csv_mappings: HashMap::new()}
+        AdditionalData {
+            books_id,
+            csv_mappings: HashMap::new(),
+        }
     }
 
     pub fn add_csv_mapping(&mut self, account_id: Uuid, csv_mapping: CsvMapping) {
@@ -60,7 +62,6 @@ impl AdditionalData {
     }
 }
 
-
 /// Manage storage
 
 pub struct Repo {
@@ -70,15 +71,18 @@ pub struct Repo {
 }
 
 impl Repo {
-
     pub fn from_components(config: Config, books: Books) -> Repo {
         let books_id = books.id.clone();
-        Repo{ config: config, books, additional_data: AdditionalData::new(books_id)}
+        Repo {
+            config: config,
+            books,
+            additional_data: AdditionalData::new(books_id),
+        }
     }
 
     fn load_books_with_config<F>(path_provider: F) -> Result<Repo, BooksError>
     where
-        F: FnOnce(&Config) -> Result<OsString, BooksError>
+        F: FnOnce(&Config) -> Result<OsString, BooksError>,
     {
         let config_result = Repo::load_config();
         println!("config: {:?}", config_result);
@@ -91,7 +95,7 @@ impl Repo {
                         config.set_last_from_path(path.clone(), b.name.clone().as_str(), b.id);
                         let _save_result = write_config(&config.settings_path(), &config);
                         Ok(Repo::from_components(config, b))
-                    },
+                    }
                     Err(e) => {
                         let error_msgs = vec![
                             rust_i18n::t!("errors.load_books").to_string(),
@@ -100,11 +104,13 @@ impl Repo {
                         ];
                         println!("{:?}", error_msgs);
 
-                        Err(BooksError{ error: error_msgs.join("\n") })
+                        Err(BooksError {
+                            error: error_msgs.join("\n"),
+                        })
                     }
                 }
-            },
-            Err(e) => Err(e)
+            }
+            Err(e) => Err(e),
         }
     }
 
@@ -137,11 +143,16 @@ impl Repo {
 
     fn run_checks(&mut self) {
         let today = chrono::Utc::now().date_naive();
-        let new_projection_date = today.checked_add_months(chrono::Months::new(self.config.projection_months)).unwrap();
+        let new_projection_date = today
+            .checked_add_months(chrono::Months::new(self.config.projection_months))
+            .unwrap();
         let _ = self.books.run_checks_and_update(new_projection_date);
         self.config.projected_to = Some(new_projection_date);
         if self.config.current_file.is_some() {
-            let _ = save_books_with_backups(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+            let _ = save_books_with_backups(
+                self.config.current_file.clone().unwrap().path.clone(),
+                &self.books,
+            );
         }
         let _ = self.save_config();
     }
@@ -149,7 +160,9 @@ impl Repo {
     pub fn check_interest(&mut self) {
         if self.books.interest_outdated() {
             let today = chrono::Utc::now().date_naive();
-            let new_projection_date = today.checked_add_months(chrono::Months::new(self.config.projection_months)).unwrap();
+            let new_projection_date = today
+                .checked_add_months(chrono::Months::new(self.config.projection_months))
+                .unwrap();
             let _ = self.books.recalculate_interest(new_projection_date);
         }
     }
@@ -169,47 +182,60 @@ impl Repo {
         Ok(AdditionalData::new(books_id))
     }
 
-
     pub fn load_books(&mut self, path: &OsString) -> Result<(), BooksError> {
         let result = load_books(path);
 
         match result {
             Ok(b) => {
                 self.books = b;
-                self.config.set_last_from_path(path.clone(), self.books.name.clone().as_str(), self.books.id);
-                let save_result = write_config( &self.config.settings_path(), &self.config);
+                self.config.set_last_from_path(
+                    path.clone(),
+                    self.books.name.clone().as_str(),
+                    self.books.id,
+                );
+                let save_result = write_config(&self.config.settings_path(), &self.config);
                 match save_result {
                     Ok(()) => Ok(()),
-                    Err(e) => Err(BooksError{ error: e.to_string() })
+                    Err(e) => Err(BooksError {
+                        error: e.to_string(),
+                    }),
                 }
-            },
-            Err(e) => Err(BooksError{ error: e.to_string() })
+            }
+            Err(e) => Err(BooksError {
+                error: e.to_string(),
+            }),
         }
-
     }
 
     pub fn save(&self) -> Result<(), BooksError> {
-
-        match self.config.current_books_id  {
+        match self.config.current_books_id {
             Some(id) => {
                 if id == self.books.id {
-                    let result = save_books_with_backups(self.config.current_file.clone().unwrap().path.clone(), &self.books);
+                    let result = save_books_with_backups(
+                        self.config.current_file.clone().unwrap().path.clone(),
+                        &self.books,
+                    );
 
                     match result {
                         Ok(()) => {
-                            println!("Saved books to {:?}", self.config.current_file.clone().unwrap().path.clone());
+                            println!(
+                                "Saved books to {:?}",
+                                self.config.current_file.clone().unwrap().path.clone()
+                            );
                             Ok(())
-                        },
+                        }
                         Err(e) => {
                             println!("Failed to save books: {}", e);
-                            Err(BooksError{ error: e.to_string() })
+                            Err(BooksError {
+                                error: e.to_string(),
+                            })
                         }
                     }
                 } else {
                     Err(crate::books_error!("errors.current_books_id_mismatch"))
                 }
-            },
-            None => Err(crate::books_error!("errors.no_file_path_for_current_books"))
+            }
+            None => Err(crate::books_error!("errors.no_file_path_for_current_books")),
         }
     }
 
@@ -217,37 +243,59 @@ impl Repo {
         match &self.config.current_file {
             Some(file_details) => {
                 let current_path = PathBuf::from(file_details.path.clone());
-                let backup_dir = directory_for_file(&current_path, BACKUP_DIR).map_err(|e| BooksError{ error: e.to_string() })?;
+                let backup_dir =
+                    directory_for_file(&current_path, BACKUP_DIR).map_err(|e| BooksError {
+                        error: e.to_string(),
+                    })?;
                 if !backup_dir.exists() {
                     return Ok(Vec::new());
                 }
 
-                let mut entries = read_backup_entries(&backup_dir).map_err(|e| BooksError{ error: e.to_string() })?;
+                let mut entries = read_backup_entries(&backup_dir).map_err(|e| BooksError {
+                    error: e.to_string(),
+                })?;
                 entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-                Ok(entries.into_iter().map(|entry| entry.path.into_os_string()).collect())
-            },
-            None => Err(crate::books_error!("errors.no_file_path_for_current_books"))
+                Ok(entries
+                    .into_iter()
+                    .map(|entry| entry.path.into_os_string())
+                    .collect())
+            }
+            None => Err(crate::books_error!("errors.no_file_path_for_current_books")),
         }
     }
 
     pub fn restore_backup(&mut self, backup_path: &OsString) -> Result<(), BooksError> {
         let current_file = match &self.config.current_file {
             Some(file) => file.clone(),
-            None => return Err(crate::books_error!("errors.no_file_path_for_current_books"))
+            None => return Err(crate::books_error!("errors.no_file_path_for_current_books")),
         };
 
         let current_path = PathBuf::from(current_file.path.clone());
         let backup_path_buf = PathBuf::from(backup_path.clone());
-        let backup_dir = directory_for_file(&current_path, BACKUP_DIR).map_err(|e| BooksError{ error: e.to_string() })?;
+        let backup_dir = directory_for_file(&current_path, BACKUP_DIR).map_err(|e| BooksError {
+            error: e.to_string(),
+        })?;
 
-        let backup_dir_canonical = backup_dir.canonicalize().map_err(|e| BooksError{ error: e.to_string() })?;
-        let backup_path_canonical = backup_path_buf.canonicalize().map_err(|e| BooksError{ error: e.to_string() })?;
+        let backup_dir_canonical = backup_dir.canonicalize().map_err(|e| BooksError {
+            error: e.to_string(),
+        })?;
+        let backup_path_canonical = backup_path_buf.canonicalize().map_err(|e| BooksError {
+            error: e.to_string(),
+        })?;
         if !backup_path_canonical.starts_with(&backup_dir_canonical) {
-            return Err(BooksError{ error: "Backup file is not in this repo's backup directory.".to_string() })
+            return Err(BooksError {
+                error: "Backup file is not in this repo's backup directory.".to_string(),
+            });
         }
 
-        let restored_books = load_books(backup_path.clone()).map_err(|e| BooksError{ error: e.to_string() })?;
-        save_books_with_backups(current_file.path.clone(), &restored_books).map_err(|e| BooksError{ error: e.to_string() })?;
+        let restored_books = load_books(backup_path.clone()).map_err(|e| BooksError {
+            error: e.to_string(),
+        })?;
+        save_books_with_backups(current_file.path.clone(), &restored_books).map_err(|e| {
+            BooksError {
+                error: e.to_string(),
+            }
+        })?;
 
         self.books = restored_books;
         self.config.current_books_id = Some(self.books.id);
@@ -267,13 +315,18 @@ impl Repo {
         save_new_books(self.config.last_file.path.clone(), &self.books)?;
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(crate::books_error!("errors.save_config_error", error => format!("{:?}", e))),
+            Err(e) => {
+                return Err(
+                    crate::books_error!("errors.save_config_error", error => format!("{:?}", e)),
+                )
+            }
         }
     }
 
     pub fn save_new_repo(&mut self) -> Result<(), BooksError> {
         let file_name = derive_file_name(&self.books.name);
-        let last_file = FileDetails::from_path(&self.books.name.clone(), self.config.file_path(&file_name));
+        let last_file =
+            FileDetails::from_path(&self.books.name.clone(), self.config.file_path(&file_name));
         self.config.set_last(last_file.clone());
         self.config.current_books_id = Some(self.books.id);
         self.config.current_file = Some(last_file.clone());
@@ -281,32 +334,39 @@ impl Repo {
 
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(crate::books_error!("errors.save_config_error", error => format!("{:?}", e))),
+            Err(e) => {
+                return Err(
+                    crate::books_error!("errors.save_config_error", error => format!("{:?}", e)),
+                )
+            }
         }
     }
 
     pub fn save_config(&self) -> Result<(), BooksError> {
         match write_config(self.config.settings_path(), &self.config) {
             Ok(_) => Ok(()),
-            Err(e) => return Err(crate::books_error!("errors.save_config_error", error => format!("{:?}", e))),
+            Err(e) => {
+                return Err(
+                    crate::books_error!("errors.save_config_error", error => format!("{:?}", e)),
+                )
+            }
         }
     }
 
     pub fn first_repo(name: &str) -> Result<Repo, BooksError> {
-        let mut config =  Repo::load_config()?;
+        let mut config = Repo::load_config()?;
         let books = Books::build_empty(&name);
         config.current_books_id = Some(books.id);
         let mut repo = Repo::from_components(config, books);
         repo.save_new_repo()?;
         Ok(repo)
     }
-
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct AppDirectories {
     data_dir: OsString,
-    config_dir: OsString
+    config_dir: OsString,
 }
 
 impl AppDirectories {
@@ -315,14 +375,14 @@ impl AppDirectories {
     }
 
     pub fn from_project_dirs(d: &ProjectDirs) -> AppDirectories {
-        AppDirectories{
+        AppDirectories {
             data_dir: d.data_dir().as_os_str().to_os_string(),
-            config_dir: d.config_dir().as_os_str().to_os_string()
+            config_dir: d.config_dir().as_os_str().to_os_string(),
         }
     }
 
     pub fn to_config(&self) -> Config {
-        Config{
+        Config {
             id: Uuid::new_v4(),
             version: VERSION.to_string(),
             data_dir: self.data_dir.clone(),
@@ -339,7 +399,9 @@ impl AppDirectories {
     }
 
     pub fn get_additional_data_path(&self, books_id: &Uuid) -> PathBuf {
-        PathBuf::from(self.data_dir.clone()).join("additional").join(books_id.to_string())
+        PathBuf::from(self.data_dir.clone())
+            .join("additional")
+            .join(books_id.to_string())
     }
 }
 
@@ -365,27 +427,32 @@ fn setup_app_directories() -> Result<AppDirectories, BooksError> {
                 directories.config_dir = OsString::from(directories.data_dir.clone())
             }
             Ok(directories)
-        },
+        }
         None => {
             println!("Unable to determine directories for storing testdata");
             Err(crate::books_error!("errors.determine_directories_failure"))
         }
     }
-
 }
 
 fn initialise_settings(files: AppDirectories) -> Result<Config, BooksError> {
     let config = files.to_config();
     match write_config(files.settings_path(), &config) {
         Ok(_) => Ok(config),
-        Err(e) => return Err(crate::books_error!("errors.write_config_error", error => format!("{:?}", e)))
+        Err(e) => {
+            return Err(
+                crate::books_error!("errors.write_config_error", error => format!("{:?}", e)),
+            )
+        }
     }
 }
 
 fn build_home_dir_path() -> Result<OsString, BooksError> {
     let h = home_dir();
     if h.is_none() {
-        return Err(crate::books_error!("errors.determine_home_directory_failure"))
+        return Err(crate::books_error!(
+            "errors.determine_home_directory_failure"
+        ));
     }
     Ok(h.unwrap().join(FALLBACK_PATH).as_os_str().to_os_string())
 }
@@ -399,9 +466,7 @@ pub fn read_config<P: AsRef<Path>>(path: P) -> Result<Config, BooksError> {
             if file.read_to_string(&mut content).is_ok() {
                 match serde_json::from_str::<Config>(&mut content) {
                     Err(why) => println!("Parsing settings file json failed : {:?}", why),
-                    Ok(config) => {
-                        return Ok(config)
-                    }
+                    Ok(config) => return Ok(config),
                 }
             }
         }
@@ -415,23 +480,29 @@ fn write_config<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<()> {
     Ok(())
 }
 
-pub fn save_additional_data(path: &std::ffi::OsStr, additional_data: &AdditionalData) -> io::Result<()> {
+pub fn save_additional_data(
+    path: &std::ffi::OsStr,
+    additional_data: &AdditionalData,
+) -> io::Result<()> {
     println!("save additional data to: {:?}, {:?}", path, additional_data);
     let path = PathBuf::from(path);
     if !path.exists() {
-        return Ok(())
+        return Ok(());
     }
 
     let additional_data_dir = directory_for_file(&path, ADDITIONAL_DATA_DIR)?;
-    let additional_data_path = additional_data_dir.join(format!("{}_csv_mappings.json", additional_data.books_id));
+    let additional_data_path =
+        additional_data_dir.join(format!("{}_csv_mappings.json", additional_data.books_id));
 
     println!("additional_data_path: {:?}", additional_data_path);
     fs::create_dir_all(&additional_data_dir)?;
-    ::serde_json::to_writer(&File::create(additional_data_path)?, &additional_data.csv_mappings)?;
+    ::serde_json::to_writer(
+        &File::create(additional_data_path)?,
+        &additional_data.csv_mappings,
+    )?;
 
     Ok(())
 }
-
 
 pub fn load_additional_data(path: &std::ffi::OsStr, books_id: &Uuid) -> Option<AdditionalData> {
     let path = PathBuf::from(path);
@@ -452,11 +523,10 @@ pub fn load_additional_data(path: &std::ffi::OsStr, books_id: &Uuid) -> Option<A
     })
 }
 
-
 #[derive(Clone, Debug)]
 struct BackupEntry {
     path: PathBuf,
-    timestamp: DateTime<Utc>
+    timestamp: DateTime<Utc>,
 }
 
 fn save_books_with_backups(path: OsString, books: &Books) -> io::Result<()> {
@@ -467,7 +537,7 @@ fn save_books_with_backups(path: OsString, books: &Books) -> io::Result<()> {
 fn create_backup_snapshot(path: &std::ffi::OsStr) -> io::Result<()> {
     let path = PathBuf::from(path);
     if !path.exists() {
-        return Ok(())
+        return Ok(());
     }
 
     let backup_dir = directory_for_file(&path, BACKUP_DIR)?;
@@ -486,7 +556,11 @@ fn create_backup_snapshot(path: &std::ffi::OsStr) -> io::Result<()> {
     let mut backup_path = backup_dir.join(format!("backup-{}.json", now.timestamp_millis()));
     let mut collision = 1u32;
     while backup_path.exists() {
-        backup_path = backup_dir.join(format!("backup-{}-{}.json", now.timestamp_millis(), collision));
+        backup_path = backup_dir.join(format!(
+            "backup-{}-{}.json",
+            now.timestamp_millis(),
+            collision
+        ));
         collision += 1;
     }
 
@@ -508,13 +582,14 @@ fn prune_backups(backup_dir: &Path, now: DateTime<Utc>) -> io::Result<()> {
     entries = remove_adjacent_duplicate_backups(entries)?;
 
     if entries.len() <= BACKUP_KEEP_LAST {
-        return Ok(())
+        return Ok(());
     }
 
     let daily_cutoff = now - Duration::days(BACKUP_KEEP_DAILY_DAYS);
     let recent_months = recent_month_keys(now, BACKUP_KEEP_MONTHS);
     let mut keep_paths: std::collections::HashSet<PathBuf> = std::collections::HashSet::new();
-    let mut kept_days: std::collections::HashSet<(i32, u32, u32)> = std::collections::HashSet::new();
+    let mut kept_days: std::collections::HashSet<(i32, u32, u32)> =
+        std::collections::HashSet::new();
     let mut kept_months: std::collections::HashSet<(i32, u32)> = std::collections::HashSet::new();
 
     for backup in entries.iter().take(BACKUP_KEEP_LAST) {
@@ -523,7 +598,11 @@ fn prune_backups(backup_dir: &Path, now: DateTime<Utc>) -> io::Result<()> {
 
     for backup in &entries {
         if backup.timestamp >= daily_cutoff {
-            let day_key = (backup.timestamp.year(), backup.timestamp.month(), backup.timestamp.day());
+            let day_key = (
+                backup.timestamp.year(),
+                backup.timestamp.month(),
+                backup.timestamp.day(),
+            );
             if kept_days.insert(day_key) {
                 keep_paths.insert(backup.path.clone());
             }
@@ -626,7 +705,7 @@ fn files_are_identical(path_a: &Path, path_b: &Path) -> io::Result<bool> {
     let metadata_b = fs::metadata(path_b)?;
 
     if metadata_a.len() != metadata_b.len() {
-        return Ok(false)
+        return Ok(false);
     }
 
     let mut file_a = File::open(path_a)?;
@@ -639,13 +718,13 @@ fn files_are_identical(path_a: &Path, path_b: &Path) -> io::Result<bool> {
         let read_b = file_b.read(&mut buffer_b)?;
 
         if read_a != read_b {
-            return Ok(false)
+            return Ok(false);
         }
         if read_a == 0 {
-            return Ok(true)
+            return Ok(true);
         }
         if buffer_a[..read_a] != buffer_b[..read_b] {
-            return Ok(false)
+            return Ok(false);
         }
     }
 }
@@ -655,19 +734,27 @@ pub fn initial_setup() -> Result<Config, BooksError> {
     let config = initialise_settings(files)?;
     match write_config(config.settings_path(), &config) {
         Ok(_) => Ok(config),
-        Err(e) => return Err(crate::books_error!("errors.save_config_error", error => format!("{:?}", e))),
+        Err(e) => {
+            return Err(
+                crate::books_error!("errors.save_config_error", error => format!("{:?}", e)),
+            )
+        }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
     use std::{ffi::OsString, path::PathBuf};
 
+    use crate::{
+        csv_check::CsvMapping,
+        money_repo::{
+            derive_file_name, initial_setup, save_additional_data, setup_app_directories, Repo,
+        },
+    };
     use accounts::books_repo::file_exists;
     use serial_test::serial;
     use uuid::Uuid;
-    use crate::{csv_check::CsvMapping, money_repo::{Repo, derive_file_name, initial_setup, save_additional_data, setup_app_directories}};
 
     #[test]
     #[serial]
@@ -711,14 +798,41 @@ mod tests {
         let mut additional_data = crate::money_repo::AdditionalData::new(repo.books.id);
         let account_id = Uuid::new_v4();
         let date_format = "%d/%m/%Y".to_string();
-        additional_data.add_csv_mapping(account_id, CsvMapping::new(vec!["Date".to_string(), "Description".to_string(), "Amount".to_string(), "Unknown".to_string()], Some(date_format.clone())));
+        additional_data.add_csv_mapping(
+            account_id,
+            CsvMapping::new(
+                vec![
+                    "Date".to_string(),
+                    "Description".to_string(),
+                    "Amount".to_string(),
+                    "Unknown".to_string(),
+                ],
+                Some(date_format.clone()),
+            ),
+        );
         save_additional_data(file_path.as_os_str(), &additional_data).unwrap();
 
-        let loaded_additional_data = crate::money_repo::load_additional_data(file_path.as_os_str(), &repo.books.id).unwrap();
+        let loaded_additional_data =
+            crate::money_repo::load_additional_data(file_path.as_os_str(), &repo.books.id).unwrap();
         assert_eq!(loaded_additional_data.books_id, repo.books.id);
         assert_eq!(loaded_additional_data.csv_mappings.len(), 1);
-        assert_eq!(loaded_additional_data.csv_mappings.get(&account_id).unwrap().column_types.len(), 4);
-        assert_eq!(loaded_additional_data.csv_mappings.get(&account_id).unwrap().date_format, Some(date_format.clone()));
+        assert_eq!(
+            loaded_additional_data
+                .csv_mappings
+                .get(&account_id)
+                .unwrap()
+                .column_types
+                .len(),
+            4
+        );
+        assert_eq!(
+            loaded_additional_data
+                .csv_mappings
+                .get(&account_id)
+                .unwrap()
+                .date_format,
+            Some(date_format.clone())
+        );
         std::fs::remove_file(OsString::from(file_path.clone())).unwrap();
     }
 }

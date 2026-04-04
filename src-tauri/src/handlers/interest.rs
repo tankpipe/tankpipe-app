@@ -1,15 +1,21 @@
 use std::str::FromStr;
 
+use crate::handlers::error_handler;
+use crate::BooksState;
 use accounts::interest::Interest;
 use uuid::Uuid;
-use crate::BooksState;
-use crate::handlers::error_handler;
 
 #[tauri::command]
-pub fn get_interest(state: tauri::State<BooksState>, interest_id: Uuid) -> Result<Interest, String> {
+pub fn get_interest(
+    state: tauri::State<BooksState>,
+    interest_id: Uuid,
+) -> Result<Interest, String> {
     println!("Getting interest info for ID {}", interest_id);
     let mutex_guard = state.0.lock().unwrap();
-    mutex_guard.books.get_interest(&interest_id).map_err(|e| e.error)
+    mutex_guard
+        .books
+        .get_interest(&interest_id)
+        .map_err(|e| e.error)
 }
 
 #[tauri::command]
@@ -24,7 +30,10 @@ pub fn add_interest(state: tauri::State<BooksState>, mut interest: Interest) -> 
 }
 
 #[tauri::command]
-pub fn update_interest(state: tauri::State<BooksState>, mut interest: Interest) -> Result<(), String> {
+pub fn update_interest(
+    state: tauri::State<BooksState>,
+    mut interest: Interest,
+) -> Result<(), String> {
     println!("Updating interest info {}", interest.id);
     update_terms(&mut interest);
     let mut mutex_guard = state.0.lock().unwrap();
@@ -34,8 +43,9 @@ pub fn update_interest(state: tauri::State<BooksState>, mut interest: Interest) 
 }
 
 fn update_terms(interest: &mut Interest) {
-    let zeros = Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
-    for t in interest.terms.as_mut_slice() {        
+    let zeros =
+        Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
+    for t in interest.terms.as_mut_slice() {
         if t.id == zeros {
             t.id = Uuid::new_v4();
         }

@@ -1,8 +1,8 @@
-use accounts::account::{Transaction, TransactionStatus};
-use accounts::schedule::{Schedule};
-use uuid::Uuid;
-use crate::{BooksState, handlers::error_handler};
 use crate::account_display::DateParam;
+use crate::{handlers::error_handler, BooksState};
+use accounts::account::{Transaction, TransactionStatus};
+use accounts::schedule::Schedule;
+use uuid::Uuid;
 
 #[tauri::command]
 pub fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
@@ -12,7 +12,10 @@ pub fn schedules(state: tauri::State<BooksState>) -> Vec<Schedule> {
 }
 
 #[tauri::command]
-pub fn get_schedule(state: tauri::State<BooksState>, schedule_id: Uuid) -> Result<Schedule, String> {
+pub fn get_schedule(
+    state: tauri::State<BooksState>,
+    schedule_id: Uuid,
+) -> Result<Schedule, String> {
     println!("Fetching schedule {}", schedule_id);
     let mutex_guard = state.0.lock().unwrap();
     match mutex_guard.books.get_schedule(schedule_id) {
@@ -55,9 +58,14 @@ pub fn schedule_transactions(
     schedule_id: Uuid,
     status: Option<TransactionStatus>,
 ) -> Vec<Transaction> {
-    println!("Fetching transactions for schedule {} with status filter: {:?}", schedule_id, status);
+    println!(
+        "Fetching transactions for schedule {} with status filter: {:?}",
+        schedule_id, status
+    );
     let mutex_guard = state.0.lock().unwrap();
-    mutex_guard.books.transactions_by_schedule(schedule_id, status)
+    mutex_guard
+        .books
+        .transactions_by_schedule(schedule_id, status)
 }
 
 #[tauri::command]
@@ -65,9 +73,7 @@ pub fn end_date(state: tauri::State<BooksState>) -> Option<DateParam> {
     let mutext_guard = state.0.lock().unwrap();
 
     match mutext_guard.books.end_date() {
-        Some(d) => {
-            Some(DateParam { date: d })
-        }
+        Some(d) => Some(DateParam { date: d }),
         None => None,
     }
 }
@@ -82,17 +88,29 @@ pub fn generate(state: tauri::State<BooksState>, date: DateParam) -> Result<(), 
 }
 
 #[tauri::command(async)]
-pub fn generate_by_schedule(state: tauri::State<BooksState>, date: DateParam, schedule_id: Uuid) -> Result<Vec<Transaction>, String> {
-    println!("Generating transactions for schedule {} to {}", schedule_id, date.date);
+pub fn generate_by_schedule(
+    state: tauri::State<BooksState>,
+    date: DateParam,
+    schedule_id: Uuid,
+) -> Result<Vec<Transaction>, String> {
+    println!(
+        "Generating transactions for schedule {} to {}",
+        schedule_id, date.date
+    );
     let mut mutex_guard = state.0.lock().unwrap();
-    let transactions = mutex_guard.books.generate_by_schedule(date.date, schedule_id);
+    let transactions = mutex_guard
+        .books
+        .generate_by_schedule(date.date, schedule_id);
     mutex_guard.check_interest();
     error_handler(mutex_guard.save())?;
     Ok(transactions)
 }
 
 #[tauri::command]
-pub fn reset_schedule_last_date(state: tauri::State<BooksState>, schedule_id: Uuid) -> Result<Option<DateParam>, String> {
+pub fn reset_schedule_last_date(
+    state: tauri::State<BooksState>,
+    schedule_id: Uuid,
+) -> Result<Option<DateParam>, String> {
     println!("Resetting last date for schedule {}", schedule_id);
     let mut mutex_guard = state.0.lock().unwrap();
     let result = mutex_guard.books.reset_schedule_last_date(schedule_id);
@@ -100,11 +118,10 @@ pub fn reset_schedule_last_date(state: tauri::State<BooksState>, schedule_id: Uu
         Ok(date_option) => {
             error_handler(mutex_guard.save())?;
             Ok(date_option.map(|date| DateParam { date }))
-        },
-        Err(e) => Err(e.error)
+        }
+        Err(e) => Err(e.error),
     }
 }
-
 
 #[cfg(test)]
 mod tests {

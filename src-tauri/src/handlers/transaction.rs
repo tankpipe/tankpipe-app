@@ -1,8 +1,7 @@
+use crate::{handlers::error_handler, BooksState};
 use accounts::account::{Entry, Transaction};
 use std::str::FromStr;
 use uuid::Uuid;
-use crate::{BooksState, handlers::error_handler};
-
 
 #[tauri::command]
 pub fn transaction(
@@ -30,11 +29,13 @@ pub fn entries(state: tauri::State<BooksState>, account_id: Uuid) -> Result<Vec<
             Err(e.error)
         }
     }
-
 }
 
 #[tauri::command]
-pub fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result<Vec<Transaction>, String> {
+pub fn transactions(
+    state: tauri::State<BooksState>,
+    account_id: Uuid,
+) -> Result<Vec<Transaction>, String> {
     println!("Fetching transactions for {}", account_id);
     let mutex_guard = state.0.lock().unwrap();
     let x = mutex_guard.books.account_transactions(account_id);
@@ -45,7 +46,6 @@ pub fn transactions(state: tauri::State<BooksState>, account_id: Uuid) -> Result
             Err(e.error)
         }
     }
-
 }
 
 #[tauri::command]
@@ -126,7 +126,8 @@ pub fn delete_transactions(state: tauri::State<BooksState>, ids: Vec<Uuid>) -> R
 
 fn update_transaction_entries(transaction: &mut Transaction) {
     for e in transaction.entries.as_mut_slice() {
-        let zeros = Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
+        let zeros =
+            Uuid::from_str(String::from("00000000-0000-0000-0000-000000000000").as_str()).unwrap();
         if e.id == zeros {
             e.id = Uuid::new_v4();
             e.transaction_id = transaction.id;

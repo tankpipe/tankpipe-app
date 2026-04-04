@@ -1,16 +1,25 @@
-use accounts::schedule::{Modifier};
+use crate::{handlers::error_handler, BooksState};
+use accounts::schedule::Modifier;
 use uuid::Uuid;
-use crate::{BooksState, handlers::error_handler};
 
 #[tauri::command]
 pub fn modifiers(state: tauri::State<BooksState>) -> Vec<Modifier> {
     println!("Fetching modifiers");
     let mutex_guard = state.0.lock().unwrap();
-    mutex_guard.books.modifiers().to_vec().into_iter().cloned().collect()
+    mutex_guard
+        .books
+        .modifiers()
+        .to_vec()
+        .into_iter()
+        .cloned()
+        .collect()
 }
 
 #[tauri::command]
-pub fn get_modifier(state: tauri::State<BooksState>, modifier_id: Uuid) -> Result<Modifier, String> {
+pub fn get_modifier(
+    state: tauri::State<BooksState>,
+    modifier_id: Uuid,
+) -> Result<Modifier, String> {
     println!("Fetching modifier {}", modifier_id);
     let mutex_guard = state.0.lock().unwrap();
     match mutex_guard.books.get_modifier(modifier_id) {
@@ -43,7 +52,6 @@ pub fn delete_modifier(state: tauri::State<BooksState>, id: Uuid) -> Result<(), 
     error_handler(mutex_guard.books.delete_modifier(&id))?;
     error_handler(mutex_guard.save())
 }
-
 
 #[cfg(test)]
 mod tests {
