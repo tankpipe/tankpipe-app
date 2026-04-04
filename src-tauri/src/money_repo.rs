@@ -195,10 +195,11 @@ impl Repo {
                 );
                 let save_result = write_config(&self.config.settings_path(), &self.config);
                 match save_result {
-                    Ok(()) => Ok(()),
-                    Err(e) => Err(BooksError {
-                        error: e.to_string(),
-                    }),
+                    Ok(()) => {
+                        self.run_checks();
+                        Ok(())
+                    },
+                    Err(e) => Err(BooksError{ error: e.to_string() })
                 }
             }
             Err(e) => Err(BooksError {

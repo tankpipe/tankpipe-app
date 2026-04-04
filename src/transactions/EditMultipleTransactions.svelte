@@ -8,7 +8,7 @@
     import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
-    import { disabledItemsByIndex } from '../utils/disabledItems'
+    import { disabledItemsByIndex, disabledItemsKeyByIndex } from '../utils/disabledItems'
 
     export let loadTransactions
     export let onClose
@@ -28,8 +28,10 @@
     let entries = []
     let curTransaction
     let disabledAccountsByEntryIndex = []
+    let disabledAccountsKeyByEntryIndex = []
 
     $: disabledAccountsByEntryIndex = disabledItemsByIndex(entries, (e) => e?.account?.id)
+    $: disabledAccountsKeyByEntryIndex = disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
 
     const resetChanges = () => {
         entries = [
@@ -241,8 +243,12 @@
             </table>
         </div>
         <div class="form-row2">
-            <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true}/>
-            <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true}/>
+            {#key (disabledAccountsKeyByEntryIndex[0] || "") + ":" + (entries[0]?.account?.id || "")}
+                <Select bind:item={entries[0].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[0] || []} label={$_('labels.debit')} none={true} flat={true} onChange={() => entries = [...entries]}/>
+            {/key}
+            {#key (disabledAccountsKeyByEntryIndex[1] || "") + ":" + (entries[1]?.account?.id || "")}
+                <Select bind:item={entries[1].account} items={$accounts} disabledItems={disabledAccountsByEntryIndex[1] || []} label={$_('labels.credit')} none={true} flat={true} onChange={() => entries = [...entries]}/>
+            {/key}
         </div>
         {/if}
         {#if compoundMode}
@@ -255,15 +261,18 @@
                     <td><div class="date-input" class:error={errors.isInError(i + "_date")} ><DateInput value={entries[i]["realDate"]} {format} placeholder="" disabled="disabled"/></div></td>
                     <td><input id="desc" class="description-input-2" class:error={errors.isInError(i + "_description")} bind:value={entries[i].description}></td>
                     <td><div class="select-adjust">
-                        <Select
-                            bind:item={entries[i].account}
-                            items={$accounts}
-                            disabledItems={disabledAccountsByEntryIndex[i] || []}
-                            label=""
-                            none={true}
-                            flat={true}
-                            inError={errors.isInError(i + "_account")}
-                        />
+                        {#key (disabledAccountsKeyByEntryIndex[i] || "") + ":" + (entries[i]?.account?.id || "")}
+                            <Select
+                                bind:item={entries[i].account}
+                                items={$accounts}
+                                disabledItems={disabledAccountsByEntryIndex[i] || []}
+                                label=""
+                                none={true}
+                                flat={true}
+                                inError={errors.isInError(i + "_account")}
+                                onChange={() => entries = [...entries]}
+                            />
+                        {/key}
                     </div></td>
                     <td class="money">
                         <input id="amount" class="money-input" class:error={errors.isInError(i + "_drAmount")} bind:value={entries[i].drAmount}>
