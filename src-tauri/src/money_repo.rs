@@ -71,7 +71,15 @@ pub struct Repo {
 }
 
 impl Repo {
-    pub fn from_components(config: Config, books: Books) -> Repo {
+    pub fn from_components(config: Config, books: Books, additional_data: AdditionalData) -> Repo {
+        Repo {
+            config: config,
+            books,
+            additional_data: additional_data,
+        }
+    }
+
+    pub fn from_components_2(config: Config, books: Books) -> Repo {
         let books_id = books.id.clone();
         Repo {
             config: config,
@@ -94,7 +102,8 @@ impl Repo {
                     Ok(b) => {
                         config.set_last_from_path(path.clone(), b.name.clone().as_str(), b.id);
                         let _save_result = write_config(&config.settings_path(), &config);
-                        Ok(Repo::from_components(config, b))
+                        let additional_data = load_additional_data(path.clone().as_os_str(), &b.id).unwrap_or_else(|| AdditionalData::new(b.id));
+                        Ok(Repo::from_components(config, b, additional_data))
                     }
                     Err(e) => {
                         let error_msgs = vec![
@@ -178,6 +187,7 @@ impl Repo {
         config_result
     }
 
+    // Is this used?
     pub fn load_additional(&self, books_id: Uuid) -> Result<AdditionalData, BooksError> {
         Ok(AdditionalData::new(books_id))
     }
@@ -306,7 +316,7 @@ impl Repo {
         } else {
             self.save_config()?;
         }
-        
+
         Ok(())
     }
 
@@ -364,7 +374,7 @@ impl Repo {
         let mut config = Repo::load_config()?;
         let books = Books::build_empty(&name);
         config.current_books_id = Some(books.id);
-        let mut repo = Repo::from_components(config, books);
+        let mut repo = Repo::from_components_2(config, books);
         repo.save_new_repo()?;
         Ok(repo)
     }
