@@ -292,7 +292,7 @@ label.optional {
 }
 
 .source-msg {
-    color: var(--color-text-muted-2);
+    color: var(--color-warning);
 }
 
 .top-widget {

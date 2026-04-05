@@ -146,6 +146,7 @@
         "selectedForMerge": "Selected for merge",
         "mergeTarget": "Merge target",
         "schedule": "Schedule",
+        "interestOverride": "Interest projections will overwrite this transaction for the same date unless it is set to Recorded.",
         "sourceType": {
             "Interest": "Interest",
             "Schedule": "Scheduled"

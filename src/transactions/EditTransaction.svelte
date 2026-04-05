@@ -31,13 +31,13 @@
     let entries =  $state([])
     let pendingEditPatch = $state(null)
     let prefillHint = $state("")
+    let initialTransactionDate = $state(null)
     let disabledAccountsByEntryIndex = $derived.by(() =>
         disabledItemsByIndex(entries, (e) => e?.account?.id)
     )
     let disabledAccountsKeyByEntryIndex = $derived.by(() =>
         disabledItemsKeyByIndex(disabledAccountsByEntryIndex)
     )
-
 
     $effect(() => {
         // Explicitly track entries for reactivity
@@ -301,6 +301,7 @@
                 prefillHint = $_('transaction.mergePrefill')
             }
         }
+        initialTransactionDate = new Date(curTransaction.entries[0]?.date).setHours(0,0,0,0) || null
         calculateTotals()
     }
 
@@ -454,6 +455,12 @@
             page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
         }
     }
+
+    const willBeOverridden = () => {
+        if (!entries || entries.length === 0 || !initialTransactionDate || !entries[0].realDate) return false
+        const transactionDate = new Date(entries[0].realDate).setHours(0, 0, 0, 0)
+        return curTransaction.source_type === 'Interest' && (!recorded && initialTransactionDate === transactionDate)
+    }
 </script>
 
 <div class="form">
@@ -548,7 +555,7 @@
             </table>
         </div>
         {/if}
-    <div class="form-button-row">
+        <div class="form-button-row">
         <div class="widget2 buttons-left">
             <input id="compound" type=checkbox bind:checked={compoundMode} onchange={afterToggle} disabled={!(compoundMode && canBeSimple(entries) || !compoundMode && simpleAllowed)}>
             <label for="compound">{$_('transaction.compound')}</label>
@@ -564,6 +571,9 @@
                 <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
             </div>
         </div>
+        {#if willBeOverridden()}
+             <div class="indicator source-msg" style="margin: 10px;"><span>{$_('transaction.interestOverride')}</span></div>
+        {/if}
     </div>
 </div>
 
