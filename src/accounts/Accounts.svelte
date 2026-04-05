@@ -127,6 +127,7 @@
 
     .accounts {
         margin-right: 20px;
+        display: grid;
     }
 
     .account-type {
@@ -136,6 +137,7 @@
         margin: 5px 0px -5px 10px;
         float: left;
         clear: both;
+        display: flex;
     }
 
     .edit-icon {
