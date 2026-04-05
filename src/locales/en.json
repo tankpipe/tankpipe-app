@@ -58,7 +58,7 @@
         "revenues": "Revenues"
     },
     "errors": {
-        "genericError": "We hit a snag: {0}"
+        "genericError": "System error: {0}"
     },
     "messages": {
         "loading": "Loading..."
@@ -105,7 +105,7 @@
     },
     "editBooks": {
         "errors": {
-            "hit_snag": "We hit a snag: {result}",
+            "hit_snag": "System error: {result}",
             "name_required": "Name is required",
             "name_alphanumeric": "Name must be alphanumeric"
         },
@@ -126,7 +126,7 @@
             "selectedTransactions": "Selected Transactions"
         },
         "messages": {
-            "hitSnag": "We hit a snag: {error}",
+            "hitSnag": "System error: {error}",
             "transactionsSaved": "Transactions saved."
         }
     },
@@ -157,7 +157,7 @@
             "deleted": "Transaction deleted.",
             "descriptionRequired": "Description is required",
             "saved": "Transaction saved.",
-            "snag": "We hit a snag: {error}",
+            "snag": "System error: {error}",
             "totalsBalance": "Totals should balance",
             "debitOrCredit": "Can not enter both a Debit and a Credit amount"
         }
@@ -212,7 +212,7 @@
         "addTransaction": "Add a transaction",
         "clearFilter": "Clear filter",
         "editSelected": "Edit selected transactions",
-        "error": "We hit a snag: {error}",
+        "error": "System error: {error}",
         "deleteSelected": "Delete selected transactions",
         "filter": "Filter",
         "hideFilter": "Hide filter",

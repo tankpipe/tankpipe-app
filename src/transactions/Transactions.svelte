@@ -19,6 +19,7 @@
     import { chartOptions } from './chart-options'
     import TransactionList from './TransactionList.svelte'
     import { ReconciliationMode as RM } from './reconciliation.js'
+    import { DATE_FORMATS } from '../utils/dates.js'
 
     let { curAccount, journalMode = false } = $props()
 
@@ -258,11 +259,13 @@
         if (!lastReconciliationRequest) return false
         if (!curAccount || curAccount.id !== lastReconciliationRequest.accountId) return false
         try {
+            const importDateFormat = lastReconciliationRequest.importDateFormat || DATE_FORMATS[1].format
             const results = await invoke('reconcile_csv', {
                 path: lastReconciliationRequest.path,
                 accountId: curAccount.id,
                 columnTypes: lastReconciliationRequest.columnTypes,
-                hasHeaders: lastReconciliationRequest.hasHeaders
+                hasHeaders: lastReconciliationRequest.hasHeaders,
+                importDateFormat
             })
             handleReconciliationResults(results, lastReconciliationRequest)
             return true
