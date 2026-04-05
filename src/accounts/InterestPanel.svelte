@@ -204,9 +204,27 @@
 
         if(interest.terms && interest.terms.length > 0) {
             const lastTerm = interest.terms[interest.terms.length - 1]
+            const parsedEndDate =
+                lastTerm.realEndDate
+                    ? new Date(lastTerm.realEndDate)
+                    : (lastTerm.end_date && lastTerm.end_date !== "null")
+                        ? new Date(lastTerm.end_date)
+                        : null
+
+            const hasValidEndDate = parsedEndDate && !isNaN(parsedEndDate.getTime())
+            const nextStartDate = hasValidEndDate
+                ? new Date(parsedEndDate.getFullYear(), parsedEndDate.getMonth(), parsedEndDate.getDate() + 1)
+                : null
+
             curInterestTerms = {
                 ...lastTerm,
-                id: zeros
+                id: zeros,
+                realStartDate: nextStartDate || lastTerm.realStartDate || null,
+                start_date: nextStartDate
+                    ? `${nextStartDate.getFullYear()}-${nextStartDate.getMonth() + 1}-${nextStartDate.getDate()}`
+                    : lastTerm.start_date,
+                realEndDate: null,
+                end_date: null
             }
         } else {
             curInterestTerms = Object.assign({}, EMPTY_TERMS)
