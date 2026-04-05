@@ -265,6 +265,7 @@
                 accountId: curAccount.id,
                 columnTypes: lastReconciliationRequest.columnTypes,
                 hasHeaders: lastReconciliationRequest.hasHeaders,
+                saveMapping: false,
                 importDateFormat
             })
             handleReconciliationResults(results, lastReconciliationRequest)

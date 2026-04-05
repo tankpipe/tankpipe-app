@@ -179,6 +179,25 @@ fn read_plain_csv(path: &String, csv_mapping: CsvMapping) -> Result<CsvCheck, St
     }
 }
 
+fn save_csv_mapping(
+    repo: &mut Repo,
+    account_id: Uuid,
+    column_types: &[String],
+    import_date_format: &str,
+) {
+    let current_mapping = repo.additional_data.get_csv_mapping(account_id);
+    if current_mapping.is_none() || current_mapping.unwrap().column_types.to_vec() != column_types {
+        repo.additional_data.add_csv_mapping(
+            account_id,
+            CsvMapping::new(column_types.to_vec(), Some(import_date_format.to_string())),
+        );
+        let _ = save_additional_data(
+            &repo.config.current_file.clone().unwrap().path.clone(),
+            &repo.additional_data,
+        );
+    }
+}
+
 #[tauri::command]
 pub fn import_csv(
     state: tauri::State<BooksState>,
@@ -216,25 +235,12 @@ pub fn import_csv(
             }
             error_handler(mutex_guard.save())?;
             if save_mapping {
-                let current_mapping = mutex_guard.additional_data.get_csv_mapping(account_id);
-                if current_mapping.is_none()
-                    || current_mapping.unwrap().column_types.to_vec() != column_types
-                {
-                    mutex_guard.additional_data.add_csv_mapping(
-                        account_id,
-                        CsvMapping::new(column_types.clone(), Some(import_date_format)),
-                    );
-                    let _ = save_additional_data(
-                        &mutex_guard
-                            .config
-                            .current_file
-                            .clone()
-                            .unwrap()
-                            .path
-                            .clone(),
-                        &mutex_guard.additional_data,
-                    );
-                }
+                save_csv_mapping(
+                    &mut mutex_guard,
+                    account_id,
+                    &column_types,
+                    &import_date_format
+                );
             }
             mutex_guard.check_interest();
             error_handler(mutex_guard.save())?;
@@ -250,21 +256,30 @@ pub fn reconcile_csv(
     path: String,
     account_id: Uuid,
     column_types: Vec<String>,
+    save_mapping: bool,
     has_headers: bool,
     import_date_format: String,
 ) -> Result<Vec<ReconciliationItem>, String> {
-    println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} has_headers:{} import_date_format:{:?}", path, account_id, column_types, has_headers, import_date_format);
-    let mutex_guard = state.0.lock().unwrap();
+    println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format);
+    let mut mutex_guard = state.0.lock().unwrap();
     let load_result = read_transactions(
         &path,
         account_id,
         &import_date_format,
-        &ColumnTypes::from_vec(column_types),
+        &ColumnTypes::from_vec(column_types.clone()),
         has_headers,
     );
 
     match load_result {
         Ok(transactions) => {
+            if save_mapping {
+                save_csv_mapping(
+                    &mut mutex_guard,
+                    account_id,
+                    &column_types,
+                    &import_date_format
+                );
+            }
             let reconciliation_result = mutex_guard
                 .books
                 .prepare_reconciliation(account_id, transactions);

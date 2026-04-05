@@ -202,6 +202,7 @@
             path: path,
             accountId: curAccount.id,
             columnTypes: updatedColumns,
+            saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: lastReconcileRequest.importDateFormat
         }).then(reconciliationCompleted, rejected)
