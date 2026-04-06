@@ -217,12 +217,15 @@ pub fn import_csv(
         .filter(|c| c != "balance")
         .collect();
 
+    let account = mutex_guard.books.get_account(&account_id).map_err(|e| e.error)?;
+
     let load_result = read_transactions(
         &path,
         account_id,
         &import_date_format,
         &ColumnTypes::from_vec(column_types.clone()),
         has_headers,
+        account.normal_balance(),
     );
 
     match load_result {
@@ -262,12 +265,14 @@ pub fn reconcile_csv(
 ) -> Result<Vec<ReconciliationItem>, String> {
     println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format);
     let mut mutex_guard = state.0.lock().unwrap();
+    let account = mutex_guard.books.get_account(&account_id).map_err(|e| e.error)?;
     let load_result = read_transactions(
         &path,
         account_id,
         &import_date_format,
         &ColumnTypes::from_vec(column_types.clone()),
         has_headers,
+        account.normal_balance(),
     );
 
     match load_result {
@@ -387,6 +392,7 @@ mod tests {
         let mut repo = Repo::first_repo(&test_name).unwrap();
 
         let account = Account::create_new("Test Checking Account", AccountType::Asset);
+        let normal_balance = account.normal_balance();
         let account_id = account.id;
         repo.books.add_account(account);
 
@@ -403,6 +409,7 @@ mod tests {
                 "balance".to_string(),
             ]),
             true, // has_headers
+            normal_balance,
         )
         .unwrap();
 
@@ -423,6 +430,7 @@ mod tests {
                 "balance".to_string(),
             ]),
             true, // has_headers
+            normal_balance,
         )
         .unwrap();
 

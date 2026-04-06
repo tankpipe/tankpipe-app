@@ -248,6 +248,7 @@ pub fn read_transactions<P: AsRef<Path>>(
     fmt: &str,
     columns: &ColumnTypes,
     has_headers: bool,
+    normal_balance: Side,
 ) -> Result<Vec<Transaction>, BooksError> {
     println!(
         "read_transactions : {:?}, fmt: {}, has_headers: {}",
@@ -264,7 +265,7 @@ pub fn read_transactions<P: AsRef<Path>>(
 
             for result in reader.deserialize() {
                 match result {
-                    Ok(item) => transactions.push(to_transaction(&columns, item, account_id, fmt)?),
+                    Ok(item) => transactions.push(to_transaction(&columns, item, account_id, fmt, normal_balance)?),
                     Err(e) => println!("Skipping row as unabled to process. Error: {:?}", e),
                 }
             }
@@ -285,9 +286,10 @@ fn to_transaction(
     row: Vec<String>,
     account_id: Uuid,
     fmt: &str,
+    normal_balance: Side,
 ) -> Result<Transaction, BooksError> {
     let date = parse_date_str(get_value(&row, columns, ColumnType::Date)?, fmt)?;
-    let (amount, entry_type) = determine_amount(&row, columns)?;
+    let (amount, entry_type) = determine_amount(&row, columns, normal_balance)?;
     let balance = get_balance(&row, columns)?;
     let entry = Entry {
         id: Uuid::new_v4(),
@@ -321,10 +323,11 @@ fn get_balance(row: &Vec<String>, columns: &ColumnTypes) -> Result<Option<Decima
 fn determine_amount(
     row: &Vec<String>,
     columns: &ColumnTypes,
+    normal_balance: Side,
 ) -> Result<(Decimal, Side), BooksError> {
     if columns.has_column(ColumnType::Amount) {
         let amount = parse_money_str(get_value(&row, columns, ColumnType::Amount)?)?;
-        Ok((amount, balance_impact(amount)))
+        Ok((amount, balance_impact(normal_balance, amount)))
     } else {
         let debit = parse_money_str(get_value(&row, columns, ColumnType::Debit)?)?;
         let credit = parse_money_str(get_value(&row, columns, ColumnType::Credit)?)?;
@@ -347,11 +350,11 @@ fn get_value(
     }
 }
 
-pub fn balance_impact(amount: Decimal) -> Side {
+pub fn balance_impact(normal_balance: Side, amount: Decimal) -> Side {
     if amount.ge(&dec!(0)) {
-        Side::Debit
+        normal_balance
     } else {
-        Side::Credit
+        normal_balance.opposite()
     }
 }
 
@@ -525,13 +528,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::reader::{balance_impact, read_columns, read_transactions, ColumnType};
+    use crate::reader::{balance_impact, read_columns, read_transactions, ColumnType, ColumnTypes};
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
     use csv::StringRecord;
     use rust_decimal_macros::dec;
 
-    use super::{check_date_format, detect_columns, parse_date_str};
+    use super::{check_date_format, detect_columns, determine_amount, parse_date_str};
 
     #[test]
     fn test_parse_date_str() {
@@ -563,6 +566,7 @@ mod tests {
             "%d/%m/%Y",
             &columns,
             true,
+            account.normal_balance(),
         );
         assert!(result.is_err());
         assert_eq!(
@@ -624,6 +628,7 @@ mod tests {
             "%d/%m/%Y",
             &columns,
             true,
+            account.normal_balance(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -645,6 +650,7 @@ mod tests {
             "%Y-%M-%D",
             &columns,
             true,
+            account.normal_balance(),
         );
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
@@ -660,6 +666,7 @@ mod tests {
             "%d/%m/%Y",
             &columns,
             true,
+            account.normal_balance(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -681,6 +688,7 @@ mod tests {
             "%d/%m/%Y",
             &columns,
             true,
+            account.normal_balance(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -704,10 +712,93 @@ mod tests {
 
     #[test]
     fn test_balance_impact() {
-        let _asset_account = Account::create_new("Savings Account 1", AccountType::Asset);
-        assert_eq!(Side::Debit, balance_impact(dec!(100)));
-        assert_eq!(Side::Debit, balance_impact(dec!(0)));
-        assert_eq!(Side::Credit, balance_impact(dec!(-100)));
+        assert_eq!(Side::Debit, balance_impact(Side::Debit, dec!(100)));
+        assert_eq!(Side::Debit, balance_impact(Side::Debit, dec!(0)));
+        assert_eq!(Side::Credit, balance_impact(Side::Debit, dec!(-100)));
+
+        assert_eq!(Side::Credit, balance_impact(Side::Credit, dec!(100)));
+        assert_eq!(Side::Credit, balance_impact(Side::Credit, dec!(0)));
+        assert_eq!(Side::Debit, balance_impact(Side::Credit, dec!(-100)));
+    }
+
+    #[test]
+    fn test_determine_amount_with_amount_column_uses_normal_balance_for_positive_values() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "amount".to_string(),
+        ]);
+        let row = vec![
+            "31/05/2022".to_string(),
+            "Rent received".to_string(),
+            "1200.00".to_string(),
+        ];
+
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit).unwrap();
+
+        assert_eq!(dec!(1200.00), amount);
+        assert_eq!(Side::Debit, side);
+    }
+
+    #[test]
+    fn test_determine_amount_with_amount_column_flips_side_for_negative_values() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "amount".to_string(),
+        ]);
+        let row = vec![
+            "31/05/2022".to_string(),
+            "Fee".to_string(),
+            "-25.50".to_string(),
+        ];
+
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit).unwrap();
+
+        assert_eq!(dec!(-25.50), amount);
+        assert_eq!(Side::Credit, side);
+    }
+
+    #[test]
+    fn test_determine_amount_with_debit_and_credit_picks_larger_debit() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "debit".to_string(),
+            "credit".to_string(),
+        ]);
+        let row = vec![
+            "31/05/2022".to_string(),
+            "Transfer".to_string(),
+            "80.00".to_string(),
+            "20.00".to_string(),
+        ];
+
+        let (amount, side) = determine_amount(&row, &columns, Side::Credit).unwrap();
+
+        assert_eq!(dec!(80.00), amount);
+        assert_eq!(Side::Debit, side);
+    }
+
+    #[test]
+    fn test_determine_amount_with_debit_and_credit_tie_defaults_to_credit() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "debit".to_string(),
+            "credit".to_string(),
+        ]);
+        let row = vec![
+            "31/05/2022".to_string(),
+            "Offset".to_string(),
+            "10.00".to_string(),
+            "10.00".to_string(),
+        ];
+
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit).unwrap();
+
+        assert_eq!(dec!(10.00), amount);
+        assert_eq!(Side::Credit, side);
     }
 
     #[test]
