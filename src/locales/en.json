@@ -140,7 +140,7 @@
         "reconciled": "Reconciled",
         "outstanding": "Reconciliation outstanding",
         "partiallyReconciled": "Partially reconciled",
-        "mergePrefill": "Update with reconciliation values",
+        "mergePrefill": "Updated with reconciliation values",
         "reconcileTransaction": "Reconcile transaction",
         "reconcileTransactions": "Reconcile transactions",
         "selectedForMerge": "Selected for merge",

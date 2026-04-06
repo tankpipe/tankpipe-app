@@ -388,6 +388,20 @@
             }
         })
 
+        const patchStatusDate = patch?.date ?? patchDate
+        const normalizedPatchStatusDate = patchStatusDate ? new Date(patchStatusDate).setHours(0, 0, 0, 0) : null
+        const today = new Date().setHours(0, 0, 0, 0)
+        if (
+            patch?.status === "Recorded" &&
+            normalizedPatchStatusDate !== null &&
+            !Number.isNaN(normalizedPatchStatusDate) &&
+            normalizedPatchStatusDate <= today &&
+            curTransaction.source_type === 'Interest'
+        ) {
+            curTransaction.status = "Recorded"
+            recorded = true
+        }
+
         if (!compoundMode) {
             syncSecondEntry()
         }
@@ -680,15 +694,9 @@
         margin: 0px;
     }
 
-
-
     .entries {
         clear: both;
     }
-
-
-
-
 
     .indicator span {
         padding-top: 6px;
@@ -698,8 +706,6 @@
     .recon-msg {
         color: var(--color-accent);
     }
-
-
 
     .reconciled-cell {
         background-color: transparent;
