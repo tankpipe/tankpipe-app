@@ -56,25 +56,6 @@
         }
     }
 
-    const updateTheme = async () => {
-        if ($settings) {
-            $settings.theme = $settings.theme || 'System'
-            await saveSettings()
-        }
-    }
-
-    const updateProjectionMonths = async () => {
-        if ($settings) {
-            const value = Number($settings.projection_months)
-            if (Number.isFinite(value) && value >= 0) {
-                $settings.projection_months = Math.min(Math.floor(value), MAX_PROJECTION_MONTHS)
-            } else {
-                $settings.projection_months = 0
-            }
-            await saveSettings()
-        }
-    }
-
     $effect(() => {
         if ($settings && !$settings.theme) {
             $settings.theme = 'System'

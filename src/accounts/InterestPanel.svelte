@@ -174,11 +174,13 @@
 
     async function interestResolved(result) {
         interestMsg = $_('interest.saved')
+        setTimeout(() => {interestMsg = ""}, 3000)
         await loadInterestInternal()
     }
 
     async function interestAddResolved(result) {
         interestMsg = $_('interest.saved')
+        setTimeout(() => {interestMsg = ""}, 3000)
         console.log(curAccount.interest_id)
         await loadAccounts()
         console.log(curAccount.interest_id)
