@@ -74,7 +74,6 @@
         if (curAccount.interest_id) {
             await invoke('get_interest', {interestId: curAccount.interest_id}).then(
                 (result) => {
-                    console.log(result)
                     interest = result
                     if (interest.terms && interest.terms.length > 0) {
                         interest.terms.forEach((term) => {
@@ -127,9 +126,6 @@
 
         })
 
-        console.log(interestErrors)
-
-
         if (!interestErrors.hasErrors()) {
             const interestData = {
                 id: interest.id,
@@ -181,9 +177,7 @@
     async function interestAddResolved(result) {
         interestMsg = $_('interest.saved')
         setTimeout(() => {interestMsg = ""}, 3000)
-        console.log(curAccount.interest_id)
         await loadAccounts()
-        console.log(curAccount.interest_id)
         await loadInterestInternal()
     }
 
