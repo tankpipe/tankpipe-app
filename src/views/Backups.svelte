@@ -7,6 +7,7 @@
     import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
     import { Errors } from '../utils/errors.js'
+    import { loadConfig, loadSettings } from '../events.js'
 
     let backups = []
     let loading = false
@@ -52,8 +53,10 @@
         restoringPath = ""
     }
 
-    const reloadAccountsSuccess = (accounts) => {
+    const reloadAccountsSuccess = async (accounts) => {
         updateAccounts(accounts)
+        await loadSettings()
+        await loadConfig()
         msg = $_('backups.messages.restored')
         restoringPath = ""
         page.set({view: views.ACCOUNTS, mode: modes.LIST})

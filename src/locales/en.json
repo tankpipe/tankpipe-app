@@ -347,6 +347,7 @@
         "title": "Settings",
         "enforceDoubleEntry": "Enforce double entry",
         "displayDateFormat": "Display date format",
+        "projectionMonths": "Months to project schedule",
         "importDateFormat": "Default import date format",
         "theme": "Theme",
         "preview": "Preview",

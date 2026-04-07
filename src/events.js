@@ -62,12 +62,13 @@ const loadFile = async (path) => {
     }
 };
 
-const loadFileSuccess = (result) => {
+const loadFileSuccess = async (result) => {
     console.log(result)
     emit('file-loaded', "")
     updateAccounts(result)
+    await loadSettings()
     page.set({view: views.ACCOUNTS, mode: modes.LIST})
-    loadConfig()
+    await loadConfig()
 }
 
 const loadFileFailure = (result) => {
@@ -119,4 +120,4 @@ const resetMenu = async () => {
     }
 }
 
-export {showFilePicker, initialiseBooks, initialiseFailed, loadConfig}
+export {showFilePicker, initialiseBooks, initialiseFailed, loadConfig, loadSettings}

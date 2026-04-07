@@ -5,7 +5,7 @@
     import {accounts} from '../stores/accounts.js'
     import {context} from '../stores/context.js';
     import {config} from '../stores/config.js'
-    import {loadConfig} from '../events.js'
+    import {loadConfig, loadSettings} from '../events.js'
     import {emit} from '@tauri-apps/api/event'
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
@@ -37,6 +37,7 @@
     const loadFileSuccess = async (result) => {
         console.log(result)
         accounts.set(result)
+        await loadSettings()
         await loadConfig()
         emit('file-loaded', "")
         page.set({view: views.ACCOUNTS, mode: modes.LIST})

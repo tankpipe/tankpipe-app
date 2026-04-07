@@ -10,7 +10,7 @@ use crate::reader::{
 };
 use crate::BooksState;
 use accounts::account::Account;
-use accounts::books::Settings;
+use accounts::books::{Settings, MAX_PROJECTION_MONTHS};
 use accounts::books_repo::{export_accounts_to_csv, export_to_csv};
 use accounts::reconcile::ReconciliationItem;
 use std::ffi::OsString;
@@ -22,6 +22,8 @@ use uuid::Uuid;
 pub fn update_settings(state: tauri::State<BooksState>, settings: Settings) -> Result<(), String> {
     println!("Updating settings: {:?}", settings);
     let mut mutex_guard = state.0.lock().unwrap();
+    let mut settings = settings;
+    settings.projection_months = settings.projection_months.min(MAX_PROJECTION_MONTHS);
     mutex_guard.books.settings = settings;
     error_handler(mutex_guard.save())
 }
