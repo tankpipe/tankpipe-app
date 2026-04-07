@@ -14,7 +14,7 @@ use std::{fs, io};
 use std::{fs::File, io::Read, path::Path};
 use uuid::Uuid;
 
-use crate::config::{Config, DateFormat, FileDetails, Theme, DEFAULT_PROJECTION_MONTHS};
+use crate::config::{Config, DateFormat, FileDetails, Theme};
 use crate::csv_check::CsvMapping;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -151,12 +151,7 @@ impl Repo {
     }
 
     fn run_checks(&mut self) {
-        let today = chrono::Utc::now().date_naive();
-        let new_projection_date = today
-            .checked_add_months(chrono::Months::new(self.config.projection_months))
-            .unwrap();
-        let _ = self.books.run_checks_and_update(new_projection_date);
-        self.config.projected_to = Some(new_projection_date);
+        let _ = self.books.run_checks_and_update();
         if self.config.current_file.is_some() {
             let _ = save_books_with_backups(
                 self.config.current_file.clone().unwrap().path.clone(),
@@ -168,11 +163,7 @@ impl Repo {
 
     pub fn check_interest(&mut self) {
         if self.books.interest_outdated() {
-            let today = chrono::Utc::now().date_naive();
-            let new_projection_date = today
-                .checked_add_months(chrono::Months::new(self.config.projection_months))
-                .unwrap();
-            let _ = self.books.recalculate_interest(new_projection_date);
+            let _ = self.books.recalculate_interest();
         }
     }
 
@@ -410,8 +401,6 @@ impl AppDirectories {
             recent_files: Vec::new(),
             theme: Theme::System,
             display_date_format: DateFormat::Locale,
-            projection_months: DEFAULT_PROJECTION_MONTHS,
-            projected_to: None,
         }
     }
 

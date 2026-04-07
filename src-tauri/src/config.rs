@@ -1,13 +1,9 @@
-use accounts::serializer::{deserialize_option_naivedate, serialize_option_naivedate};
-use chrono::NaiveDate;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     ffi::{OsStr, OsString},
     path::PathBuf,
 };
 use uuid::Uuid;
-
-pub const DEFAULT_PROJECTION_MONTHS: u32 = 12;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct FileDetails {
@@ -55,6 +51,7 @@ pub enum DateFormat {
     ISO,
 }
 
+/// Global application configuration.
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Config {
     pub id: Uuid,
@@ -71,14 +68,6 @@ pub struct Config {
     pub recent_files: Vec<FileDetails>,
     pub theme: Theme,
     pub display_date_format: DateFormat,
-
-    #[serde(default = "default_projection_months")]
-    pub projection_months: u32,
-
-    #[serde(default)]
-    #[serde(serialize_with = "serialize_option_naivedate")]
-    #[serde(deserialize_with = "deserialize_option_naivedate")]
-    pub projected_to: Option<NaiveDate>,
 }
 
 impl Config {
@@ -126,10 +115,6 @@ impl Config {
         self.last_file = last_file.clone();
         self.recent_files.insert(0, last_file);
     }
-}
-
-fn default_projection_months() -> u32 {
-    DEFAULT_PROJECTION_MONTHS
 }
 
 fn default_theme() -> Theme {
