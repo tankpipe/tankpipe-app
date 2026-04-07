@@ -24,6 +24,7 @@
 
     let msg = $state("")
     let errors = $state(new Errors())
+    let showDoubleEntry = $state(false)
 
     const saveSettings = async () => {
         if ($settings) {
@@ -68,6 +69,11 @@
         if ($settings && $settings.projection_months > MAX_PROJECTION_MONTHS) {
             $settings.projection_months = MAX_PROJECTION_MONTHS
         }
+
+        if ($settings?.require_double_entry) {
+            showDoubleEntry = true
+        }
+
     })
 </script>
 <div class="controls">
@@ -87,11 +93,13 @@
 <hr/>
 <div class="controls">
     <div class="info-title" title={$config.current_file?.path || ''}>{$_('settings.booksSettings', {values: {name: $config.current_file?.name || ''}})}</div>
+    {#if showDoubleEntry}
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('settings.enforceDoubleEntry')}</div><input type="checkbox" bind:checked={$settings.require_double_entry} disabled={!hasBooks()}/>
         </div>
     </div>
+    {/if}
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('settings.projectionMonths')}</div><input type="number" min="0" max={MAX_PROJECTION_MONTHS} step="1" bind:value={$settings.projection_months} disabled={!hasBooks()}/>
