@@ -19,13 +19,15 @@ use tauri::Manager;
 use uuid::Uuid;
 
 #[tauri::command]
-pub fn update_settings(state: tauri::State<BooksState>, settings: Settings) -> Result<(), String> {
+pub fn update_settings(state: tauri::State<BooksState>, settings: Settings) -> Result<Settings, String> {
     println!("Updating settings: {:?}", settings);
     let mut mutex_guard = state.0.lock().unwrap();
     let mut settings = settings;
     settings.projection_months = settings.projection_months.min(MAX_PROJECTION_MONTHS);
     mutex_guard.books.settings = settings;
-    error_handler(mutex_guard.save())
+    error_handler(mutex_guard.books.run_checks_and_update())?;
+    error_handler(mutex_guard.save())?;
+    Ok(mutex_guard.books.settings.clone())
 }
 
 #[tauri::command]

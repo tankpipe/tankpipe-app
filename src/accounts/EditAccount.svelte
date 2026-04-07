@@ -310,12 +310,12 @@
 
     :global(.info-label) {
         font-size: 0.75em;
-        color: var(--color-input-bg);
+        color: var(--color-text-muted);
     }
 
     :global(.info-value) {
         font-size: 0.75em;
-        color: var(--color-input-bg);
+        color: var(--color-text-muted);
     }
 
     :global(.info-title) {

@@ -345,12 +345,16 @@
     },
     "settings": {
         "title": "Settings",
+        "appSettings": "Application settings",
+        "booksSettings": "Books settings for {name}",
         "enforceDoubleEntry": "Enforce double entry",
         "displayDateFormat": "Display date format",
         "projectionMonths": "Months to project schedule",
+        "projectedTo": "Currently projected to",
         "importDateFormat": "Default import date format",
         "theme": "Theme",
         "preview": "Preview",
+        "saved": "Books settings saved",
         "dateFormats": {
             "localeDefault": "Locale default",
             "regular": "D/M/YYYY",

@@ -1,9 +1,11 @@
 <script>
-    import {settings} from '../stores/settings.js'
-    import {config} from '../stores/config.js'
+    import {settings, updateSettings} from '../stores/settings.js'
+    import {config, formatDate} from '../stores/config.js'
     import {hasBooks} from '../stores/context.js'
     import Select from '../components/Select.svelte';
     import { invoke } from '@tauri-apps/api/core'
+    import MessagePanel from '../components/MessagePanel.svelte'
+    import {Errors} from '../utils/errors.js'
     import { _ } from 'svelte-i18n'
     const MAX_PROJECTION_MONTHS = 1200
 
@@ -20,13 +22,24 @@
         {value: "Dark", name: $_('settings.themes.dark')},
     ]
 
-    const updateSettings = async () => {
+    let msg = $state("")
+    let errors = $state(new Errors())
+
+    const saveSettings = async () => {
         if ($settings) {
-            await invoke('update_settings', {settings: $settings}).then(
-                () => console.log("settings saved"),
-                (result) => console.log("settings not saved " + result)
-            )
+            await invoke('update_settings', {settings: $settings}).then(settingsResolved, settingsRejected)
         }
+    }
+
+    const settingsResolved = (result) => {
+        msg = $_('settings.saved')
+        setTimeout(() => {msg = ""}, 3000)
+        updateSettings(result)
+    }
+
+    const settingsRejected = (result) => {
+        errors = new Errors()
+        errors.addError("all", result)
     }
 
     const updateConfig = async () => {
@@ -46,7 +59,7 @@
     const updateTheme = async () => {
         if ($settings) {
             $settings.theme = $settings.theme || 'System'
-            await updateSettings()
+            await saveSettings()
         }
     }
 
@@ -58,7 +71,7 @@
             } else {
                 $settings.projection_months = 0
             }
-            await updateSettings()
+            await saveSettings()
         }
     }
 
@@ -78,19 +91,10 @@
 </script>
 <div class="controls">
     <div class="form-heading">{$_('settings.title')}</div>
-    <div class="form-row2">
-        <div class="widget">
-            <div class="label label-column">{$_('settings.enforceDoubleEntry')}</div><input type="checkbox" bind:checked={$settings.require_double_entry} onchange={updateSettings} disabled={!hasBooks()}/>
-        </div>
-    </div>
+    <div class="info-title">{$_('settings.appSettings')}</div>
     <div class="form-row2">
         <div class="widget">
             <div class="label label-column">{$_('settings.displayDateFormat')}</div><div class="field"><Select bind:item={$config.display_date_format} items={DATE_FORMATS} flat={true} valueField="value" onChange={updateConfig}  disabled={!hasBooks()}/></div>
-        </div>
-    </div>
-    <div class="form-row2">
-        <div class="widget">
-            <div class="label label-column">{$_('settings.projectionMonths')}</div><input type="number" min="0" max={MAX_PROJECTION_MONTHS} step="1" bind:value={$settings.projection_months} onchange={updateProjectionMonths} disabled={!hasBooks()}/>
         </div>
     </div>
     <div class="form-row2">
@@ -99,6 +103,37 @@
         </div>
     </div>
 </div>
+<hr/>
+<div class="controls">
+    <div class="info-title" title={$config.current_file?.path || ''}>{$_('settings.booksSettings', {values: {name: $config.current_file?.name || ''}})}</div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">{$_('settings.enforceDoubleEntry')}</div><input type="checkbox" bind:checked={$settings.require_double_entry} disabled={!hasBooks()}/>
+        </div>
+    </div>
+    <div class="form-row2">
+        <div class="widget">
+            <div class="label label-column">{$_('settings.projectionMonths')}</div><input type="number" min="0" max={MAX_PROJECTION_MONTHS} step="1" bind:value={$settings.projection_months} disabled={!hasBooks()}/>
+        </div>
+    </div>
+    {#if $settings.projected_to}
+    <div class="form-row">
+        <div class="small-text" style="padding-left: 7px;">
+            {$_('settings.projectedTo')}&nbsp;{formatDate($settings.projected_to)}
+        </div>
+    </div>
+    {/if}
+    <div class="form-button-row">
+        <div class="msg-panel sele">
+            <MessagePanel errors={errors} msg={msg} />
+        </div>
+        <div class="widget buttons">
+            <button class="og-button" onclick={saveSettings}>{$_('buttons.update')}</button>
+        </div>
+    </div>
+
+</div>
+<hr/>
 <style>
 
     .form-row2 {
@@ -108,7 +143,7 @@
     .widget {
         padding: 5px 0px 5px 10px;
         float: left;
-        clear: both;
+        clear: none;
     }
 
     .label {
@@ -118,6 +153,10 @@
         text-align: left;
         line-height: 36px;
         width: 11em;
+    }
+
+    .controls {
+        width: 500px;
     }
 
     .controls .label {
@@ -130,6 +169,19 @@
 
     .label-column {
         min-width: 220px;
+    }
+
+    .form-button-row {
+        display: block;
+        text-align: left;
+        margin-left: 7px;
+        margin-right: 2px;
+        clear: both;
+    }
+
+    .buttons {
+        float: right;
+        margin: 10px 12px 0 0;
     }
 
 </style>
