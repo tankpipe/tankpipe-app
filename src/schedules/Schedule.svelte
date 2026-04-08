@@ -8,7 +8,6 @@
     import { invoke } from '@tauri-apps/api/core'
     import { _ } from 'svelte-i18n'
     import TransactionList from '../transactions/TransactionList.svelte'
-    import { onMount } from 'svelte';
     import Spinner from '../components/Spinner.svelte';
 
     let { close, edit, curSchedule } = $props()
@@ -30,10 +29,11 @@
     let period = $state({value:"Months", name:"Months"})
     const periods = [{value:"Days", name:"Days"}, {value:"Weeks", name:"Weeks"}, {value:"Months", name:"Months"}, {value:"Years", name:"Years"}]
     let transactions = $state([])
-    $inspect(curSchedule)
-    $inspect(lastDate)
+    let syncedScheduleKey = ""
 
-    onMount(() => {
+    const syncFieldsFromSchedule = () => {
+        if (!curSchedule) return
+
         name = curSchedule.name
         period = matchPeriod(curSchedule.period)
         frequency = curSchedule.frequency
@@ -45,7 +45,7 @@
         date = new Date(curSchedule.start_date)
         max.setFullYear(date.getFullYear() + 20)
         min.setFullYear(date.getFullYear() - 10)
-    })
+    }
 
     const matchPeriod = (value) =>  {
         if (!value) return null
@@ -64,7 +64,16 @@
 
     $effect(() => {
         if (curSchedule && curSchedule.id) {
+            const nextKey = `${curSchedule.id}|${curSchedule.last_date}|${curSchedule.end_date}|${curSchedule.start_date}|${curSchedule.frequency}|${curSchedule.period}|${curSchedule.name}`
+            if (nextKey === syncedScheduleKey) {
+                return
+            }
+            syncedScheduleKey = nextKey
+            syncFieldsFromSchedule()
             loadTransactions()
+        } else {
+            syncedScheduleKey = ""
+            transactions = []
         }
     })
 
@@ -94,7 +103,7 @@
 
     const saveSchedule = async (schedule) => {
         console.log(schedule)
-           await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
+        await invoke('update_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
     const generateSchedule = async () => {
@@ -111,6 +120,7 @@
     function resolvedGenerateSchedule(result) {
         loadTransactions()
         msg = $_('schedule.generation_complete')
+        loadSchedule()
         loading = false
     }
 
@@ -131,6 +141,7 @@
     const loadSchedule = async () => {
         console.log("loadSchedule")
         curSchedule = await invoke("get_schedule", { scheduleId: curSchedule.id })
+        syncFieldsFromSchedule()
     }
 
 </script>
@@ -187,7 +198,7 @@
 <div>
     <div class="panel-title float-left">{$_('schedule.projected_transactions')}</div>
     <div class="toolbar toolbar-right list-toolbar" >
-        <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')} disabled={loading || transactions.length == 0}>
+        <button class="toolbar-icon" onclick="{deleteTransactions}" title={$_('schedule.delete_projected_transactions')} disabled={loading}>
             <Icon icon="mdi:trash-can-outline"  width="24"/>
         </button>
 </div>
