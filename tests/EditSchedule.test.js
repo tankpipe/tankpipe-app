@@ -1,4 +1,4 @@
-import { render, cleanup } from '@testing-library/svelte'
+import { render, cleanup, waitFor } from '@testing-library/svelte'
 import EditSchedule from '../src/schedules/EditSchedule.svelte'
 import { accounts } from '../src/stores/accounts.js'
 import { page, views, modes } from '../src/stores/page.js'
@@ -73,4 +73,73 @@ it('disables already-selected accounts in other schedule entry selects', async (
   const row1Final = entrySelectsFinal[1]
   expect(getOptionByText(row1Final, 'Account 2').disabled).toBe(true)
   expect(getOptionByText(row1Final, 'Account 1').disabled).toBe(false)
+})
+
+it('shows end date selected in edit mode when schedule has end_date', async () => {
+  page.set({ view: views.SCHEDULES, mode: modes.EDIT })
+  mockIPC((cmd) => {
+    switch (cmd) {
+      case 'modifiers':
+        return []
+      case 'schedule_transactions':
+        return []
+      default:
+        return []
+    }
+  })
+
+  const close = () => {}
+  const loadSchedules = () => {}
+  const view = () => {}
+  const curSchedule = {
+    id: 'sched-1',
+    name: 'Pay',
+    description: 'Monthly pay',
+    amount: '1000',
+    dr_account_id: account_data[0].id,
+    cr_account_id: account_data[1].id,
+    period: 'Months',
+    frequency: 1,
+    start_date: '2026-01-31',
+    end_date: '2026-12-31',
+    last_date: 'null',
+    modifier_configs: [],
+    schedule_modifiers: [],
+    entries: [
+      {
+        id: 'e1',
+        schedule_id: 'sched-1',
+        account_id: account_data[0].id,
+        description: 'Entry 1',
+        amount: '1000',
+        entry_type: 'Debit',
+        date: '2026-01-31'
+      },
+      {
+        id: 'e2',
+        schedule_id: 'sched-1',
+        account_id: account_data[1].id,
+        description: 'Entry 2',
+        amount: '1000',
+        entry_type: 'Credit',
+        date: '2026-01-31'
+      }
+    ]
+  }
+
+  const { container } = render(EditSchedule, {
+    close,
+    curSchedule,
+    loadSchedules,
+    view,
+  })
+
+  await waitFor(() => {
+    const endRadio = container.querySelector('#end')
+    const noEndRadio = container.querySelector('#noEnd')
+    expect(endRadio).toBeTruthy()
+    expect(noEndRadio).toBeTruthy()
+    expect(endRadio.checked).toBe(true)
+    expect(noEndRadio.checked).toBe(false)
+  })
 })

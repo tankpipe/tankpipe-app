@@ -167,7 +167,7 @@
     {#if hasEnd}
     <div class="form-row">
         <div class="small-text">
-            {$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;{endDate}
+            {$_('schedule.endsOn', { values: { date:  formatDate(endDate)}})}
         </div>
     </div>
     {/if} 

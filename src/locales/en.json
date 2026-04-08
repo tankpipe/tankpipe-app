@@ -171,6 +171,7 @@
         "every": "Scheduled every",
         "new_schedule": "New Schedule",
         "no_end_date": "No end date",
+        "endsOn": "Ends on {date}",
         "schedule": "Schedule",
         "created": "New schedule created",
         "updated": "Schedule updated",

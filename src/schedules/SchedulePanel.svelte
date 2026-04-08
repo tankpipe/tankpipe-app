@@ -9,7 +9,7 @@
         frequency =$bindable(), 
         period =$bindable(), 
         date =$bindable(), 
-        hasEnd, 
+        hasEnd =$bindable(), 
         endDate =$bindable(), 
         errors =$bindable() 
     } = $props()

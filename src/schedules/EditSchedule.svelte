@@ -40,6 +40,7 @@
     let modifiers = $state([])
     let schedule_modifiers = []
     let schedule_modifier = null
+    let syncedScheduleKey = ""
 
     let disabledAccountsByEntryIndex = $derived.by(() =>
         disabledItemsByIndex(entries, (e) => e?.account?.id)
@@ -82,52 +83,77 @@
         return total
     })
 
-    onMount(() => {
-        loadModifiers()
-        if ($page.mode === modes.EDIT) {
-            name = curSchedule.name
-            description = curSchedule.description
-            amount = curSchedule.amount
-            // Create deep copies of entries to avoid mutation issues
-            entries = curSchedule.entries.map(e => {
-                const entryCopy = {...e}
-                entryCopy.entry_type === "Credit" ? entryCopy.crAmount = e.amount : entryCopy.drAmount = e.amount
-                entryCopy.realDate = new Date(e.date)
-                entryCopy.account = matchAccount(e.account_id)
-                return entryCopy
-            })
-            addButtonLabel = $_('buttons.update')
-            successMsg = $_('schedule.updated')
-            drAccount = matchAccount(curSchedule.dr_account_id)
-            crAccount = matchAccount(curSchedule.cr_account_id)
-            period = matchPeriod(curSchedule.period)
-            frequency = curSchedule.frequency
-            endDate = curSchedule.end_date == "null" ? null : new Date(curSchedule.end_date)
-            lastDate = curSchedule.last_date == "null" ? null : new Date(curSchedule.last_date)
-            hasEnd = endDate != null
-            date = new Date(curSchedule.start_date)               
-            if (curSchedule.modifier_configs && curSchedule.modifier_configs.length > 0) {
-                schedule_modifier = curSchedule.schedule_modifiers[0]
-            }
-        } else if ($page.mode === modes.NEW) {            
-            drAccount = null
-            crAccount = null
-            addButtonLabel = $_('buttons.add')
-            successMsg = $_('schedule.created')
-            transactions = []
+    const parseOptionalDate = (value) => {
+        if (value == null || value === "null" || value === "") return null
+        const parsed = new Date(value)
+        return Number.isNaN(parsed.getTime()) ? null : parsed
+    }
 
-            if ($page.payload && $page.payload.entries) {
-                console.log($page.payload)
-                // Create deep copies of entries
-                entries = $page.payload.entries.map(e => ({...e, schedule_id: zeros}))
-                name = $page.payload.entries[0].description
-            } else {
-                for (var i = 0; i < minEntries; i++) {
-                    addEntry()
-                }
+    const syncFromCurrentSchedule = () => {
+        if (!curSchedule || !curSchedule.id) return
+
+        name = curSchedule.name
+        description = curSchedule.description
+        amount = curSchedule.amount
+        // Create deep copies of entries to avoid mutation issues
+        entries = curSchedule.entries.map(e => {
+            const entryCopy = {...e}
+            entryCopy.entry_type === "Credit" ? entryCopy.crAmount = e.amount : entryCopy.drAmount = e.amount
+            entryCopy.realDate = new Date(e.date)
+            entryCopy.account = matchAccount(e.account_id)
+            return entryCopy
+        })
+        addButtonLabel = $_('buttons.update')
+        successMsg = $_('schedule.updated')
+        drAccount = matchAccount(curSchedule.dr_account_id)
+        crAccount = matchAccount(curSchedule.cr_account_id)
+        period = matchPeriod(curSchedule.period)
+        frequency = curSchedule.frequency
+        endDate = parseOptionalDate(curSchedule.end_date)
+        lastDate = parseOptionalDate(curSchedule.last_date)
+        hasEnd = endDate != null
+        date = new Date(curSchedule.start_date)
+        if (curSchedule.modifier_configs && curSchedule.modifier_configs.length > 0) {
+            schedule_modifier = curSchedule.schedule_modifiers[0]
+        }
+    }
+
+    const initNewSchedule = () => {
+        drAccount = null
+        crAccount = null
+        addButtonLabel = $_('buttons.add')
+        successMsg = $_('schedule.created')
+        transactions = []
+
+        if ($page.payload && $page.payload.entries) {
+            console.log($page.payload)
+            // Create deep copies of entries
+            entries = $page.payload.entries.map(e => ({...e, schedule_id: zeros}))
+            name = $page.payload.entries[0].description
+        } else {
+            for (var i = 0; i < minEntries; i++) {
+                addEntry()
             }
         }
+    }
 
+    onMount(() => {
+        loadModifiers()
+        if ($page.mode === modes.NEW) {
+            initNewSchedule()
+        }
+    })
+
+    $effect(() => {
+        if ($page.mode === modes.EDIT && curSchedule && curSchedule.id) {
+            const nextKey = `${curSchedule.id}|${curSchedule.last_date}|${curSchedule.end_date}|${curSchedule.start_date}|${curSchedule.frequency}|${curSchedule.period}|${curSchedule.name}|${curSchedule.entries?.length || 0}`
+            if (nextKey !== syncedScheduleKey) {
+                syncedScheduleKey = nextKey
+                syncFromCurrentSchedule()
+            }
+        } else {
+            syncedScheduleKey = ""
+        }
     })
 
     $effect(() => {
