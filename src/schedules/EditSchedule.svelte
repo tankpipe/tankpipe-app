@@ -510,6 +510,14 @@
         float: left;
     }
 
+    .entry-buttons button {
+        color: var(--color-text-muted);
+    }
+
+    .entry-buttons button:hover {
+        color: var(--color-text);
+    }
+
     .entry-buttons button:not(:first-child) {
         margin-left: 5px;
     }
