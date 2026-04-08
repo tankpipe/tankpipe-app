@@ -462,9 +462,8 @@
     }
 
     const schedule = () => {
-        console.log("schedule", curTransaction.entries[0].schedule_id)
-        if (curTransaction.entries[0].schedule_id) {
-            page.set({view: views.SCHEDULES, mode: modes.LOAD, payload:{schedule_id: curTransaction.entries[0].schedule_id}})
+        if (curTransaction?.source_type === 'Schedule') {
+            page.set({view: views.SCHEDULES, mode: modes.LOAD, payload:{schedule_id: curTransaction.source_id}})
         } else {
             page.set({view: views.SCHEDULES, mode: modes.NEW, payload:{entries: [...entries]}})
         }
