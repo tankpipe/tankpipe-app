@@ -29,7 +29,7 @@
     let amount = $state()
     let frequency = $state(1)
     let endDate = $state()
-    let lastDate = $state()    
+    let lastDate = $state()
     let addButtonLabel = $state("Add")
     let period = $state({value:"Months", name:"Months"})
     let drAccount = $state()
@@ -168,8 +168,8 @@
         console.log("loadModifiers")
         const result = await invoke('modifiers')
         modifiers = Array.isArray(result) ? [...result] : []
-        if (curSchedule && curSchedule.schedule_modifiers && curSchedule.schedule_modifiers.length > 0) {            
-            modifier = modifiers.find(m => m.id == curSchedule.schedule_modifiers[0].modifier_id)       
+        if (curSchedule && curSchedule.schedule_modifiers && curSchedule.schedule_modifiers.length > 0) {
+            modifier = modifiers.find(m => m.id == curSchedule.schedule_modifiers[0].modifier_id)
         }
     }
 
@@ -224,7 +224,7 @@
             updateEntryTypes()
 
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
-            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"          
+            let endDateStr = hasEnd ? endDate.getFullYear()+ "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate() : "null"
             entries.forEach (
                 e => {
                     e["account_id"] = e["account"]["id"]
@@ -289,7 +289,7 @@
 
     const addSchedule = async (schedule) => {
         schedule.id = zeros
-        console.log(schedule)        
+        console.log(schedule)
         await invoke('add_schedule', {schedule: schedule}).then(resolved, rejected)
     }
 
@@ -401,8 +401,8 @@
             <tr>
                 <td>
                     <div class="toolbar entry-buttons">
-                        <i class="gg-add-r" onclick={addEntry}></i>
-                        <i class="gg-remove-r" onclick={handleRemoveClick} class:greyed={entries.length <= minEntries}></i>
+                        <button type="button" class="gg-add-r" onclick={addEntry} aria-label={$_('buttons.add')}></button>
+                        <button type="button" class="gg-remove-r" onclick={handleRemoveClick} class:greyed={entries.length <= minEntries} aria-label={$_('buttons.removeRow')}></button>
                     </div>
                 </td>
                 <td><div class="total">{$_('labels.totals')}</div></td>
@@ -436,11 +436,11 @@
         <button class="toolbar-icon" onclick="{view}" title={$_('schedule.schedule')} disabled={!curSchedule || !curSchedule.id}><Icon icon="mdi:clipboard-text-clock"  width="24"/></button>
     </div>
 </div>
-<TransactionList 
-    curAccount={{}} 
-    journalMode={true} 
-    transactions={transactions} 
-    onSelect={()=>{}} 
+<TransactionList
+    curAccount={{}}
+    journalMode={true}
+    transactions={transactions}
+    onSelect={()=>{}}
     loadAccounts={()=>{}}
     rerunReconciliationIfNeeded={()=>{}}
     topScroll={0}
@@ -482,11 +482,6 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .widget p {
-        max-width: 500px;
-        font-size: 0.9em;
-    }
-
     td .heading {
         margin-bottom: -1px;
     }
@@ -515,13 +510,13 @@
         float: left;
     }
 
-    .entry-buttons i:not(:first-child) {
+    .entry-buttons button:not(:first-child) {
         margin-left: 5px;
     }
 
     .select-adjust {
         margin-bottom: 0px;
-    }    
+    }
 
     .greyed:hover {
         color: var(--color-border) !important;

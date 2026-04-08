@@ -2,11 +2,13 @@
     import {settings, updateSettings} from '../stores/settings.js'
     import {config, formatDate} from '../stores/config.js'
     import {hasBooks} from '../stores/context.js'
+    import {page, views, modes} from '../stores/page.js'
     import Select from '../components/Select.svelte';
     import { invoke } from '@tauri-apps/api/core'
     import MessagePanel from '../components/MessagePanel.svelte'
     import {Errors} from '../utils/errors.js'
     import { _ } from 'svelte-i18n'
+    import Icon from '@iconify/svelte'
     const MAX_PROJECTION_MONTHS = 1200
 
     const DATE_FORMATS = [
@@ -41,6 +43,10 @@
     const settingsRejected = (result) => {
         errors = new Errors()
         errors.addError("all", result)
+    }
+
+    const closeSettings = () => {
+        page.set({view: views.ACCOUNTS, mode: modes.LIST})
     }
 
     const updateConfig = async () => {
@@ -78,6 +84,11 @@
 </script>
 <div class="controls">
     <div class="form-heading">{$_('settings.title')}</div>
+    <div class="toolbar toolbar-right">
+        <button class="toolbar-icon" onclick={closeSettings} title={$_('buttons.close')}>
+            <Icon icon="mdi:close-box-outline" width="24"/>
+        </button>
+    </div>
     <div class="info-title">{$_('settings.appSettings')}</div>
     <div class="form-row2">
         <div class="widget">
