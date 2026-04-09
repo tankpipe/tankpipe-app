@@ -219,6 +219,10 @@
 
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
+        if (($settings.require_double_entry || entries.length > 1) && drTotal != crTotal) {
+            errors.addError("totals", "Totals should balance")
+        }
+
         if (!errors.hasErrors()) {
             updateEntryTypes()
 
@@ -335,10 +339,6 @@
 
         if (!entry.account || !entry.account.id || entry.account.id < 1) {
             errors.addError(index + "_account", "Account is required")
-        }
-
-        if (drTotal != crTotal) {
-            errors.addError("totals", "Totals should balance")
         }
 
         return errors

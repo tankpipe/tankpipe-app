@@ -1,6 +1,7 @@
 import { render, cleanup, waitFor } from '@testing-library/svelte'
 import EditSchedule from '../src/schedules/EditSchedule.svelte'
 import { accounts } from '../src/stores/accounts.js'
+import { settings } from '../src/stores/settings.js'
 import { page, views, modes } from '../src/stores/page.js'
 import account_data from './data/account_data.json'
 import { mockIPC } from "@tauri-apps/api/mocks"
@@ -141,5 +142,70 @@ it('shows end date selected in edit mode when schedule has end_date', async () =
     expect(noEndRadio).toBeTruthy()
     expect(endRadio.checked).toBe(true)
     expect(noEndRadio.checked).toBe(false)
+  })
+})
+
+it('allows saving a single-entry schedule when double-entry is disabled', async () => {
+  settings.set({ require_double_entry: false })
+  page.set({ view: views.SCHEDULES, mode: modes.EDIT })
+
+  let updateCalls = 0
+  mockIPC((cmd) => {
+    switch (cmd) {
+      case 'modifiers':
+        return []
+      case 'schedule_transactions':
+        return []
+      case 'update_schedule':
+        updateCalls += 1
+        return {}
+      default:
+        return []
+    }
+  })
+
+  const close = () => {}
+  const loadSchedules = () => {}
+  const view = () => {}
+  const curSchedule = {
+    id: 'sched-single-1',
+    name: 'Single Entry Schedule',
+    description: 'Single',
+    amount: '50',
+    dr_account_id: account_data[0].id,
+    cr_account_id: null,
+    period: 'Months',
+    frequency: 1,
+    start_date: '2026-01-31',
+    end_date: 'null',
+    last_date: 'null',
+    modifier_configs: [],
+    schedule_modifiers: [],
+    entries: [
+      {
+        id: 'e1',
+        schedule_id: 'sched-single-1',
+        account_id: account_data[0].id,
+        description: 'Single entry',
+        amount: '50',
+        entry_type: 'Debit',
+        date: '2026-01-31'
+      }
+    ]
+  }
+
+  const { container, findByText } = render(EditSchedule, {
+    close,
+    curSchedule,
+    loadSchedules,
+    view,
+  })
+
+  await findByText('Edit Schedule')
+  const saveButton = container.querySelector('.buttons .og-button:last-child')
+  saveButton.click()
+
+  await waitFor(() => {
+    expect(updateCalls).toBe(1)
   })
 })
