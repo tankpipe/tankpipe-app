@@ -10,7 +10,7 @@
     import TransactionList from '../transactions/TransactionList.svelte'
     import Spinner from '../components/Spinner.svelte';
 
-    let { close, edit, curSchedule } = $props()
+    let { close, edit, curSchedule, loadSchedules } = $props()
 
     let hasEnd = $state(false)
     let msg = $state("")
@@ -85,7 +85,7 @@
     const resolved = async (result) => {
         msg = successMsg
         await generate()
-        loadSchedules()
+        await loadSchedules()
     }
 
     function rejected(result) {

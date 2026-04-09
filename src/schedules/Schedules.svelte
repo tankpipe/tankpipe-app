@@ -116,6 +116,17 @@
         const result = await invoke('schedules')
         const schedulesList = Array.isArray(result) ? [...result] : []
         schedules = schedulesList
+
+        // Keep selected schedule in sync with the freshly loaded list.
+        if (curSchedule && curSchedule.id) {
+            const updated = schedulesList.find(s => s.id === curSchedule.id)
+            if (updated) {
+                curSchedule = { ...updated }
+                if (updated.entries) {
+                    curSchedule.entries = [...updated.entries]
+                }
+            }
+        }
     }
 
     const formatter = new Intl.NumberFormat('en-AU', {
@@ -155,7 +166,7 @@
 <EditSchedule {close} {curSchedule} {loadSchedules} {view}/>
 {/if}
 {#if isViewMode($page)}
-<Schedule {close} {edit} {curSchedule}/>
+<Schedule {close} {edit} {curSchedule} {loadSchedules} />
 {/if}
 {#if isListMode($page)}
 <div class="controls">

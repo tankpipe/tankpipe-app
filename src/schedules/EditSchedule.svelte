@@ -202,7 +202,7 @@
         close()
     }
 
-    const onAdd = () => {
+    const onSave = () => {
         msg = ""
         errors = new Errors()
         if (!name || name.length < 1) {
@@ -220,7 +220,6 @@
         entries.forEach((e, i) => validateEntry(e, i, errors))
 
         if (!errors.hasErrors()) {
-            // Update entry types before processing for saving
             updateEntryTypes()
 
             let dateStr = date.getFullYear()+ "-" + (date.getMonth() + 1) + "-" + date.getDate()
@@ -279,7 +278,7 @@
     const resolved = async (result) => {
       msg = successMsg
       await generate()
-      loadSchedules()
+      await loadSchedules()
     }
 
     function rejected(result) {
@@ -425,7 +424,7 @@
         <MessagePanel {errors} {msg} />
         <div class="widget buttons">
             <button class="og-button" onclick={onCancel}>{$_('buttons.close')}</button>
-            <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
+            <button class="og-button" onclick={onSave}>{addButtonLabel}</button>
         </div>
     </div>
 </div>
