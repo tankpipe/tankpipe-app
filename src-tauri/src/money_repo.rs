@@ -828,7 +828,7 @@ mod tests {
                 .csv_mappings
                 .get(&account_id)
                 .unwrap()
-                .column_types
+                .columns
                 .len(),
             4
         );

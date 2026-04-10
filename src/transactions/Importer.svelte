@@ -33,6 +33,7 @@
     let reverseDebitSign = $state(false)
     let reverseCreditSign = $state(false)
     let reverseBalanceSign = $state(false)
+    let signReversedColumns = $state([])
 
     const COLUMN_TYPES_MAP = {
         "Date": {name: $_('labels.date'), id: "Date"},
@@ -115,18 +116,18 @@
     function loaded(result) {
         console.log(result)
         rows = result.sample_rows.slice(0, 20)
-        columnTypes = result.column_types.columns
+        columnTypes = result.columns.columns
         showReverseDrCrMsg = result.dr_cr_reversed
-        const signReversed = result.sign_reversed || []
-        reverseDebitSign = signReversed.includes("Debit")
-        reverseCreditSign = signReversed.includes("Credit")
-        reverseBalanceSign = signReversed.includes("Balance")
+        signReversedColumns = result.sign_reversed_columns || []
+        reverseDebitSign = signReversedColumns.includes("Debit")
+        reverseCreditSign = signReversedColumns.includes("Credit")
+        reverseBalanceSign = signReversedColumns.includes("Balance")
         if (result.date_format && DATE_FORMATS.some(dateFormat => dateFormat.format === result.date_format)) {
             importDateFormat = result.date_format
             dateFormatMatched = true
             mappedDateFormat = result.date_format
         }
-        columns = result.column_types.columns.map(c => ({name: c}))
+        columns = result.columns.columns.map(c => ({name: c}))
         selectedColumns = []
         columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
         mappingExists = result.mapping_exists
@@ -155,6 +156,7 @@
         rows = []
         columnTypes = []
         selectedColumns = []
+        signReversedColumns = []
         columns = []
         requiredColumnsMatched = false
         dateFormatMatched = false
@@ -190,11 +192,11 @@
         await invoke('import_csv', {
             path: path,
             accountId: curAccount.id,
-            columnTypes: updatedColumns,
+            columns: updatedColumns,
             saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: selectedImportDateFormat,
-            signReversed: signReversed
+            signReversedColumns: signReversed
         }).then(importCompleted, rejected)
     }
 
@@ -218,13 +220,13 @@
         lastReconcileRequest = {
             path: path,
             accountId: curAccount.id,
-            columnTypes: updatedColumns,
+            columns: updatedColumns,
             hasHeaders: hasHeaderRow,
             importDateFormat: importDateFormat || DATE_FORMATS[1].format,
             reverseDebitSign: reverseDebitSign,
             reverseCreditSign: reverseCreditSign,
             reverseBalanceSign: reverseBalanceSign,
-            signReversed: selectedSignReversed()
+            signReversedColumns: selectedSignReversed()
         }
         console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat,
             reverseDebitSign: lastReconcileRequest.reverseDebitSign,
@@ -234,11 +236,11 @@
         await invoke('reconcile_csv', {
             path: path,
             accountId: curAccount.id,
-            columnTypes: updatedColumns,
+            columns: updatedColumns,
             saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: lastReconcileRequest.importDateFormat,
-            signReversed: lastReconcileRequest.signReversed
+            signReversedColumns: lastReconcileRequest.signReversed
         }).then(reconciliationCompleted, rejected)
     }
 
