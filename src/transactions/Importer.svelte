@@ -57,6 +57,13 @@
     const hasSelectedColumn = (id) => selectedColumns.some(col => col?.id === id)
     const hasSignColumnSelected = () =>
         hasSelectedColumn("Debit") || hasSelectedColumn("Credit") || hasSelectedColumn("Balance")
+    const selectedSignReversed = () => {
+        const signReversed = []
+        if (reverseDebitSign) signReversed.push("Debit")
+        if (reverseCreditSign) signReversed.push("Credit")
+        if (reverseBalanceSign) signReversed.push("Balance")
+        return signReversed
+    }
 
     $effect(() => {
         if ((!curAccount || !curAccount.id) && $accounts.length > 0) {
@@ -110,9 +117,10 @@
         rows = result.sample_rows.slice(0, 20)
         columnTypes = result.column_types.columns
         showReverseDrCrMsg = result.dr_cr_reversed
-        reverseDebitSign = result.sign_reversal?.debit || false
-        reverseCreditSign = result.sign_reversal?.credit || false
-        reverseBalanceSign = result.sign_reversal?.balance || false
+        const signReversed = result.sign_reversed || []
+        reverseDebitSign = signReversed.includes("Debit")
+        reverseCreditSign = signReversed.includes("Credit")
+        reverseBalanceSign = signReversed.includes("Balance")
         if (result.date_format && DATE_FORMATS.some(dateFormat => dateFormat.format === result.date_format)) {
             importDateFormat = result.date_format
             dateFormatMatched = true
@@ -177,6 +185,7 @@
             reverseDebitSign: reverseDebitSign,
             reverseCreditSign: reverseCreditSign,
             reverseBalanceSign: reverseBalanceSign})
+        const signReversed = selectedSignReversed()
 
         await invoke('import_csv', {
             path: path,
@@ -185,9 +194,7 @@
             saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: selectedImportDateFormat,
-            reverseDebitSign: reverseDebitSign,
-            reverseCreditSign: reverseCreditSign,
-            reverseBalanceSign: reverseBalanceSign
+            signReversed: signReversed
         }).then(importCompleted, rejected)
     }
 
@@ -216,7 +223,8 @@
             importDateFormat: importDateFormat || DATE_FORMATS[1].format,
             reverseDebitSign: reverseDebitSign,
             reverseCreditSign: reverseCreditSign,
-            reverseBalanceSign: reverseBalanceSign
+            reverseBalanceSign: reverseBalanceSign,
+            signReversed: selectedSignReversed()
         }
         console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat,
             reverseDebitSign: lastReconcileRequest.reverseDebitSign,
@@ -230,9 +238,7 @@
             saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: lastReconcileRequest.importDateFormat,
-            reverseDebitSign: lastReconcileRequest.reverseDebitSign,
-            reverseCreditSign: lastReconcileRequest.reverseCreditSign,
-            reverseBalanceSign: lastReconcileRequest.reverseBalanceSign
+            signReversed: lastReconcileRequest.signReversed
         }).then(reconciliationCompleted, rejected)
     }
 

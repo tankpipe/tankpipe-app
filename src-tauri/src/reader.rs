@@ -5,6 +5,7 @@ use csv::StringRecord;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use serde::de::Error;
+use std::collections::HashSet;
 use std::ops::Index;
 use std::path::Path;
 use uuid::Uuid;
@@ -12,7 +13,7 @@ use uuid::Uuid;
 use serde::Deserializer;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum ColumnType {
     Unknown,
     Date,
@@ -93,13 +94,6 @@ impl ColumnTypes {
     pub fn to_vec(&self) -> Vec<String> {
         self.columns.iter().map(|c| c.to_string()).collect()
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
-pub struct ColumnSignReversal {
-    pub debit: bool,
-    pub credit: bool,
-    pub balance: bool,
 }
 
 impl Index<usize> for ColumnTypes {
@@ -231,7 +225,7 @@ pub fn check_sign_reversal(
     normal_balance: Side,
     date_column: Option<usize>,
     date_format: Option<&str>,
-) -> ColumnSignReversal {
+) -> HashSet<ColumnType> {
     fn count_signs(rows: &Vec<Vec<String>>, column: usize) -> (usize, usize) {
         let mut negative = 0usize;
         let mut positive = 0usize;
@@ -428,14 +422,18 @@ pub fn check_sign_reversal(
         }
     }
 
-    let mut sign_reversal = ColumnSignReversal::default();
+    let mut sign_reversal = HashSet::new();
     if columns.has_column(ColumnType::Debit) {
         let (negative, positive) = count_signs(rows, columns.index_of(ColumnType::Debit));
-        sign_reversal.debit = should_reverse_by_prevalence(negative, positive);
+        if should_reverse_by_prevalence(negative, positive) {
+            sign_reversal.insert(ColumnType::Debit);
+        }
     }
     if columns.has_column(ColumnType::Credit) {
         let (negative, positive) = count_signs(rows, columns.index_of(ColumnType::Credit));
-        sign_reversal.credit = should_reverse_by_prevalence(negative, positive);
+        if should_reverse_by_prevalence(negative, positive) {
+            sign_reversal.insert(ColumnType::Credit);
+        }
     }
 
     if columns.has_column(ColumnType::Balance) {
@@ -444,8 +442,8 @@ pub fn check_sign_reversal(
             rows,
             columns,
             normal_balance,
-            sign_reversal.debit,
-            sign_reversal.credit,
+            sign_reversal.contains(&ColumnType::Debit),
+            sign_reversal.contains(&ColumnType::Credit),
             false,
             descending_dates,
         );
@@ -453,8 +451,8 @@ pub fn check_sign_reversal(
             rows,
             columns,
             normal_balance,
-            sign_reversal.debit,
-            sign_reversal.credit,
+            sign_reversal.contains(&ColumnType::Debit),
+            sign_reversal.contains(&ColumnType::Credit),
             true,
             descending_dates,
         );
@@ -462,8 +460,9 @@ pub fn check_sign_reversal(
         if normal_comparisons >= 2 && reversed_comparisons >= 2 {
             let normal_score = normal_matches as f64 / normal_comparisons as f64;
             let reversed_score = reversed_matches as f64 / reversed_comparisons as f64;
-            sign_reversal.balance = reversed_score > (normal_score + 0.2)
-                && reversed_matches >= normal_matches + 1;
+            if reversed_score > (normal_score + 0.2) && reversed_matches >= normal_matches + 1 {
+                sign_reversal.insert(ColumnType::Balance);
+            }
         }
     }
 
@@ -501,11 +500,11 @@ pub fn read_transactions<P: AsRef<Path>>(
     columns: &ColumnTypes,
     has_headers: bool,
     normal_balance: Side,
-    sign_reversal: &ColumnSignReversal,
+    sign_reversed: &HashSet<ColumnType>,
 ) -> Result<Vec<Transaction>, BooksError> {
     println!(
-        "read_transactions : {:?}, fmt: {}, has_headers: {}, sign_reversal: {:?}",
-        columns, fmt, has_headers, sign_reversal
+        "read_transactions : {:?}, fmt: {}, has_headers: {}, sign_reversed: {:?}",
+        columns, fmt, has_headers, sign_reversed
     );
     validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
@@ -524,7 +523,7 @@ pub fn read_transactions<P: AsRef<Path>>(
                         account_id,
                         fmt,
                         normal_balance,
-                        sign_reversal,
+                        sign_reversed,
                     )?),
                     Err(e) => println!("Skipping row as unabled to process. Error: {:?}", e),
                 }
@@ -547,11 +546,11 @@ fn to_transaction(
     account_id: Uuid,
     fmt: &str,
     normal_balance: Side,
-    sign_reversal: &ColumnSignReversal,
+    sign_reversed: &HashSet<ColumnType>,
 ) -> Result<Transaction, BooksError> {
     let date = parse_date_str(get_value(&row, columns, ColumnType::Date)?, fmt)?;
-    let (amount, entry_type) = determine_amount(&row, columns, normal_balance, sign_reversal)?;
-    let balance = get_balance(&row, columns, sign_reversal)?;
+    let (amount, entry_type) = determine_amount(&row, columns, normal_balance, sign_reversed)?;
+    let balance = get_balance(&row, columns, sign_reversed)?;
     let entry = Entry {
         id: Uuid::new_v4(),
         transaction_id: Uuid::new_v4(),
@@ -575,11 +574,11 @@ fn to_transaction(
 fn get_balance(
     row: &Vec<String>,
     columns: &ColumnTypes,
-    sign_reversal: &ColumnSignReversal,
+    sign_reversed: &HashSet<ColumnType>,
 ) -> Result<Option<Decimal>, BooksError> {
     let balance = if columns.has_column(ColumnType::Balance) {
         let mut parsed = parse_money_str(get_value(row, columns, ColumnType::Balance)?)?;
-        if sign_reversal.balance {
+        if sign_reversed.contains(&ColumnType::Balance) {
             parsed = -parsed;
         }
         Some(parsed)
@@ -593,7 +592,7 @@ fn determine_amount(
     row: &Vec<String>,
     columns: &ColumnTypes,
     normal_balance: Side,
-    sign_reversal: &ColumnSignReversal,
+    sign_reversed: &HashSet<ColumnType>,
 ) -> Result<(Decimal, Side), BooksError> {
     if columns.has_column(ColumnType::Amount) {
         let amount = parse_money_str(get_value(&row, columns, ColumnType::Amount)?)?;
@@ -601,10 +600,10 @@ fn determine_amount(
     } else {
         let mut debit = parse_money_str(get_value(&row, columns, ColumnType::Debit)?)?;
         let mut credit = parse_money_str(get_value(&row, columns, ColumnType::Credit)?)?;
-        if sign_reversal.debit {
+        if sign_reversed.contains(&ColumnType::Debit) {
             debit = -debit;
         }
-        if sign_reversal.credit {
+        if sign_reversed.contains(&ColumnType::Credit) {
             credit = -credit;
         }
         if debit > credit {
@@ -805,13 +804,13 @@ where
 #[cfg(test)]
 mod tests {
     use crate::reader::{
-        balance_impact, read_columns, read_transactions, ColumnSignReversal, ColumnType,
-        ColumnTypes,
+        balance_impact, read_columns, read_transactions, ColumnType, ColumnTypes,
     };
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
     use csv::StringRecord;
     use rust_decimal_macros::dec;
+    use std::collections::HashSet;
 
     use super::{
         check_date_format, check_sign_reversal, detect_columns, determine_amount, parse_date_str,
@@ -848,7 +847,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
-            &ColumnSignReversal::default(),
+            &HashSet::new(),
         );
         assert!(result.is_err());
         assert_eq!(
@@ -911,7 +910,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
-            &ColumnSignReversal::default(),
+            &HashSet::new(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -934,7 +933,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
-            &ColumnSignReversal::default(),
+            &HashSet::new(),
         );
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
@@ -951,7 +950,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
-            &ColumnSignReversal::default(),
+            &HashSet::new(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -974,7 +973,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
-            &ColumnSignReversal::default(),
+            &HashSet::new(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -1020,8 +1019,7 @@ mod tests {
             "1200.00".to_string(),
         ];
 
-        let (amount, side) =
-            determine_amount(&row, &columns, Side::Debit, &ColumnSignReversal::default()).unwrap();
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &HashSet::new()).unwrap();
 
         assert_eq!(dec!(1200.00), amount);
         assert_eq!(Side::Debit, side);
@@ -1040,8 +1038,7 @@ mod tests {
             "-25.50".to_string(),
         ];
 
-        let (amount, side) =
-            determine_amount(&row, &columns, Side::Debit, &ColumnSignReversal::default()).unwrap();
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &HashSet::new()).unwrap();
 
         assert_eq!(dec!(-25.50), amount);
         assert_eq!(Side::Credit, side);
@@ -1062,9 +1059,7 @@ mod tests {
             "20.00".to_string(),
         ];
 
-        let (amount, side) =
-            determine_amount(&row, &columns, Side::Credit, &ColumnSignReversal::default())
-                .unwrap();
+        let (amount, side) = determine_amount(&row, &columns, Side::Credit, &HashSet::new()).unwrap();
 
         assert_eq!(dec!(80.00), amount);
         assert_eq!(Side::Debit, side);
@@ -1085,8 +1080,7 @@ mod tests {
             "10.00".to_string(),
         ];
 
-        let (amount, side) =
-            determine_amount(&row, &columns, Side::Debit, &ColumnSignReversal::default()).unwrap();
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &HashSet::new()).unwrap();
 
         assert_eq!(dec!(10.00), amount);
         assert_eq!(Side::Credit, side);
@@ -1106,13 +1100,10 @@ mod tests {
             "".to_string(),
             "-5.80".to_string(),
         ];
-        let sign_reversal = ColumnSignReversal {
-            debit: false,
-            credit: true,
-            balance: false,
-        };
+        let mut sign_reversed = HashSet::new();
+        sign_reversed.insert(ColumnType::Credit);
 
-        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &sign_reversal).unwrap();
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &sign_reversed).unwrap();
         assert_eq!(dec!(5.80), amount);
         assert_eq!(Side::Credit, side);
     }
@@ -1152,11 +1143,11 @@ mod tests {
             ],
         ];
 
-        let sign_reversal =
+        let sign_reversed =
             check_sign_reversal(&rows, &columns, Side::Debit, Some(0), Some("%d/%m/%Y"));
-        assert!(sign_reversal.credit);
-        assert!(!sign_reversal.debit);
-        assert!(!sign_reversal.balance);
+        assert!(sign_reversed.contains(&ColumnType::Credit));
+        assert!(!sign_reversed.contains(&ColumnType::Debit));
+        assert!(!sign_reversed.contains(&ColumnType::Balance));
     }
 
     #[test]
@@ -1199,11 +1190,11 @@ mod tests {
             ],
         ];
 
-        let sign_reversal =
+        let sign_reversed =
             check_sign_reversal(&rows, &columns, Side::Credit, Some(0), Some("%d/%m/%Y"));
-        assert!(sign_reversal.debit);
-        assert!(!sign_reversal.credit);
-        assert!(!sign_reversal.balance);
+        assert!(sign_reversed.contains(&ColumnType::Debit));
+        assert!(!sign_reversed.contains(&ColumnType::Credit));
+        assert!(!sign_reversed.contains(&ColumnType::Balance));
     }
 
     #[test]

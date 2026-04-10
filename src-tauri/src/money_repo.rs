@@ -750,14 +750,13 @@ pub fn initial_setup() -> Result<Config, BooksError> {
 
 #[cfg(test)]
 mod tests {
-    use std::{ffi::OsString, path::PathBuf};
+    use std::{collections::HashSet, ffi::OsString, path::PathBuf};
 
     use crate::{
         csv_check::CsvMapping,
         money_repo::{
             derive_file_name, initial_setup, save_additional_data, setup_app_directories, Repo,
         },
-        reader::ColumnSignReversal,
     };
     use accounts::books_repo::file_exists;
     use serial_test::serial;
@@ -815,7 +814,7 @@ mod tests {
                     "Unknown".to_string(),
                 ],
                 Some(date_format.clone()),
-                ColumnSignReversal::default(),
+                HashSet::new(),
             ),
         );
         save_additional_data(file_path.as_os_str(), &additional_data).unwrap();

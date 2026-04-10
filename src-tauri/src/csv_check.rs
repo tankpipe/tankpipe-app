@@ -1,6 +1,8 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 
-use crate::reader::{ColumnSignReversal, ColumnType, ColumnTypes};
+use crate::reader::{ColumnType, ColumnTypes};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct CsvCheck {
@@ -10,7 +12,7 @@ pub struct CsvCheck {
     pub mapping_exists: bool,
     pub dr_cr_reversed: bool,
     pub date_format: Option<String>,
-    pub sign_reversal: ColumnSignReversal,
+    pub sign_reversed: HashSet<ColumnType>,
 }
 
 impl CsvCheck {
@@ -20,19 +22,19 @@ impl CsvCheck {
         sample_rows: Vec<Vec<String>>,
         reverse_cr_dr_default: bool,
         date_format: Option<String>,
-        sign_reversal: ColumnSignReversal,
+        sign_reversed: HashSet<ColumnType>,
     ) -> CsvCheck {
         let reversed = reverse_cr_dr_default
             && (column_types.has_column(ColumnType::Debit)
                 || column_types.has_column(ColumnType::Credit));
         CsvCheck {
             column_types: column_types.clone(),
-            header_row: header_row,
-            sample_rows: sample_rows,
+            header_row,
+            sample_rows,
             mapping_exists: false,
             dr_cr_reversed: reversed,
-            date_format: date_format,
-            sign_reversal,
+            date_format,
+            sign_reversed,
         }
     }
 
@@ -44,7 +46,7 @@ impl CsvCheck {
             mapping_exists: mapping_exists,
             dr_cr_reversed: self.dr_cr_reversed,
             date_format: self.date_format,
-            sign_reversal: self.sign_reversal,
+            sign_reversed: self.sign_reversed,
         }
     }
 }
@@ -54,19 +56,19 @@ pub struct CsvMapping {
     pub column_types: ColumnTypes,
     pub date_format: Option<String>,
     #[serde(default)]
-    pub sign_reversal: ColumnSignReversal,
+    pub sign_reversed: HashSet<ColumnType>,
 }
 
 impl CsvMapping {
     pub fn new(
         columns: Vec<String>,
         date_format: Option<String>,
-        sign_reversal: ColumnSignReversal,
+        sign_reversed: HashSet<ColumnType>,
     ) -> CsvMapping {
         CsvMapping {
             column_types: ColumnTypes::from_vec(columns),
             date_format,
-            sign_reversal,
+            sign_reversed,
         }
     }
 }
