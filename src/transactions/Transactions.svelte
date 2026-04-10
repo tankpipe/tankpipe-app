@@ -186,6 +186,7 @@
         showFilter = !showFilter
 
         if (!showFilter) {
+            setCurrentScroll()
             descriptionFilter = ""
             filterList()
         }
