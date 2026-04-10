@@ -757,6 +757,7 @@ mod tests {
         money_repo::{
             derive_file_name, initial_setup, save_additional_data, setup_app_directories, Repo,
         },
+        reader::ColumnSignReversal,
     };
     use accounts::books_repo::file_exists;
     use serial_test::serial;
@@ -814,6 +815,7 @@ mod tests {
                     "Unknown".to_string(),
                 ],
                 Some(date_format.clone()),
+                ColumnSignReversal::default(),
             ),
         );
         save_additional_data(file_path.as_os_str(), &additional_data).unwrap();

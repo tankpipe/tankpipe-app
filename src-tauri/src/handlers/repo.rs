@@ -5,8 +5,8 @@ use crate::csv_check::{CsvCheck, CsvMapping};
 use crate::handlers::error_handler;
 use crate::money_repo::{save_additional_data, Repo};
 use crate::reader::{
-    check_csv_format, check_date_format, read_headers, read_rows, read_transactions, ColumnType,
-    ColumnTypes,
+    check_csv_format, check_date_format, check_sign_reversal, read_headers, read_rows,
+    read_transactions, ColumnSignReversal, ColumnType, ColumnTypes,
 };
 use crate::BooksState;
 use accounts::account::Account;
@@ -132,11 +132,11 @@ pub fn evaluate_csv(
                 Err(e) => Err(e),
             }
         }
-        None => check_and_read_plain_csv(&path),
+        None => check_and_read_plain_csv(&path, account.normal_balance()),
     }
 }
 
-fn check_and_read_plain_csv(path: &String) -> Result<CsvCheck, String> {
+fn check_and_read_plain_csv(path: &String, normal_balance: accounts::account::Side) -> Result<CsvCheck, String> {
     match check_csv_format(&path, true) {
         Ok(column_types) => {
             let header = read_headers(path).unwrap();
@@ -151,6 +151,17 @@ fn check_and_read_plain_csv(path: &String) -> Result<CsvCheck, String> {
                             date_format = Some(df);
                         }
                     }
+                    let sign_reversal = check_sign_reversal(
+                        &rows,
+                        &column_types,
+                        normal_balance,
+                        if column_types.has_column(ColumnType::Date) {
+                            Some(column_types.index_of(ColumnType::Date))
+                        } else {
+                            None
+                        },
+                        date_format.as_deref(),
+                    );
 
                     Ok(CsvCheck::create_new(
                         column_types,
@@ -158,6 +169,7 @@ fn check_and_read_plain_csv(path: &String) -> Result<CsvCheck, String> {
                         rows,
                         true,
                         date_format,
+                        sign_reversal,
                     ))
                 }
                 Err(e) => Err(e.error),
@@ -178,6 +190,7 @@ fn read_plain_csv(path: &String, csv_mapping: CsvMapping) -> Result<CsvCheck, St
             rows,
             true,
             csv_mapping.date_format,
+            csv_mapping.sign_reversal,
         )),
         Err(e) => Err(e.error),
     }
@@ -188,12 +201,26 @@ fn save_csv_mapping(
     account_id: Uuid,
     column_types: &[String],
     import_date_format: &str,
+    sign_reversal: &ColumnSignReversal,
 ) {
     let current_mapping = repo.additional_data.get_csv_mapping(account_id);
-    if current_mapping.is_none() || current_mapping.unwrap().column_types.to_vec() != column_types {
+    let mapping_changed = match current_mapping {
+        None => true,
+        Some(ref existing) => {
+            existing.column_types.to_vec() != column_types
+                || existing.date_format.as_deref() != Some(import_date_format)
+                || existing.sign_reversal != *sign_reversal
+        }
+    };
+
+    if mapping_changed {
         repo.additional_data.add_csv_mapping(
             account_id,
-            CsvMapping::new(column_types.to_vec(), Some(import_date_format.to_string())),
+            CsvMapping::new(
+                column_types.to_vec(),
+                Some(import_date_format.to_string()),
+                sign_reversal.clone(),
+            ),
         );
         let _ = save_additional_data(
             &repo.config.current_file.clone().unwrap().path.clone(),
@@ -211,8 +238,11 @@ pub fn import_csv(
     save_mapping: bool,
     has_headers: bool,
     import_date_format: String,
+    reverse_debit_sign: bool,
+    reverse_credit_sign: bool,
+    reverse_balance_sign: bool,
 ) -> Result<(), String> {
-    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format);
+    println!("import_csv: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?} reverse_debit_sign:{:?} reverse_credit_sign:{:?} reverse_balance_sign:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format, reverse_debit_sign, reverse_credit_sign, reverse_balance_sign);
     let mut mutex_guard: std::sync::MutexGuard<'_, Repo> = state.0.lock().unwrap();
 
     // Remove Balance from column types as it is calculated dynamically
@@ -222,6 +252,11 @@ pub fn import_csv(
         .collect();
 
     let account = mutex_guard.books.get_account(&account_id).map_err(|e| e.error)?;
+    let sign_reversal = ColumnSignReversal {
+        debit: reverse_debit_sign,
+        credit: reverse_credit_sign,
+        balance: reverse_balance_sign,
+    };
 
     let load_result = read_transactions(
         &path,
@@ -230,6 +265,7 @@ pub fn import_csv(
         &ColumnTypes::from_vec(column_types.clone()),
         has_headers,
         account.normal_balance(),
+        &sign_reversal,
     );
 
     match load_result {
@@ -246,7 +282,8 @@ pub fn import_csv(
                     &mut mutex_guard,
                     account_id,
                     &column_types,
-                    &import_date_format
+                    &import_date_format,
+                    &sign_reversal,
                 );
             }
             mutex_guard.check_interest();
@@ -266,10 +303,18 @@ pub fn reconcile_csv(
     save_mapping: bool,
     has_headers: bool,
     import_date_format: String,
+    reverse_debit_sign: bool,
+    reverse_credit_sign: bool,
+    reverse_balance_sign: bool,
 ) -> Result<Vec<ReconciliationItem>, String> {
-    println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format);
+    println!("reconcile_csv_2: {:?}, for account:{:?}. columns:{:?} save_mapping:{} has_headers:{} import_date_format:{:?} reverse_debit_sign:{:?} reverse_credit_sign:{:?} reverse_balance_sign:{:?}", path, account_id, column_types, save_mapping, has_headers, import_date_format, reverse_debit_sign, reverse_credit_sign, reverse_balance_sign);
     let mut mutex_guard = state.0.lock().unwrap();
     let account = mutex_guard.books.get_account(&account_id).map_err(|e| e.error)?;
+    let sign_reversal = ColumnSignReversal {
+        debit: reverse_debit_sign,
+        credit: reverse_credit_sign,
+        balance: reverse_balance_sign,
+    };
     let load_result = read_transactions(
         &path,
         account_id,
@@ -277,6 +322,7 @@ pub fn reconcile_csv(
         &ColumnTypes::from_vec(column_types.clone()),
         has_headers,
         account.normal_balance(),
+        &sign_reversal,
     );
 
     match load_result {
@@ -286,7 +332,8 @@ pub fn reconcile_csv(
                     &mut mutex_guard,
                     account_id,
                     &column_types,
-                    &import_date_format
+                    &import_date_format,
+                    &sign_reversal,
                 );
             }
             let reconciliation_result = mutex_guard
@@ -414,6 +461,7 @@ mod tests {
             ]),
             true, // has_headers
             normal_balance,
+            &ColumnSignReversal::default(),
         )
         .unwrap();
 
@@ -435,6 +483,7 @@ mod tests {
             ]),
             true, // has_headers
             normal_balance,
+            &ColumnSignReversal::default(),
         )
         .unwrap();
 

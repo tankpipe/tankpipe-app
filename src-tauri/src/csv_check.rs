@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::reader::{ColumnType, ColumnTypes};
+use crate::reader::{ColumnSignReversal, ColumnType, ColumnTypes};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct CsvCheck {
@@ -10,6 +10,7 @@ pub struct CsvCheck {
     pub mapping_exists: bool,
     pub dr_cr_reversed: bool,
     pub date_format: Option<String>,
+    pub sign_reversal: ColumnSignReversal,
 }
 
 impl CsvCheck {
@@ -19,6 +20,7 @@ impl CsvCheck {
         sample_rows: Vec<Vec<String>>,
         reverse_cr_dr_default: bool,
         date_format: Option<String>,
+        sign_reversal: ColumnSignReversal,
     ) -> CsvCheck {
         let reversed = reverse_cr_dr_default
             && (column_types.has_column(ColumnType::Debit)
@@ -30,6 +32,7 @@ impl CsvCheck {
             mapping_exists: false,
             dr_cr_reversed: reversed,
             date_format: date_format,
+            sign_reversal,
         }
     }
 
@@ -41,6 +44,7 @@ impl CsvCheck {
             mapping_exists: mapping_exists,
             dr_cr_reversed: self.dr_cr_reversed,
             date_format: self.date_format,
+            sign_reversal: self.sign_reversal,
         }
     }
 }
@@ -49,13 +53,20 @@ impl CsvCheck {
 pub struct CsvMapping {
     pub column_types: ColumnTypes,
     pub date_format: Option<String>,
+    #[serde(default)]
+    pub sign_reversal: ColumnSignReversal,
 }
 
 impl CsvMapping {
-    pub fn new(columns: Vec<String>, date_format: Option<String>) -> CsvMapping {
+    pub fn new(
+        columns: Vec<String>,
+        date_format: Option<String>,
+        sign_reversal: ColumnSignReversal,
+    ) -> CsvMapping {
         CsvMapping {
             column_types: ColumnTypes::from_vec(columns),
             date_format,
+            sign_reversal,
         }
     }
 }

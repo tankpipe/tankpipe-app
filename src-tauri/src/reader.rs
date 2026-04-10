@@ -95,6 +95,13 @@ impl ColumnTypes {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ColumnSignReversal {
+    pub debit: bool,
+    pub credit: bool,
+    pub balance: bool,
+}
+
 impl Index<usize> for ColumnTypes {
     type Output = ColumnType;
 
@@ -218,6 +225,251 @@ pub fn check_date_format(rows: &Vec<Vec<String>>, date_column: usize) -> Option<
     possible.iter().next().map(|fmt| fmt.to_string())
 }
 
+pub fn check_sign_reversal(
+    rows: &Vec<Vec<String>>,
+    columns: &ColumnTypes,
+    normal_balance: Side,
+    date_column: Option<usize>,
+    date_format: Option<&str>,
+) -> ColumnSignReversal {
+    fn count_signs(rows: &Vec<Vec<String>>, column: usize) -> (usize, usize) {
+        let mut negative = 0usize;
+        let mut positive = 0usize;
+        for row in rows {
+            let Some(value) = row.get(column) else { continue };
+            let Ok(amount) = parse_money_str(value.to_string()) else {
+                continue;
+            };
+            if amount.is_zero() {
+                continue;
+            }
+            if amount.is_sign_negative() {
+                negative += 1;
+            } else {
+                positive += 1;
+            }
+        }
+        (negative, positive)
+    }
+
+    fn should_reverse_by_prevalence(negative: usize, positive: usize) -> bool {
+        let total = negative + positive;
+        if total == 0 {
+            return false;
+        }
+        if positive == 0 {
+            return negative >= 1;
+        }
+        negative > positive
+    }
+
+    fn detect_descending_dates(
+        rows: &Vec<Vec<String>>,
+        date_column: Option<usize>,
+        date_format: Option<&str>,
+    ) -> Option<bool> {
+        let Some(column) = date_column else { return None };
+        let Some(format) = date_format else { return None };
+
+        let mut increasing = 0usize;
+        let mut decreasing = 0usize;
+
+        for window in rows.windows(2) {
+            let Some(left) = window[0].get(column) else {
+                continue;
+            };
+            let Some(right) = window[1].get(column) else {
+                continue;
+            };
+            let Ok(left_date) = NaiveDate::parse_from_str(left.trim(), format) else {
+                continue;
+            };
+            let Ok(right_date) = NaiveDate::parse_from_str(right.trim(), format) else {
+                continue;
+            };
+
+            if left_date < right_date {
+                increasing += 1;
+            } else if left_date > right_date {
+                decreasing += 1;
+            }
+        }
+
+        if increasing + decreasing < 2 {
+            None
+        } else {
+            Some(decreasing >= increasing)
+        }
+    }
+
+    fn side_balance_effect(normal_balance: Side, side: Side, amount: Decimal) -> Decimal {
+        if side == normal_balance {
+            amount
+        } else {
+            -amount
+        }
+    }
+
+    fn row_balance_impact(
+        row: &Vec<String>,
+        columns: &ColumnTypes,
+        normal_balance: Side,
+        reverse_debit: bool,
+        reverse_credit: bool,
+    ) -> Option<Decimal> {
+        if !columns.has_column(ColumnType::Debit) && !columns.has_column(ColumnType::Credit) {
+            return None;
+        }
+
+        let parse_column = |column: ColumnType| -> Option<Decimal> {
+            if !columns.has_column(column.clone()) {
+                return Some(Decimal::zero());
+            }
+            let value = get_value(row, columns, column).ok()?;
+            parse_money_str(value).ok()
+        };
+
+        let mut debit = parse_column(ColumnType::Debit)?;
+        let mut credit = parse_column(ColumnType::Credit)?;
+
+        if reverse_debit {
+            debit = -debit;
+        }
+        if reverse_credit {
+            credit = -credit;
+        }
+
+        if debit.is_zero() && credit.is_zero() {
+            return None;
+        }
+
+        Some(
+            side_balance_effect(normal_balance, Side::Debit, debit)
+                + side_balance_effect(normal_balance, Side::Credit, credit),
+        )
+    }
+
+    fn balance_value(row: &Vec<String>, columns: &ColumnTypes, reverse_balance: bool) -> Option<Decimal> {
+        if !columns.has_column(ColumnType::Balance) {
+            return None;
+        }
+        let value = get_value(row, columns, ColumnType::Balance).ok()?;
+        let parsed = parse_money_str(value).ok()?;
+        if reverse_balance {
+            Some(-parsed)
+        } else {
+            Some(parsed)
+        }
+    }
+
+    fn balance_match_score(
+        rows: &Vec<Vec<String>>,
+        columns: &ColumnTypes,
+        normal_balance: Side,
+        reverse_debit: bool,
+        reverse_credit: bool,
+        reverse_balance: bool,
+        descending_dates: Option<bool>,
+    ) -> (usize, usize) {
+        if rows.len() < 2 || !columns.has_column(ColumnType::Balance) {
+            return (0, 0);
+        }
+
+        let tolerance = dec!(0.02);
+
+        let score_for_orientation = |descending: bool| -> (usize, usize) {
+            let mut matches = 0usize;
+            let mut comparisons = 0usize;
+            for i in 0..(rows.len() - 1) {
+                let Some(current_balance) = balance_value(&rows[i], columns, reverse_balance) else {
+                    continue;
+                };
+                let Some(next_balance) = balance_value(&rows[i + 1], columns, reverse_balance) else {
+                    continue;
+                };
+
+                let (delta, txn_row) = if descending {
+                    (current_balance - next_balance, &rows[i])
+                } else {
+                    (next_balance - current_balance, &rows[i + 1])
+                };
+
+                let Some(impact) = row_balance_impact(
+                    txn_row,
+                    columns,
+                    normal_balance,
+                    reverse_debit,
+                    reverse_credit,
+                ) else {
+                    continue;
+                };
+
+                comparisons += 1;
+                if (delta - impact).abs() <= tolerance {
+                    matches += 1;
+                }
+            }
+            (matches, comparisons)
+        };
+
+        match descending_dates {
+            Some(descending) => score_for_orientation(descending),
+            None => {
+                let (m1, c1) = score_for_orientation(true);
+                let (m2, c2) = score_for_orientation(false);
+                let s1 = if c1 > 0 { m1 as f64 / c1 as f64 } else { 0.0 };
+                let s2 = if c2 > 0 { m2 as f64 / c2 as f64 } else { 0.0 };
+                if s1 >= s2 {
+                    (m1, c1)
+                } else {
+                    (m2, c2)
+                }
+            }
+        }
+    }
+
+    let mut sign_reversal = ColumnSignReversal::default();
+    if columns.has_column(ColumnType::Debit) {
+        let (negative, positive) = count_signs(rows, columns.index_of(ColumnType::Debit));
+        sign_reversal.debit = should_reverse_by_prevalence(negative, positive);
+    }
+    if columns.has_column(ColumnType::Credit) {
+        let (negative, positive) = count_signs(rows, columns.index_of(ColumnType::Credit));
+        sign_reversal.credit = should_reverse_by_prevalence(negative, positive);
+    }
+
+    if columns.has_column(ColumnType::Balance) {
+        let descending_dates = detect_descending_dates(rows, date_column, date_format);
+        let (normal_matches, normal_comparisons) = balance_match_score(
+            rows,
+            columns,
+            normal_balance,
+            sign_reversal.debit,
+            sign_reversal.credit,
+            false,
+            descending_dates,
+        );
+        let (reversed_matches, reversed_comparisons) = balance_match_score(
+            rows,
+            columns,
+            normal_balance,
+            sign_reversal.debit,
+            sign_reversal.credit,
+            true,
+            descending_dates,
+        );
+
+        if normal_comparisons >= 2 && reversed_comparisons >= 2 {
+            let normal_score = normal_matches as f64 / normal_comparisons as f64;
+            let reversed_score = reversed_matches as f64 / reversed_comparisons as f64;
+            sign_reversal.balance = reversed_score > (normal_score + 0.2)
+                && reversed_matches >= normal_matches + 1;
+        }
+    }
+
+    sign_reversal
+}
+
 pub fn read_rows<P: AsRef<Path>>(
     path: &P,
     reverse_dr_cr: bool,
@@ -249,10 +501,11 @@ pub fn read_transactions<P: AsRef<Path>>(
     columns: &ColumnTypes,
     has_headers: bool,
     normal_balance: Side,
+    sign_reversal: &ColumnSignReversal,
 ) -> Result<Vec<Transaction>, BooksError> {
     println!(
-        "read_transactions : {:?}, fmt: {}, has_headers: {}",
-        columns, fmt, has_headers
+        "read_transactions : {:?}, fmt: {}, has_headers: {}, sign_reversal: {:?}",
+        columns, fmt, has_headers, sign_reversal
     );
     validate_columns(&columns)?;
     let rdr = csv::ReaderBuilder::new()
@@ -265,7 +518,14 @@ pub fn read_transactions<P: AsRef<Path>>(
 
             for result in reader.deserialize() {
                 match result {
-                    Ok(item) => transactions.push(to_transaction(&columns, item, account_id, fmt, normal_balance)?),
+                    Ok(item) => transactions.push(to_transaction(
+                        &columns,
+                        item,
+                        account_id,
+                        fmt,
+                        normal_balance,
+                        sign_reversal,
+                    )?),
                     Err(e) => println!("Skipping row as unabled to process. Error: {:?}", e),
                 }
             }
@@ -287,10 +547,11 @@ fn to_transaction(
     account_id: Uuid,
     fmt: &str,
     normal_balance: Side,
+    sign_reversal: &ColumnSignReversal,
 ) -> Result<Transaction, BooksError> {
     let date = parse_date_str(get_value(&row, columns, ColumnType::Date)?, fmt)?;
-    let (amount, entry_type) = determine_amount(&row, columns, normal_balance)?;
-    let balance = get_balance(&row, columns)?;
+    let (amount, entry_type) = determine_amount(&row, columns, normal_balance, sign_reversal)?;
+    let balance = get_balance(&row, columns, sign_reversal)?;
     let entry = Entry {
         id: Uuid::new_v4(),
         transaction_id: Uuid::new_v4(),
@@ -311,9 +572,17 @@ fn to_transaction(
     })
 }
 
-fn get_balance(row: &Vec<String>, columns: &ColumnTypes) -> Result<Option<Decimal>, BooksError> {
+fn get_balance(
+    row: &Vec<String>,
+    columns: &ColumnTypes,
+    sign_reversal: &ColumnSignReversal,
+) -> Result<Option<Decimal>, BooksError> {
     let balance = if columns.has_column(ColumnType::Balance) {
-        Some(parse_money_str(get_value(row, columns, ColumnType::Balance)?).unwrap())
+        let mut parsed = parse_money_str(get_value(row, columns, ColumnType::Balance)?)?;
+        if sign_reversal.balance {
+            parsed = -parsed;
+        }
+        Some(parsed)
     } else {
         None
     };
@@ -324,13 +593,20 @@ fn determine_amount(
     row: &Vec<String>,
     columns: &ColumnTypes,
     normal_balance: Side,
+    sign_reversal: &ColumnSignReversal,
 ) -> Result<(Decimal, Side), BooksError> {
     if columns.has_column(ColumnType::Amount) {
         let amount = parse_money_str(get_value(&row, columns, ColumnType::Amount)?)?;
         Ok((amount, balance_impact(normal_balance, amount)))
     } else {
-        let debit = parse_money_str(get_value(&row, columns, ColumnType::Debit)?)?;
-        let credit = parse_money_str(get_value(&row, columns, ColumnType::Credit)?)?;
+        let mut debit = parse_money_str(get_value(&row, columns, ColumnType::Debit)?)?;
+        let mut credit = parse_money_str(get_value(&row, columns, ColumnType::Credit)?)?;
+        if sign_reversal.debit {
+            debit = -debit;
+        }
+        if sign_reversal.credit {
+            credit = -credit;
+        }
         if debit > credit {
             Ok((debit, Side::Debit))
         } else {
@@ -528,13 +804,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::reader::{balance_impact, read_columns, read_transactions, ColumnType, ColumnTypes};
+    use crate::reader::{
+        balance_impact, read_columns, read_transactions, ColumnSignReversal, ColumnType,
+        ColumnTypes,
+    };
     use accounts::account::{Account, AccountType, Side};
     use chrono::NaiveDate;
     use csv::StringRecord;
     use rust_decimal_macros::dec;
 
-    use super::{check_date_format, detect_columns, determine_amount, parse_date_str};
+    use super::{
+        check_date_format, check_sign_reversal, detect_columns, determine_amount, parse_date_str,
+    };
 
     #[test]
     fn test_parse_date_str() {
@@ -567,6 +848,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
+            &ColumnSignReversal::default(),
         );
         assert!(result.is_err());
         assert_eq!(
@@ -629,6 +911,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
+            &ColumnSignReversal::default(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -651,6 +934,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
+            &ColumnSignReversal::default(),
         );
         assert!(result.is_err());
         assert_eq!("Unable to parse date '31/05/2022' using format '%Y-%M-%D': input contains invalid characters", result.unwrap_err().error);
@@ -667,6 +951,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
+            &ColumnSignReversal::default(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -689,6 +974,7 @@ mod tests {
             &columns,
             true,
             account.normal_balance(),
+            &ColumnSignReversal::default(),
         )
         .unwrap();
         assert_eq!(4, transactions.len());
@@ -734,7 +1020,8 @@ mod tests {
             "1200.00".to_string(),
         ];
 
-        let (amount, side) = determine_amount(&row, &columns, Side::Debit).unwrap();
+        let (amount, side) =
+            determine_amount(&row, &columns, Side::Debit, &ColumnSignReversal::default()).unwrap();
 
         assert_eq!(dec!(1200.00), amount);
         assert_eq!(Side::Debit, side);
@@ -753,7 +1040,8 @@ mod tests {
             "-25.50".to_string(),
         ];
 
-        let (amount, side) = determine_amount(&row, &columns, Side::Debit).unwrap();
+        let (amount, side) =
+            determine_amount(&row, &columns, Side::Debit, &ColumnSignReversal::default()).unwrap();
 
         assert_eq!(dec!(-25.50), amount);
         assert_eq!(Side::Credit, side);
@@ -774,7 +1062,9 @@ mod tests {
             "20.00".to_string(),
         ];
 
-        let (amount, side) = determine_amount(&row, &columns, Side::Credit).unwrap();
+        let (amount, side) =
+            determine_amount(&row, &columns, Side::Credit, &ColumnSignReversal::default())
+                .unwrap();
 
         assert_eq!(dec!(80.00), amount);
         assert_eq!(Side::Debit, side);
@@ -795,10 +1085,125 @@ mod tests {
             "10.00".to_string(),
         ];
 
-        let (amount, side) = determine_amount(&row, &columns, Side::Debit).unwrap();
+        let (amount, side) =
+            determine_amount(&row, &columns, Side::Debit, &ColumnSignReversal::default()).unwrap();
 
         assert_eq!(dec!(10.00), amount);
         assert_eq!(Side::Credit, side);
+    }
+
+    #[test]
+    fn test_determine_amount_with_sign_reversal_for_credit_column() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "debit".to_string(),
+            "credit".to_string(),
+        ]);
+        let row = vec![
+            "05/04/2026".to_string(),
+            "Card Purchase".to_string(),
+            "".to_string(),
+            "-5.80".to_string(),
+        ];
+        let sign_reversal = ColumnSignReversal {
+            debit: false,
+            credit: true,
+            balance: false,
+        };
+
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &sign_reversal).unwrap();
+        assert_eq!(dec!(5.80), amount);
+        assert_eq!(Side::Credit, side);
+    }
+
+    #[test]
+    fn test_check_sign_reversal_detects_negative_credit_for_transaction_account() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "credit".to_string(),
+            "balance".to_string(),
+        ]);
+        let rows = vec![
+            vec![
+                "Date".to_string(),
+                "Description".to_string(),
+                "Credit".to_string(),
+                "Balance".to_string(),
+            ],
+            vec![
+                "05/04/2026".to_string(),
+                "Purchase".to_string(),
+                "-5.8".to_string(),
+                "1285.76".to_string(),
+            ],
+            vec![
+                "05/04/2026".to_string(),
+                "Transfer".to_string(),
+                "-1".to_string(),
+                "1291.56".to_string(),
+            ],
+            vec![
+                "30/03/2026".to_string(),
+                "Deposit".to_string(),
+                "1000".to_string(),
+                "1335.49".to_string(),
+            ],
+        ];
+
+        let sign_reversal =
+            check_sign_reversal(&rows, &columns, Side::Debit, Some(0), Some("%d/%m/%Y"));
+        assert!(sign_reversal.credit);
+        assert!(!sign_reversal.debit);
+        assert!(!sign_reversal.balance);
+    }
+
+    #[test]
+    fn test_check_sign_reversal_detects_negative_debit_for_loan_account() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "debit".to_string(),
+            "credit".to_string(),
+            "balance".to_string(),
+        ]);
+        let rows = vec![
+            vec![
+                "Date".to_string(),
+                "Description".to_string(),
+                "Debit".to_string(),
+                "Credit".to_string(),
+                "Balance".to_string(),
+            ],
+            vec![
+                "24/02/2026".to_string(),
+                "Loan Interest".to_string(),
+                "-2.64".to_string(),
+                "".to_string(),
+                "-15.83".to_string(),
+            ],
+            vec![
+                "09/02/2026".to_string(),
+                "Credit".to_string(),
+                "".to_string(),
+                "200".to_string(),
+                "-13.19".to_string(),
+            ],
+            vec![
+                "06/02/2026".to_string(),
+                "Credit".to_string(),
+                "".to_string(),
+                "1000".to_string(),
+                "-213.19".to_string(),
+            ],
+        ];
+
+        let sign_reversal =
+            check_sign_reversal(&rows, &columns, Side::Credit, Some(0), Some("%d/%m/%Y"));
+        assert!(sign_reversal.debit);
+        assert!(!sign_reversal.credit);
+        assert!(!sign_reversal.balance);
     }
 
     #[test]
