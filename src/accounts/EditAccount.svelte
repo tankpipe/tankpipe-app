@@ -159,7 +159,7 @@
             accountId: curAccount.id,
             toDate: {date: rollbackDateString}
         }).then(() => {
-            msg = $_('account.form.success.rollback')
+            msg = $_('account.reconcilationRollbackSuccess')
         }, rejected)
         loadAccounts()
     }
