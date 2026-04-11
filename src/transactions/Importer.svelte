@@ -239,7 +239,7 @@
 
     const REVERSABLE_COLUMNS = ["Debit", "Credit", "Balance"]
     const canBeSignReversed = (column) => {
-        return REVERSABLE_COLUMNS.includes(column)
+        return REVERSABLE_COLUMNS.includes(column) && (columns.includes("Debit") || columns.includes("Credit"))
     }
 
     const drCrIndex = () => {
