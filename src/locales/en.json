@@ -143,6 +143,7 @@
         "mergePrefill": "Updated with reconciliation values",
         "reconcileTransaction": "Reconcile transaction",
         "reconcileTransactions": "Reconcile transactions",
+        "reconcilable": "Included in reconciliation from any later transaction",
         "selectedForMerge": "Selected for merge",
         "mergeTarget": "Merge target",
         "schedule": "Schedule",

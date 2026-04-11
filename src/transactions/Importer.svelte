@@ -163,7 +163,6 @@
         const selectedImportDateFormat = importDateFormat || DATE_FORMATS[1].format
 
         console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeader, importDateFormat: selectedImportDateFormat,signReversedColumns: signReversedColumns})
-        const signReversed = selectedSignReversed()
 
         await invoke('import_csv', {
             path: path,

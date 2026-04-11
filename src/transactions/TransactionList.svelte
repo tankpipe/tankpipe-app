@@ -342,7 +342,11 @@
         if (reconciliationMode === RM.GUIDED) {
 
             if (transactionCanBeReconciled(t)) {
-                return 'reconcilable'
+                if (t.reconciliationStatus == 'Matched') {
+                    return 'can-reconcile'
+                } else {
+                    return 'reconcilable'
+                }
             }
 
             if (availableForMerge(t, e)) {
@@ -383,7 +387,7 @@
           {#if !journalMode}
             {@const e =  getEntry(t)}
             {#if e}
-                {@const reconciledContent = getReconciledCellType(t, e)}
+                {@const reconcileStatus = getReconciledCellType(t, e)}
                 <tr class="{selected ? 'selected' : ''} {t.entries.length == 1 ? 'single-entry' : ''} {isReconciliationRow ? 'reconciliation-row reconciliation-row-' + (t.reconciliationStatus?.toLowerCase() || '') : ''} {isReconciliationRow && reconcilationTargetAlreadyReconciled(t) ? ' reconciled-recon-row' : ''} {isOrphan(t, e)? 'orphan-row' : ''}"
                     onclick={true ? (event) => stopPropagationHandler(event, () => e && selectTransaction(t)) : undefined}
                     id={t.id}><!--{t.id}-->
@@ -400,9 +404,9 @@
                 <td class="{projected(t)} money">{getCreditAmount(e)}</td>
                 <td class="{projected(t)} money">{getBalance(e)}</td>
                 <td class="reconciled-cell" onclick={(event) => stopPropagationHandler(event, () => {})}>
-                    {#if reconciledContent === 'reconciled'}
+                    {#if reconcileStatus === 'reconciled'}
                         <div class="recon-status" title={$_('transaction.reconciled')}><Icon icon="mdi:check" width="16"/></div>
-                    {:else if reconciledContent === 'reconcilable'}
+                    {:else if reconcileStatus === 'can-reconcile'}
                         <button
                             class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
                             onclick={(event) => stopPropagationHandler(event, () => {if (t.reconciliationStatus == 'Matched') reconcileTransactions(e)})}
@@ -410,20 +414,25 @@
                             onmouseleave={() => hoveredReconIndex = null}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
-                    {:else if reconciledContent === 'merge'}
+                    {:else if reconcileStatus === 'reconcilable'}
+                        <button
+                            class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
+                            title={$_('transaction.reconcilable')}
+                        ><Icon icon="mdi:check" width="16"/></button>
+                    {:else if reconcileStatus === 'merge'}
                         <button
                             class={"merge-marker " + (isSelectedForMerge(t.id) ? "merge-marker-selected" : "")}
                             onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}
                             title={isSelectedForMerge(t.id) ? $_('transaction.selectedForMerge') : $_('transaction.mergeTarget')}>
                             {#if isSelectedForMerge(t.id)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
                         </button>
-                    {:else if reconciledContent === 'manual-reconcile'}
+                    {:else if reconcileStatus === 'manual-reconcile'}
                         <button
                             class="recon-marker "
                             onclick={(event) => { event.stopPropagation(); manualReconcile(e)()}}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
-                    {:else if reconciledContent === 'outstanding'}
+                    {:else if reconcileStatus === 'outstanding'}
                         <div class="recon-status" title={$_('transaction.outstanding')}><Icon icon="mdi:circle-small" width="16"/></div>
                     {/if}
                 </td>
