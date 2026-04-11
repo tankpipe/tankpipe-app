@@ -24,7 +24,7 @@
     let mappingExists = $state(false);
     let path = $state("")
     let fileDialogShown = $state(false)
-    let hasHeaderRow = $state(true)
+    let hasHeader = $state(true)
     let rememberForNextTime = $state(true)
     let showReverseDrCrMsg = $state(false)
     let originalDrCrColumns = $state([])
@@ -119,7 +119,7 @@
                 hasSelectedColumn("Date") && hasSelectedColumn("Description") &&
                 (hasSelectedColumn("Amount") ||
                  hasSelectedColumn("Debit") && hasSelectedColumn("Credit"))
-        hasHeaderRow = !(columns.length > 0 && columns.every(e => e == "Unknown"))
+        hasHeader = result.has_header
     }
 
     function importCompleted(result) {
@@ -162,7 +162,7 @@
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         const selectedImportDateFormat = importDateFormat || DATE_FORMATS[1].format
 
-        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow, importDateFormat: selectedImportDateFormat,signReversedColumns: signReversedColumns})
+        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeader, importDateFormat: selectedImportDateFormat,signReversedColumns: signReversedColumns})
         const signReversed = selectedSignReversed()
 
         await invoke('import_csv', {
@@ -170,7 +170,7 @@
             accountId: curAccount.id,
             columns: updatedColumns,
             saveMapping: rememberForNextTime,
-            hasHeaders: hasHeaderRow,
+            hasHeaders: hasHeader,
             importDateFormat: selectedImportDateFormat,
             signReversedColumns: signReversedColumns
         }).then(importCompleted, rejected)
@@ -197,11 +197,11 @@
             path: path,
             accountId: curAccount.id,
             columns: updatedColumns,
-            hasHeaders: hasHeaderRow,
+            hasHeaders: hasHeader,
             importDateFormat: importDateFormat || DATE_FORMATS[1].format,
             signReversedColumns: signReversedColumns
         }
-        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat,
+        console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeader, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat,
             signReversedColumns: signReversedColumns})
 
         await invoke('reconcile_csv', {
@@ -209,7 +209,7 @@
             accountId: curAccount.id,
             columns: updatedColumns,
             saveMapping: rememberForNextTime,
-            hasHeaders: hasHeaderRow,
+            hasHeaders: hasHeader,
             importDateFormat: lastReconcileRequest.importDateFormat,
             signReversedColumns: lastReconcileRequest.signReversedColumns
         }).then(reconciliationCompleted, rejected)
@@ -273,7 +273,7 @@
     <div class="form-heading"></div>
     <div class="form-row2">
         <div class="widget">
-            <div class="label label-column">{$_('importer.has_header')}</div><input type="checkbox" bind:checked={hasHeaderRow} />
+            <div class="label label-column">{$_('importer.has_header')}</div><input type="checkbox" bind:checked={hasHeader} />
         </div>
     </div>
     <div class="form-row2">

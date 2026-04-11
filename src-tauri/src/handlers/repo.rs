@@ -140,14 +140,14 @@ pub fn evaluate_csv(
 
 fn check_and_read_plain_csv(path: &String, normal_balance: accounts::account::Side) -> Result<CsvCheck, String> {
     match check_csv_format(&path, true) {
-        Ok(column_types) => {
+        Ok(columns) => {
             let header = read_headers(path).unwrap();
             match read_rows(path, false) {
                 Ok(rows) => {
                     let mut date_format: Option<String> = None;
-                    if column_types.has_column(ColumnType::Date) {
+                    if columns.has_column(ColumnType::Date) {
                         if let Some(df) =
-                            check_date_format(&rows, column_types.index_of(ColumnType::Date))
+                            check_date_format(&rows, columns.index_of(ColumnType::Date))
                         {
                             println!("Date format: {:?}", df);
                             date_format = Some(df);
@@ -155,23 +155,25 @@ fn check_and_read_plain_csv(path: &String, normal_balance: accounts::account::Si
                     }
                     let sign_reversal = check_sign_reversal(
                         &rows,
-                        &column_types,
+                        &columns,
                         normal_balance,
-                        if column_types.has_column(ColumnType::Date) {
-                            Some(column_types.index_of(ColumnType::Date))
+                        if columns.has_column(ColumnType::Date) {
+                            Some(columns.index_of(ColumnType::Date))
                         } else {
                             None
                         },
                         date_format.as_deref(),
                     );
 
+                    let has_header = columns.len() > 0;
                     Ok(CsvCheck::create_new(
-                        column_types,
+                        columns,
                         header,
                         rows,
                         true,
                         date_format,
                         sign_reversal,
+                        has_header,
                     ))
                 }
                 Err(e) => Err(e.error),
@@ -193,6 +195,7 @@ fn read_plain_csv(path: &String, csv_mapping: CsvMapping) -> Result<CsvCheck, St
             true,
             csv_mapping.date_format,
             csv_mapping.sign_reversed_columns,
+            csv_mapping.has_header,
         )),
         Err(e) => Err(e.error),
     }
@@ -204,6 +207,7 @@ fn save_csv_mapping(
     columns: &[String],
     import_date_format: &str,
     sign_reversed_columns: &HashSet<ColumnType>,
+    header_row: bool,
 ) {
     let current_mapping = repo.additional_data.get_csv_mapping(account_id);
     let mapping_changed = match current_mapping {
@@ -222,6 +226,7 @@ fn save_csv_mapping(
                 columns.to_vec(),
                 Some(import_date_format.to_string()),
                 sign_reversed_columns.clone(),
+                header_row,
             ),
         );
         let _ = save_additional_data(
@@ -288,6 +293,7 @@ pub fn import_csv(
                     &column_types,
                     &import_date_format,
                     &sign_reversed,
+                    has_headers,
                 );
             }
             mutex_guard.check_interest();
@@ -332,6 +338,7 @@ pub fn reconcile_csv(
                     &columns,
                     &import_date_format,
                     &sign_reversed,
+                    has_headers,
                 );
             }
             let reconciliation_result = mutex_guard

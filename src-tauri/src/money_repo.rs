@@ -815,6 +815,7 @@ mod tests {
                 ],
                 Some(date_format.clone()),
                 HashSet::new(),
+                false,
             ),
         );
         save_additional_data(file_path.as_os_str(), &additional_data).unwrap();
@@ -839,6 +840,14 @@ mod tests {
                 .unwrap()
                 .date_format,
             Some(date_format.clone())
+        );
+        assert_eq!(
+            loaded_additional_data
+                .csv_mappings
+                .get(&account_id)
+                .unwrap()
+                .has_header,
+            false
         );
         std::fs::remove_file(OsString::from(file_path.clone())).unwrap();
     }

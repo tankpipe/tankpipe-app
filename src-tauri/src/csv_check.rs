@@ -13,6 +13,7 @@ pub struct CsvCheck {
     pub dr_cr_reversed: bool,
     pub date_format: Option<String>,
     pub sign_reversed_columns: HashSet<ColumnType>,
+    pub has_header: bool,
 }
 
 impl CsvCheck {
@@ -23,6 +24,7 @@ impl CsvCheck {
         reverse_cr_dr_default: bool,
         date_format: Option<String>,
         sign_reversed_columns: HashSet<ColumnType>,
+        has_header: bool,
     ) -> CsvCheck {
         let reversed = reverse_cr_dr_default
             && (columns.has_column(ColumnType::Debit)
@@ -35,6 +37,7 @@ impl CsvCheck {
             dr_cr_reversed: reversed,
             date_format,
             sign_reversed_columns,
+            has_header,
         }
     }
 
@@ -47,6 +50,7 @@ impl CsvCheck {
             dr_cr_reversed: self.dr_cr_reversed,
             date_format: self.date_format,
             sign_reversed_columns: self.sign_reversed_columns,
+            has_header: self.has_header,
         }
     }
 }
@@ -57,6 +61,7 @@ pub struct CsvMapping {
     pub date_format: Option<String>,
     #[serde(default)]
     pub sign_reversed_columns: HashSet<ColumnType>,
+    pub has_header: bool,
 }
 
 impl CsvMapping {
@@ -64,11 +69,13 @@ impl CsvMapping {
         columns: Vec<String>,
         date_format: Option<String>,
         sign_reversed_columns: HashSet<ColumnType>,
+        has_header: bool,
     ) -> CsvMapping {
         CsvMapping {
             columns: ColumnTypes::from_vec(columns),
             date_format,
             sign_reversed_columns,
+            has_header,
         }
     }
 }
