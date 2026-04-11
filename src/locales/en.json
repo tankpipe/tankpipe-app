@@ -256,6 +256,8 @@
         "reverse_dr_cr": "Debit/Credit columns reversed by default",
         "save_mappings": "Remember for next time",
         "reverse_signs": "Reverse signs",
+        "reverseSign": "Reverse sign",
+        "reverseSignTooltip": "Amounts should not normally be negative",
         "reverse_debit_sign": "Debit",
         "reverse_credit_sign": "Credit",
         "reverse_balance_sign": "Balance",

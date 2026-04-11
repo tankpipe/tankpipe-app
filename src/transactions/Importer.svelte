@@ -16,9 +16,8 @@
     let errors = $state(new Errors())
     let msg = $state("")
     let rows = $state([])
-    let columnTypes = $state([])
-    let selectedColumns = $state([])
     let columns = $state([])
+    let selectedColumns = $state([])
     let requiredColumnsMatched = $state(false);
     let dateFormatMatched = $state(false);
     let mappedDateFormat = $state("");
@@ -30,9 +29,6 @@
     let showReverseDrCrMsg = $state(false)
     let originalDrCrColumns = $state([])
     let importDateFormat = $state(DATE_FORMATS[1].format)
-    let reverseDebitSign = $state(false)
-    let reverseCreditSign = $state(false)
-    let reverseBalanceSign = $state(false)
     let signReversedColumns = $state([])
 
     const COLUMN_TYPES_MAP = {
@@ -56,15 +52,6 @@
     ]
 
     const hasSelectedColumn = (id) => selectedColumns.some(col => col?.id === id)
-    const hasSignColumnSelected = () =>
-        hasSelectedColumn("Debit") || hasSelectedColumn("Credit") || hasSelectedColumn("Balance")
-    const selectedSignReversed = () => {
-        const signReversed = []
-        if (reverseDebitSign) signReversed.push("Debit")
-        if (reverseCreditSign) signReversed.push("Credit")
-        if (reverseBalanceSign) signReversed.push("Balance")
-        return signReversed
-    }
 
     $effect(() => {
         if ((!curAccount || !curAccount.id) && $accounts.length > 0) {
@@ -116,27 +103,23 @@
     function loaded(result) {
         console.log(result)
         rows = result.sample_rows.slice(0, 20)
-        columnTypes = result.columns.columns
+        columns = result.columns.columns
         showReverseDrCrMsg = result.dr_cr_reversed
         signReversedColumns = result.sign_reversed_columns || []
-        reverseDebitSign = signReversedColumns.includes("Debit")
-        reverseCreditSign = signReversedColumns.includes("Credit")
-        reverseBalanceSign = signReversedColumns.includes("Balance")
         if (result.date_format && DATE_FORMATS.some(dateFormat => dateFormat.format === result.date_format)) {
             importDateFormat = result.date_format
             dateFormatMatched = true
             mappedDateFormat = result.date_format
         }
-        columns = result.columns.columns.map(c => ({name: c}))
         selectedColumns = []
-        columnTypes.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
+        columns.forEach(c => selectedColumns.push(COLUMN_TYPES_MAP[c]))
         mappingExists = result.mapping_exists
         rememberForNextTime = mappingExists
         requiredColumnsMatched =
                 hasSelectedColumn("Date") && hasSelectedColumn("Description") &&
                 (hasSelectedColumn("Amount") ||
                  hasSelectedColumn("Debit") && hasSelectedColumn("Credit"))
-        hasHeaderRow = !(columnTypes.length > 0 && columnTypes.every(e => e == "Unknown"))
+        hasHeaderRow = !(columns.length > 0 && columns.every(e => e == "Unknown"))
     }
 
     function importCompleted(result) {
@@ -154,16 +137,12 @@
         console.log(path)
         errors = new Errors()
         rows = []
-        columnTypes = []
+        columns = []
         selectedColumns = []
         signReversedColumns = []
-        columns = []
         requiredColumnsMatched = false
         dateFormatMatched = false
         mappedDateFormat = ""
-        reverseDebitSign = false
-        reverseCreditSign = false
-        reverseBalanceSign = false
         await invoke('evaluate_csv', {path: path, account: account}).then(loaded, rejected)
     }
 
@@ -183,10 +162,7 @@
         selectedColumns.forEach(c => updatedColumns.push(c.id))
         const selectedImportDateFormat = importDateFormat || DATE_FORMATS[1].format
 
-        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow, importDateFormat: selectedImportDateFormat,
-            reverseDebitSign: reverseDebitSign,
-            reverseCreditSign: reverseCreditSign,
-            reverseBalanceSign: reverseBalanceSign})
+        console.log('Calling import_csv with:', {path, accountId: curAccount.id, columnTypes: updatedColumns, saveMapping: rememberForNextTime, hasHeaders: hasHeaderRow, importDateFormat: selectedImportDateFormat,signReversedColumns: signReversedColumns})
         const signReversed = selectedSignReversed()
 
         await invoke('import_csv', {
@@ -196,7 +172,7 @@
             saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: selectedImportDateFormat,
-            signReversedColumns: signReversed
+            signReversedColumns: signReversedColumns
         }).then(importCompleted, rejected)
     }
 
@@ -223,15 +199,10 @@
             columns: updatedColumns,
             hasHeaders: hasHeaderRow,
             importDateFormat: importDateFormat || DATE_FORMATS[1].format,
-            reverseDebitSign: reverseDebitSign,
-            reverseCreditSign: reverseCreditSign,
-            reverseBalanceSign: reverseBalanceSign,
-            signReversedColumns: selectedSignReversed()
+            signReversedColumns: signReversedColumns
         }
         console.log('Calling reconcile_csv with:', {path, accountId: curAccount.id  , columnTypes: updatedColumns, hasHeaders: hasHeaderRow, reverseDrCr: showReverseDrCrMsg, importDateFormat: lastReconcileRequest.importDateFormat,
-            reverseDebitSign: lastReconcileRequest.reverseDebitSign,
-            reverseCreditSign: lastReconcileRequest.reverseCreditSign,
-            reverseBalanceSign: lastReconcileRequest.reverseBalanceSign})
+            signReversedColumns: signReversedColumns})
 
         await invoke('reconcile_csv', {
             path: path,
@@ -240,7 +211,7 @@
             saveMapping: rememberForNextTime,
             hasHeaders: hasHeaderRow,
             importDateFormat: lastReconcileRequest.importDateFormat,
-            signReversedColumns: lastReconcileRequest.signReversed
+            signReversedColumns: lastReconcileRequest.signReversedColumns
         }).then(reconciliationCompleted, rejected)
     }
 
@@ -258,6 +229,21 @@
 
     const dateFormatChange = () => {
         dateFormatMatched = (importDateFormat === mappedDateFormat)
+    }
+
+    const toggleSignReversal = (column) => {
+        signReversedColumns.includes(column) ?
+            signReversedColumns = signReversedColumns.filter(id => id !== column) :
+            signReversedColumns.push(column)
+    }
+
+    const REVERSABLE_COLUMNS = ["Debit", "Credit", "Balance"]
+    const canBeSignReversed = (column) => {
+        return REVERSABLE_COLUMNS.includes(column)
+    }
+
+    const drCrIndex = () => {
+        return selectedColumns.findIndex(col => col.id === 'Debit' || col.id === 'Credit')
     }
 
 </script>
@@ -303,24 +289,6 @@
             <div class="label label-column">{$_('importer.save_mappings')}</div><input type="checkbox" bind:checked={rememberForNextTime} />
         </div>
     </div>
-    {#if hasSignColumnSelected()}
-    <div class="form-row2">
-        <div class="widget">
-            <div class="label label-column">{$_('importer.reverse_signs')}</div>
-            <div class="field sign-options">
-                {#if hasSelectedColumn("Debit")}
-                <label><input type="checkbox" bind:checked={reverseDebitSign} /> {$_('importer.reverse_debit_sign')}</label>
-                {/if}
-                {#if hasSelectedColumn("Credit")}
-                <label><input type="checkbox" bind:checked={reverseCreditSign} /> {$_('importer.reverse_credit_sign')}</label>
-                {/if}
-                {#if hasSelectedColumn("Balance")}
-                <label><input type="checkbox" bind:checked={reverseBalanceSign} /> {$_('importer.reverse_balance_sign')}</label>
-                {/if}
-            </div>
-        </div>
-    </div>
-    {/if}
 </div>
 <div class="form-row2">
     <div class="widget">
@@ -332,14 +300,25 @@
 <div class="scroller" id="scroller">
     <table class="csv-table">
         <tbody>
-            <tr><th colspan="2">{$_('importer.columns')}</th><th colspan="{columnTypes.length - 2}"><div class="label label-column note">{#if showReverseDrCrMsg}{$_('importer.reverse_dr_cr')}{/if}</div></th></tr>
+            <tr><th colspan="1">{$_('importer.columns')}</th><th colspan={drCrIndex() - 1}></th><th colspan={selectedColumns.length - drCrIndex() - 1}><div class="label label-column note">{#if showReverseDrCrMsg}{$_('importer.reverse_dr_cr')}{/if}</div></th></tr>
             <tr class="shrink-font">
-            {#each columnTypes as c, i}
-                <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}"><Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} flat={true}/></td>
+            {#each columns as c, i}
+                <td class="{selectedColumns[i] && selectedColumns[i].id != "Unknown"?'matched ':' '}">
+                    <Select bind:item={selectedColumns[i]} items={COLUMN_TYPES} flat={true}/>
+                </td>
+            {/each}
+            </tr>
+            <tr class="sign-reversal">
+            {#each columns as c, i}
+                <td class="">
+                {#if canBeSignReversed(selectedColumns[i]?.id)}
+                    <label title={$_('importer.reverseSignTooltip')}>{$_('importer.reverseSign')}&nbsp;<input type="checkbox" checked={signReversedColumns.includes(selectedColumns[i]?.id)} onchange={(e) => toggleSignReversal(selectedColumns[i]?.id)} /></label>
+                {/if}
+                </td>
             {/each}
             </tr>
             <tr class="spacer"></tr>
-            <tr><th colspan="{columnTypes.length}">{$_('importer.sample_data')}</th></tr>
+            <tr><th colspan="{columns.length}">{$_('importer.sample_data')}</th></tr>
         {#each rows as r}
             <tr class="csv-row">
             {#each r as c}
@@ -375,16 +354,8 @@
         min-width: 11em;
     }
 
-
-
     .controls input {
         background-color: var(--color-input-bg);
-    }
-
-    .sign-options label {
-        display: inline-block;
-        margin-right: 12px;
-        margin-bottom: 4px;
     }
 
     .csv-table td {
@@ -420,6 +391,7 @@
         font-weight: 400;
         font-size: .8em;
         text-align: left;
+        padding-top: 0;
     }
 
     .scroller tr:hover td {
@@ -451,6 +423,22 @@
 
     .label-column {
         color: var(--color-text);
+    }
+
+    .sign-reversal td {
+        padding: 0px;
+        background-color: var(--color-bg);
+        text-align: center;
+    }
+
+    .sign-reversal label{
+        font-size: 0.8em;
+        color: var(--color-text-muted-2);
+    }
+
+    .sign-reversal input[type="checkbox"] {
+        height: .5em;
+        vertical-align: text-bottom;
     }
 
 </style>

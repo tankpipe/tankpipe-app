@@ -264,10 +264,11 @@
             const results = await invoke('reconcile_csv', {
                 path: lastReconciliationRequest.path,
                 accountId: curAccount.id,
-                columnTypes: lastReconciliationRequest.columnTypes,
+                columns: lastReconciliationRequest.columns,
                 hasHeaders: lastReconciliationRequest.hasHeaders,
                 saveMapping: false,
-                importDateFormat
+                importDateFormat,
+                signReversedColumns: lastReconciliationRequest.signReversedColumns
             })
             handleReconciliationResults(results, lastReconciliationRequest)
             return true
