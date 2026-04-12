@@ -56,6 +56,7 @@
                     }
                 } else {
                     item.matchedReconciliationId = result.matched_reconciliation_id
+                    item.signals = result.signals
                     previousTransaction = transaction
                 }
 
@@ -321,14 +322,29 @@
                new Date(lastReconciledDate).getTime() + MERGE_WINDOW_MARGIN >= new Date(e.date).getTime()
     }
 
-    const transactionCanBeReconciled = (t) => {
+    const availableToBeReconciled = (t) => {
         return !t.isReconciliationResult &&
             (t.reconciliationStatus == 'Matched' ||
-            (t.reconciliationStatus == 'PartialMatch' && !isSelectedForMerge(t.matchedReconciliationId)))
+            (t.reconciliationStatus == 'PartialMatch' && !mergeReconTransaction))
     }
 
     const availableForMerge = (t, e) => {
         return t.reconciliationStatus != 'Matched' && inMergeWindow(e) && !reconcilationTargetAlreadyReconciled(t)
+    }
+
+    const SIGNAL_THRESHOLDS = {
+        amount: 0.0,
+        side: 0,
+        date: 1,
+        description: 0.75,
+        balance: 0.0
+    }
+
+    const reconcilablePartial = (t) => {
+        if (t.reconciliationStatus == 'PartialMatch' && t.signals) {
+            return t.signals.every((signal) => signal.deviation <= SIGNAL_THRESHOLDS[signal.field])
+        }
+        return false
     }
 
     /**
@@ -341,8 +357,8 @@
 
         if (reconciliationMode === RM.GUIDED) {
 
-            if (transactionCanBeReconciled(t)) {
-                if (t.reconciliationStatus == 'Matched') {
+            if (availableToBeReconciled(t)) {
+                if (t.reconciliationStatus == 'Matched' || (t.reconciliationStatus == 'PartialMatch' && reconcilablePartial(t))) {
                     return 'can-reconcile'
                 } else {
                     return 'reconcilable'
@@ -409,14 +425,14 @@
                     {:else if reconcileStatus === 'can-reconcile'}
                         <button
                             class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
-                            onclick={(event) => stopPropagationHandler(event, () => {if (t.reconciliationStatus == 'Matched') reconcileTransactions(e)})}
-                            onmouseenter={() => {if (t.reconciliationStatus == 'Matched') hoveredReconIndex = i}}
+                            onclick={(event) => stopPropagationHandler(event, () => reconcileTransactions(e))}
+                            onmouseenter={() => hoveredReconIndex = i}
                             onmouseleave={() => hoveredReconIndex = null}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconcileStatus === 'reconcilable'}
                         <button
-                            class={"recon-marker " + (isHovered(i) ? " hover-highlight" : "")}
+                            class={"recon-marker recon-partial " + (isHovered(i) ? " hover-highlight" : "")}
                             title={$_('transaction.reconcilable')}
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconcileStatus === 'merge'}
@@ -637,6 +653,10 @@
         width: 30px !important;
         /* height: 24px !important; */
         margin-left: -6px !important;
+    }
+
+    .recon-partial {
+        border: none;
     }
 
     .recon-check {
