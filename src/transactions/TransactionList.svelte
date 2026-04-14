@@ -757,6 +757,10 @@
         border-bottom-left-radius: 3px;
     }
 
+    td:first-child {
+        border-left: 3px solid var(--color-bg);
+    }
+
     .error-msg {
         color: var(--color-error);
         text-align: left;
