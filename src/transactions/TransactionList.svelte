@@ -713,7 +713,6 @@
     .reconciliation-row td {
         background-color: var(--color-table-recon-row-bg);
         font-size: .7em;
-        line-height: .8em;
     }
 
     .reconciliation-row .reconciled-cell {
@@ -750,6 +749,12 @@
 
     .orphan-row td:last-child {
         border: none;
+    }
+
+    .single-entry td:first-child {
+        border-left: 3px solid var(--color-border-flagged) !important;
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
     }
 
     .error-msg {
