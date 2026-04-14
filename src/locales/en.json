@@ -146,6 +146,7 @@
         "reconcilable": "Included in reconciliation from any later transaction",
         "selectedForMerge": "Selected for merge",
         "mergeTarget": "Merge target",
+        "resetMerge": "Reset merge",
         "schedule": "Schedule",
         "interestOverride": "Interest projections will overwrite this transaction for the same date unless it is set to Recorded.",
         "sourceType": {

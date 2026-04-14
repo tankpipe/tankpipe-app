@@ -316,6 +316,17 @@
         return mergeTransaction && mergeTransaction.id == t_id || mergeReconTransaction && mergeReconTransaction.id== t_id
     }
 
+    const isPotentialMerge = (isReconciliationRow) => {
+        return (! mergeTransaction && ! mergeReconTransaction) ||
+            (isReconciliationRow && mergeTransaction && ! mergeReconTransaction) ||
+            (!isReconciliationRow && mergeReconTransaction && ! mergeTransaction)
+    }
+
+    const isPotentialMergeTarget = (t) => {
+        return (t.isReconciliationResult && mergeTransaction && ! mergeReconTransaction) ||
+            (!t.isReconciliationResult && mergeReconTransaction && ! mergeTransaction)
+    }
+
     const MERGE_WINDOW_MARGIN = 14 * 24 * 60 * 60 * 1000
     const inMergeWindow = (e) => {
         return new Date(firstReconciledDate).getTime() - MERGE_WINDOW_MARGIN <= new Date(e.date).getTime() &&
@@ -356,6 +367,10 @@
         }
 
         if (reconciliationMode === RM.GUIDED) {
+
+            if (isPotentialMergeTarget(t)) {
+                return 'merge'
+            }
 
             if (availableToBeReconciled(t)) {
                 if (t.reconciliationStatus == 'Matched' || (t.reconciliationStatus == 'PartialMatch' && reconcilablePartial(t))) {
@@ -437,14 +452,14 @@
                         ><Icon icon="mdi:check" width="16"/></button>
                     {:else if reconcileStatus === 'merge'}
                         <button
-                            class={"merge-marker " + (isSelectedForMerge(t.id) ? "merge-marker-selected" : "")}
+                            class={"merge-marker " + (isSelectedForMerge(t.id) ?  "merge-marker-selected " : "") + (isPotentialMerge(isReconciliationRow) ? " potential-target" : "")}
                             onclick={(event) => stopPropagationHandler(event, () => mergeTransactions(t))}
-                            title={isSelectedForMerge(t.id) ? $_('transaction.selectedForMerge') : $_('transaction.mergeTarget')}>
-                            {#if isSelectedForMerge(t.id)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:square-outline" width="16"/>{/if}
+                            title={isSelectedForMerge(t.id) ? $_('transaction.selectedForMerge') : (isPotentialMerge(isReconciliationRow) ? $_('transaction.mergeTarget') : $_('transaction.resetMerge'))}>
+                            {#if isSelectedForMerge(t.id)}<Icon icon="mdi:merge" width="16"/>{:else}<Icon icon="mdi:merge" width="16"/>{/if}
                         </button>
                     {:else if reconcileStatus === 'manual-reconcile'}
                         <button
-                            class="recon-marker "
+                            class="recon-marker manual-recon"
                             onclick={(event) => { event.stopPropagation(); manualReconcile(e)()}}
                             title={$_('transaction.reconcileTransactions')}
                         ><Icon icon="mdi:check" width="16"/></button>
@@ -564,8 +579,6 @@
         margin: 3px 0 -5px 2px;
     }
 
-
-
     .message {
         margin: 5px 0 20px 0;
     }
@@ -611,8 +624,18 @@
         margin-left: 1px;
     }
 
-    .merge-marker:hover, .merge-marker-selected {
-        color: var(--color-success-strong);
+    .potential-target:hover, .merge-marker-selected {
+        color: var(--color-success-strong) !important;
+    }
+
+    .merge-marker-selected.merge-marker-selected:hover, .merge-marker-recon:hover,  .merge-marker:hover {
+        color: var(--color-text);
+        cursor: pointer !important;
+    }
+
+    .manual-recon:hover {
+        cursor: pointer !important;
+        border: 1px solid var(--color-text-muted);
     }
 
     .merge-marker-selected {
@@ -620,13 +643,12 @@
     }
 
     .recon-marker {
-        border: none;
         background: transparent;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0 0 0 0px;
-        cursor: pointer;
+        cursor: pointer ;
         border-radius: 50%;
         border: 1px solid var(--color-border);
         color: transparent;
@@ -651,8 +673,8 @@
         box-shadow: none;
         font-weight: bold;
         width: 30px !important;
-        /* height: 24px !important; */
         margin-left: -6px !important;
+        cursor: pointer !important;
     }
 
     .recon-partial {

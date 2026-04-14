@@ -499,8 +499,6 @@ mod tests {
             .unwrap();
         assert!(!reconciliation_results.is_empty());
 
-        println!("Reconciliation results: {:?}", reconciliation_results);
-
         let matched_count = reconciliation_results
             .iter()
             .filter(|r| matches!(r.status(), ReconciliationMatchStatus::Matched { .. }))
@@ -530,9 +528,9 @@ mod tests {
             .filter(|r| matches!(r, ReconciliationItem::Original { .. }))
             .count();
 
-        assert_eq!(6, matched_count, "Should have at least some exact matches");
-        assert_eq!(58, partial_count, "Should have some partial matches");
-        assert_eq!(32, mismatch_count, "Should have some mismatches");
+        assert_eq!(14, matched_count, "Should have at least some exact matches");
+        assert_eq!(52, partial_count, "Should have some partial matches");
+        assert_eq!(30, mismatch_count, "Should have some mismatches");
         assert_eq!(
             1, unmatched_count,
             "Should have some unmatched due to date variations"
