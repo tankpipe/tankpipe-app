@@ -57,7 +57,8 @@ it('renders Projected transaction with projected class and fields', async () => 
     const { findByText, container, findAllByText } = render(TransactionList, {
         curAccount: account_data[0], // Account 1 present in projectedTx entries
         journalMode: false,
-        transactions: [projectedTx]
+        transactions: [projectedTx],
+        setTopScroll: vi.fn()
     })
 
     // Wait for render by ensuring description appears
@@ -106,7 +107,7 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
         {
             Original:{
                 transaction: reconciledTransaction,
-                matched_reconciliation_id: null, 
+                matched_reconciliation_id: null,
                 status: 'Unmatched',
                 balance: 100
             }
@@ -114,7 +115,7 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
         {
             Original:{
                 transaction: outstandingTransaction,
-                matched_reconciliation_id: null, 
+                matched_reconciliation_id: null,
                 status: 'Unmatched',
                 balance: 100
             }
@@ -122,7 +123,7 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
         {
             Original:{
                 transaction: unreconciledTransaction,
-                matched_reconciliation_id: unreconciledTransaction.id, 
+                matched_reconciliation_id: unreconciledTransaction.id,
                 status: 'Matched',
                 balance: 100
             }
@@ -164,7 +165,7 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
 
     // Debug: Check what's actually rendered
     console.log('Container HTML:', container.innerHTML);
-    
+
     // Check for reconciled content (check icon)
     const reconciledIcons = container.querySelectorAll('.reconciled-cell .mdi-check');
     console.log('Reconciled icons found:', reconciledIcons.length);
@@ -191,7 +192,7 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
 
 async function checkResults(mockFetchTransactions) {
     let transactions = [transaction_data[0], transaction_data[1]]
-    const { findAllByText, container } = render(TransactionList, { curAccount: account_data[0], journalMode: true, transactions: transactions })
+    const { findAllByText, container } = render(TransactionList, { curAccount: account_data[0], journalMode: true, transactions: transactions, setTopScroll: vi.fn() })
     const _waitForRenderUpdate = await findAllByText('A test transaction')
     // Note: Select should show Account 1 as selected but defaults to Account 3
     expect(container.outerHTML).toMatchSnapshot()

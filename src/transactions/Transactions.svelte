@@ -204,6 +204,7 @@
     }
 
     const clearFilter = () => {
+        topScroll = null
         descriptionFilter = ''
         if ($selector.isSelectAll) {
             toggleAllSelected(transactions)
