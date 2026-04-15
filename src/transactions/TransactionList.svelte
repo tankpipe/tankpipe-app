@@ -141,13 +141,14 @@
         const today = new Date().setHours(0, 0, 0, 0)
         let tDate
 
-        if (transactions) {
+        if (transactions && transactions.length > 0) {
             for (const t of transactions) {
                 tDate = new Date(t.entries[0].date)
                 if (tDate >= today) {
                     return t
                 }
             }
+            return transactions[transactions.length - 1]
         }
 
         return null
