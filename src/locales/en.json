@@ -220,6 +220,7 @@
         "deleteSelected": "Delete selected transactions",
         "filter": "Filter",
         "hideFilter": "Hide filter",
+        "filterSingle": "Show only single entry transactions",
         "hideSelect": "Hide select transactions",
         "importTransactions": "Import transactions",
         "manualReconciliation": "Manual reconciliation",

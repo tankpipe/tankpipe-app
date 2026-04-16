@@ -31,6 +31,7 @@
     let appliedPayloadAccountId = null
     let topScroll = $state(null)
     let showFilter = $state(false)
+    let filterSingle =  $state(false)
     let descriptionFilter = $state("")
     let allTransactions = []
     let transactions = $derived([])
@@ -146,10 +147,13 @@
     }
 
     const filterList = () => {
+        console.log("filterList", filterSingle)
         transactions = allTransactions.filter(
-            t => descriptionFilter == "" ||
+            t => (descriptionFilter == "" ||
             (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||
-            (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase())))
+            (!journalMode && getEntry(t).description.toLowerCase().includes(descriptionFilter.toLowerCase()))) &&
+            (!filterSingle || t.entries.length == 1))
+
     }
 
     const chartBalance = (balance) => {
@@ -190,6 +194,14 @@
             descriptionFilter = ""
             filterList()
         }
+    }
+
+    const toggleFilterSingle = () => {
+        filterSingle = !filterSingle
+        if (!filterSingle) {
+            setCurrentScroll()
+        }
+        filterList()
     }
 
     const getSortedSelectedTransactions = () => {
@@ -326,6 +338,7 @@
         <button type="button" class="{$selector.showMultipleSelect ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleMultipleSelect()}" title="{$selector.showMultipleSelect ? $_('transactions.hideSelect') : $_('transactions.showSelect')}"><Icon icon="mdi:checkbox-multiple-marked-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultiEdit && $selector.shapeMatch ? 'toolbar-icon' : 'toolbar-icon-disabled'}" onclick="{() => {if ($selector.showMultiEdit && $selector.shapeMatch) editTransactions()}}" title={$_('transactions.editSelected')}><Icon icon="mdi:edit-box-outline"  width="24"/></button>
         <button type="button" class="{$selector.showMultiEdit ? 'toolbar-icon' : 'toolbar-icon-disabled'} warning" onclick="{() => {if ($selector.showMultiEdit) deleteTransactions()}}" title={$_('transactions.deleteSelected')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
+        <button type="button" class="{filterSingle ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => toggleFilterSingle()}" title="{showFilter ? $_('transactions.hideFilter') : $_('transactions.filterSingle')}"><Icon icon="mdi:numeric-1-box-outline"  width="24"/></button>
         {#if curAccount && ! journalMode}
         <button type="button" class="{reconciliationMode === RM.MANUAL ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick={onManualReconciliationMode} title={$_('transactions.manualReconciliation')}
         >
