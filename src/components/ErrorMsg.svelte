@@ -7,13 +7,11 @@
     const listener = async () => {
 
         listen('show_errors', (event) => {
-            console.log(event)
             errors = []
             errors.push(...event.payload)
         })
 
         listen('clear_errors', (event) => {
-            console.log(event)
             errors = []
         })
 
@@ -32,7 +30,7 @@
     </div>
     {#each errors as e}
         <div class="error-msg">{e}</div>
-    {/each}    
+    {/each}
 </div>
 <hr class="fat-hr" />
 {/if}
@@ -51,7 +49,7 @@
         width: 100vw;
     }
 
-    
+
 
 </style>
 

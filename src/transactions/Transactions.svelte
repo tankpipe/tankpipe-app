@@ -147,7 +147,6 @@
     }
 
     const filterList = () => {
-        console.log("filterList", filterSingle)
         transactions = allTransactions.filter(
             t => (descriptionFilter == "" ||
             (journalMode && t.entries.filter(e => e.description.toLowerCase().includes(descriptionFilter.toLowerCase())).length > 0) ||

@@ -11,22 +11,18 @@ import { invoke } from '@tauri-apps/api/core'
 
 const listener = async () => {
     listen('file-open', (event) => {
-        console.log(event)
         openFile()
     })
 
     listen('file-new', (event) => {
-        console.log(event)
         page.set({view: views.BOOKS, mode: modes.NEW})
     })
 
     listen('preferences', (event) => {
-        console.log(event)
         page.set({view: views.SETTINGS, mode: modes.EDIT})
     })
 
     listen('file-backups', (event) => {
-        console.log(event)
         page.set({view: views.BACKUPS, mode: modes.LIST})
     })
 }
@@ -63,7 +59,6 @@ const loadFile = async (path) => {
 };
 
 const loadFileSuccess = async (result) => {
-    console.log(result)
     emit('file-loaded', "")
     updateAccounts(result)
     await loadSettings()
