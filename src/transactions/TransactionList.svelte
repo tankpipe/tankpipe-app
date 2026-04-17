@@ -1,7 +1,7 @@
 <script>
     import { config } from '../stores/config.js'
     import MessagePanel from '../components/MessagePanel.svelte'
-    import { accounts } from '../stores/accounts.js'
+    import { accounts, getAccountName } from '../stores/accounts.js'
     import { _ } from 'svelte-i18n'
     import { selector, toggleSelected, toggleAllSelected, isSelected } from './selector.js'
     import { invoke } from "@tauri-apps/api/core"
@@ -432,7 +432,7 @@
                     <div class="description">{e.description}</div>
                     {#each t.entries as en}
                         {#if en.account_id != curAccount.id}
-                        <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
+                        <div class="description tiny">{getAccountName(en.account_id)}</div>
                         {/if}
                     {/each}
                 </td>
@@ -489,7 +489,7 @@
                 {/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
                 <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}">
-                    <div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                    <div class="description">{getAccountName(e.account_id)}</div>
                     <div class="description tiny">{e.description}</div>
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e)}</td>

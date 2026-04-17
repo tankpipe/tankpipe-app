@@ -190,6 +190,24 @@ it('renders correctly in ReconciliationMode.GUIDED with all reconciliation conte
     expect(container.outerHTML).toMatchSnapshot();
 });
 
+it('handles transactions that reference missing accounts', async () => {
+    const transactions = JSON.parse(JSON.stringify([transaction_data[0]]))
+    transactions[0].entries[1].account_id = 'missing-account-id'
+
+    accounts.set([account_data[0]])
+    const { findAllByText, container } = render(TransactionList, {
+        curAccount: account_data[0],
+        journalMode: false,
+        transactions: transactions,
+        setTopScroll: vi.fn()
+    })
+
+    await findAllByText('A test transaction')
+    expect(container.textContent).not.toContain('undefined')
+
+    accounts.set(account_data)
+})
+
 async function checkResults(mockFetchTransactions) {
     let transactions = [transaction_data[0], transaction_data[1]]
     const { findAllByText, container } = render(TransactionList, { curAccount: account_data[0], journalMode: true, transactions: transactions, setTopScroll: vi.fn() })
@@ -203,4 +221,3 @@ function loadTransactions() {
     let transactions = [transaction_data[0], transaction_data[1]]
     mockIPC((cmd, args) => { return transactions });
 }
-

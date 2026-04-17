@@ -4,7 +4,7 @@
     import Select from '../components/Select.svelte'
     import Icon from '@iconify/svelte'
     import MessagePanel from '../components/MessagePanel.svelte'
-    import {accounts} from '../stores/accounts'
+    import {accounts, getAccountName} from '../stores/accounts'
     import {config, dateFormat} from '../stores/config'
     import { invoke } from "@tauri-apps/api/core"
     import { _ } from 'svelte-i18n'
@@ -217,6 +217,7 @@
 
     const projected = (t) => t.status == 'Projected' ? 'projected' : ''
     const date_class = date_style()
+
 </script>
 <div class="form">
     <div class="form-heading">{$_('editMultiple.form.editMultiple')}</div>
@@ -334,7 +335,7 @@
             <tr id={t.id + "_" + e.id}><!--{t.id}-->
                 <td><input id={"selected_" + t.id} type=checkbox checked={true} disabled={true}></td>
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{$accounts.find(a => a.id == e.account_id).name}</div>
+                <td class={projected(t)} style="{e.entry_type == 'Credit' ? 'padding-left: 30px' : ''}" title="{e.description}"><div class="description">{getAccountName(e.account_id)}</div>
                     <div class="description tiny">{e.description}</div>
                 </td>
                 <td class="{projected(t)} money">{getDebitAmount(e, curAccount)}</td>

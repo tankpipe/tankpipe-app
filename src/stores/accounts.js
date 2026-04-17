@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 
 const NORMAL_BALANCE = {
     Asset: 'Debit',
@@ -18,4 +18,8 @@ const normalBalance = (accountType) => {
     return NORMAL_BALANCE[accountType]
 }
 
-export {accounts as accounts, updateAccounts, normalBalance}
+const getAccountName = (accountId) => {
+    return get(accounts).find(a => a.id == accountId)?.name ?? ''
+}
+
+export {accounts as accounts, updateAccounts, normalBalance, getAccountName}
