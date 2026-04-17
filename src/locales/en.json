@@ -221,6 +221,7 @@
         "filter": "Filter",
         "hideFilter": "Hide filter",
         "filterSingle": "Show only single entry transactions",
+        "setFilter": "Filter by this description",
         "hideSelect": "Hide select transactions",
         "importTransactions": "Import transactions",
         "manualReconciliation": "Manual reconciliation",

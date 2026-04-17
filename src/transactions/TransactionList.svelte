@@ -9,7 +9,7 @@
     import { Errors } from '../utils/errors.js'
     import { ReconciliationMode as RM } from './reconciliation.js'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, rerunReconciliationIfNeeded, topScroll, setTopScroll, descriptionFilter = "" } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, rerunReconcisiationIfNeeded, topScroll, setTopScroll, descriptionFilter = "", setFilter, showFilter } = $props()
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
@@ -425,7 +425,11 @@
                     id={t.id}><!--{t.id}-->
                 {#if $selector.showMultipleSelect}<td onclick={(event) => stopPropagationHandler(event, () => handleToggleSelected(t))}>{#if noReconciledStatus(t)}<input id={"selected_" + t.id} type=checkbox checked={selected}>{/if}</td>{/if}
                 <td class={projected(t) + ' ' + date_class}>{getDate(e)}</td>
-                <td class={projected(t)} title="{e.description}"><div class="description">{e.description}</div>
+                <td class={projected(t)} title="{e.description}">
+                    {#if showFilter}
+                    <button class="single-button filter-button" onclick={(event) => stopPropagationHandler(event, () => setFilter(e.description))} title={$_('transactions.setFilter')}><Icon icon="mdi:filter-plus"  width="12"/></button>
+                    {/if}
+                    <div class="description">{e.description}</div>
                     {#each t.entries as en}
                         {#if en.account_id != curAccount.id}
                         <div class="description tiny">{$accounts.find(a => a.id == en.account_id).name}</div>
@@ -578,6 +582,11 @@
         font-size: 0.5em;
         color: var(--color-text-dim);
         margin: 3px 0 -5px 2px;
+    }
+
+    .filter-button {
+        float: right;
+        color: var(--color-icon-card-hover);
     }
 
     .message {

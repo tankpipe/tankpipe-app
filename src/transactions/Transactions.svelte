@@ -385,7 +385,7 @@
         <tr><th class="justify-left">{$_('transactions.filter')}</th></tr>
         <tr class="form">
             <td class="description">
-                <input id="desc" class="description-input-2" style="width: 60%" bind:value={descriptionFilter} oninput={() => {filterList()} }>
+                <input id="desc" class="description-input-2" style="width: 400px" bind:value={descriptionFilter} oninput={() => {filterList()} }>
                 <button class="single-button" onclick={clearFilter} title={$_('transactions.clearFilter')}><Icon icon="mdi:eraser"  width="16"/></button>
             </td>
         </tr>
@@ -405,6 +405,8 @@
     topScroll={topScroll}
     setTopScroll={(value) => (topScroll = value)}
     descriptionFilter={descriptionFilter}
+    setFilter={(text) => {descriptionFilter = text; showFilter = true; filterList()}}
+    {showFilter}
 />
 {/if}
 
