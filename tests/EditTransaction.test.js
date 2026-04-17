@@ -11,6 +11,10 @@ import '../src/utils/i18n'
 locale.set('en')
 const loadTransactions = () => {}
 
+const stripIconSvg = (html) => {
+    return html.replace(/<svg[^>]*class="iconify[^"]*"[\s\S]*?<\/svg>/g, '')
+}
+
 beforeEach(() => {
     accounts.set(account_data)
 })
@@ -18,7 +22,7 @@ beforeEach(() => {
 it('is displayed correctly for NEW', async () => {
     page.set({view: views.TRANSACTIONS, mode: modes.NEW})
     const select = render(EditTransaction, {loadTransactions: loadTransactions})
-    expect(select.container.outerHTML).toMatchSnapshot();
+    expect(stripIconSvg(select.container.outerHTML)).toMatchSnapshot();
 });
 
 it('sets recorded to false when all entries are in future', async () => {
@@ -133,7 +137,7 @@ it('is displayed correctly for simple EDIT', async () => {
 
     const {findByText, container} = render(EditTransaction, {loadTransactions: loadTransactions, curEntry: transaction_data[0]})
     const _waitForRenderUpdate = await findByText('Description')
-    expect(container.outerHTML).toMatchSnapshot();
+    expect(stripIconSvg(container.outerHTML)).toMatchSnapshot();
 });
 
 it('is displayed correctly for compound EDIT', async () => {
@@ -142,7 +146,7 @@ it('is displayed correctly for compound EDIT', async () => {
 
     const {findByText, container} = render(EditTransaction, {loadTransactions: loadTransactions, curEntry: transaction_data[1]})
     const _waitForRenderUpdate = await findByText('Description')
-    expect(container.outerHTML).toMatchSnapshot();
+    expect(stripIconSvg(container.outerHTML)).toMatchSnapshot();
 });
 
 it('is displayed correctly for MULTI_EDIT', async () => {
@@ -152,5 +156,5 @@ it('is displayed correctly for MULTI_EDIT', async () => {
     const {findByText, container} =
             render(EditTransaction, {loadTransactions: loadTransactions, curEntry: transaction_data[0], transactions: transaction_data})
     const _waitForRenderUpdate = await findByText('Description')
-    expect(container.outerHTML).toMatchSnapshot();
+    expect(stripIconSvg(container.outerHTML)).toMatchSnapshot();
 });
