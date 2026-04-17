@@ -9,7 +9,7 @@
     import { Errors } from '../utils/errors.js'
     import { ReconciliationMode as RM } from './reconciliation.js'
 
-    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, rerunReconcisiationIfNeeded, topScroll, setTopScroll, descriptionFilter = "", setFilter, showFilter } = $props()
+    let { curAccount, journalMode = false,  transactions, reconciliationResults = [], reconciliationMode = RM.NONE, onSelect, loadAccounts, rerunReconciliationIfNeeded, topScroll, setTopScroll, descriptionFilter = "", setFilter, showFilter } = $props()
     let hoveredReconIndex = $state(null)
     let errors = $state(new Errors())
     let msg = $state("")
