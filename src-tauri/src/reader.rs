@@ -595,7 +595,10 @@ fn determine_amount(
     sign_reversed: &HashSet<ColumnType>,
 ) -> Result<(Decimal, Side), BooksError> {
     if columns.has_column(ColumnType::Amount) {
-        let amount = parse_money_str(get_value(&row, columns, ColumnType::Amount)?)?;
+        let mut amount = parse_money_str(get_value(&row, columns, ColumnType::Amount)?)?;
+        if sign_reversed.contains(&ColumnType::Amount) {
+            amount = -amount;
+        }
         Ok((amount, balance_impact(normal_balance, amount)))
     } else {
         let mut debit = parse_money_str(get_value(&row, columns, ColumnType::Debit)?)?;

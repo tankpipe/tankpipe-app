@@ -236,9 +236,13 @@
             signReversedColumns.push(column)
     }
 
-    const REVERSABLE_COLUMNS = ["Debit", "Credit", "Balance"]
+    const columnIsSelected = (columnId) => {
+        return selectedColumns.some(col => col.id === columnId)
+    }
+
+    const REVERSABLE_COLUMNS = ["Amount", "Debit", "Credit", "Balance"]
     const canBeSignReversed = (column) => {
-        return REVERSABLE_COLUMNS.includes(column) && (columns.includes("Debit") || columns.includes("Credit"))
+        return REVERSABLE_COLUMNS.includes(column) && (columnIsSelected("Debit") || columnIsSelected("Credit") || columnIsSelected("Amount"))
     }
 
     const drCrIndex = () => {
