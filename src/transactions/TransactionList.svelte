@@ -761,6 +761,12 @@
         border: none;
     }
 
+    .orphan-row td:first-child {
+        border-left: 3px solid var(--color-error-border) !important;
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+    }
+
     .single-entry td:first-child {
         border-left: 3px solid var(--color-border-flagged) !important;
         border-top-left-radius: 3px;
