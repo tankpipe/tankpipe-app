@@ -9,9 +9,11 @@
     import { invoke } from "@tauri-apps/api/core"
     import { save } from '@tauri-apps/plugin-dialog'
     import { documentDir } from '@tauri-apps/api/path'
-    import { config } from "../stores/config"
+    import { config, formatDate } from "../stores/config"
 
     let { curAccount, loadAccounts } = $props()
+
+    let showDetails = $state(false)
 
     let ACCOUNT_TYPES = {
         Asset: $_('accountTypes.assets'),
@@ -101,6 +103,7 @@
     <div>
         <div class="toolbar toolbar-right">
             <button class="toolbar-icon" onclick="{handleAddClick}" title={$_('accounts.buttons.createNew')}><Icon icon="mdi:plus-box-outline"  width="24"/></button>
+            <button class="{showDetails ? 'toolbar-icon-on' : 'toolbar-icon'}" onclick="{() => showDetails = !showDetails}" title={showDetails ? $_('accounts.buttons.hideDetails') : $_('accounts.buttons.showDetails')}><Icon icon="mdi:eye-outline"  width="24"/></button>
             <button class="toolbar-icon" onclick={csvExport} title={$_('accounts.exportCsv')}><Icon icon="mdi:folder-download" width="22"/></button>
         </div>
         <div class="form-heading">{$_('accounts.title')}</div>
@@ -112,7 +115,21 @@
     {#if checkAccountType(a)}
         <div class="account-type">{ACCOUNT_TYPES[a.account_type]}</div>
     {/if}
-        <div class="card" onclick={() => selectAccount(a) } onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectAccount(a); } }} tabindex="0" role="button">{a.name}<div class="edit-icon" onclick={(e) => {e.stopPropagation(); editAccount(a)} } onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); editAccount(a); } }} tabindex="0" role="button"><Icon icon="mdi:pencil" /></div></div>
+        <div class="card" onclick={() => selectAccount(a) } onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectAccount(a); } }} tabindex="0" role="button">
+            {a.name}
+            <div class="edit-icon" onclick={(e) => {e.stopPropagation(); editAccount(a)} } onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); editAccount(a); } }} tabindex="0" role="button"><Icon icon="mdi:pencil" /></div>
+            {#if showDetails}
+            <hr/>
+            {#if a.reconciliation_info}
+            <div class="row">
+                <div class="card-bottom">
+                    <div class="label card-label label-column">{$_('account.reconciledTo')}&nbsp;</div>
+                    <div class="last-date">{a.reconciliation_info && a.reconciliation_info.date ? formatDate(a.reconciliation_info.date) : '-'}</div>
+                </div>
+            </div>
+            {/if}
+            {/if}
+        </div>
     {/each}
     </div>
 </div>
@@ -178,5 +195,39 @@
         max-width: 350px;
     }
 
+    .card-bottom {
+        display: inline-flex;
+        text-align: left;
+        margin: 0px 10px 5px 1px;
+        color: var(--color-text-strong);
+        vertical-align: top;
+    }
+
+    .last-date {
+        min-width: 200px;
+        white-space: nowrap;
+        display: inline-block;
+        font-size: .6em;
+        line-height: 1em;
+        color: var(--color-text-muted);
+    }
+
+    hr {
+        border: 1px solid var(--color-bg);
+        margin: 7px -10px;
+        width: calc(100% + 20px);
+    }
+
+    .label {
+        font-size: .8em;
+        margin: 0 !important;
+    }
+
+    .card-label {
+        padding: 0 !important;
+        font-size: .6em !important;
+        line-height: 1em !important;
+        color: var(--color-text-muted);
+    }
 
 </style>

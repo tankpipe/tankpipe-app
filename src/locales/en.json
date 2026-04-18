@@ -67,7 +67,9 @@
         "title": "Accounts",
         "buttons": {
             "createNew": "Create a new account",
-            "exportCsv": "Export accounts to CSV"
+            "exportCsv": "Export accounts to CSV",
+            "showDetails": "Show account details",
+            "hideDetails": "Hide account details"
         }
     },
     "account": {
