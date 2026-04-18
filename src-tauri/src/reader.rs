@@ -435,6 +435,12 @@ pub fn check_sign_reversal(
             sign_reversal.insert(ColumnType::Credit);
         }
     }
+    if columns.has_column(ColumnType::Amount) {
+        let (negative, positive) = count_signs(rows, columns.index_of(ColumnType::Amount));
+        if should_reverse_by_prevalence(negative, positive) {
+            sign_reversal.insert(ColumnType::Amount);
+        }
+    }
 
     if columns.has_column(ColumnType::Balance) {
         let descending_dates = detect_descending_dates(rows, date_column, date_format);
@@ -1109,6 +1115,72 @@ mod tests {
         let (amount, side) = determine_amount(&row, &columns, Side::Debit, &sign_reversed).unwrap();
         assert_eq!(dec!(5.80), amount);
         assert_eq!(Side::Credit, side);
+    }
+
+    #[test]
+    fn test_determine_amount_with_sign_reversal_for_amount_column() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "amount".to_string(),
+        ]);
+        let row = vec![
+            "05/04/2026".to_string(),
+            "Card Purchase".to_string(),
+            "-15.25".to_string(),
+        ];
+        let mut sign_reversed = HashSet::new();
+        sign_reversed.insert(ColumnType::Amount);
+
+        let (amount, side) = determine_amount(&row, &columns, Side::Debit, &sign_reversed).unwrap();
+        assert_eq!(dec!(15.25), amount);
+        assert_eq!(Side::Debit, side);
+    }
+
+    #[test]
+    fn test_check_sign_reversal_detects_negative_amount_column() {
+        let columns = ColumnTypes::from_vec(vec![
+            "date".to_string(),
+            "description".to_string(),
+            "amount".to_string(),
+            "balance".to_string(),
+        ]);
+        let rows = vec![
+            vec![
+                "Date".to_string(),
+                "Description".to_string(),
+                "Amount".to_string(),
+                "Balance".to_string(),
+            ],
+            vec![
+                "05/04/2026".to_string(),
+                "Purchase".to_string(),
+                "-5.80".to_string(),
+                "1285.76".to_string(),
+            ],
+            vec![
+                "04/04/2026".to_string(),
+                "Transfer".to_string(),
+                "-1.00".to_string(),
+                "1291.56".to_string(),
+            ],
+            vec![
+                "03/04/2026".to_string(),
+                "Purchase".to_string(),
+                "-21.13".to_string(),
+                "1292.56".to_string(),
+            ],
+            vec![
+                "30/03/2026".to_string(),
+                "Deposit".to_string(),
+                "1000.00".to_string(),
+                "1335.49".to_string(),
+            ],
+        ];
+
+        let sign_reversed =
+            check_sign_reversal(&rows, &columns, Side::Debit, Some(0), Some("%d/%m/%Y"));
+        assert!(sign_reversed.contains(&ColumnType::Amount));
     }
 
     #[test]
