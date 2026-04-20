@@ -312,11 +312,13 @@
             "paidFrequency": "Paid frequency",
             "paidDay": "Paid day",
             "paidEvery": "Paid every month",
-            "paidOn": "on day",
+            "paidOn": "Paid on day",
+            "startDay": "Calculated from day",
             "incomeAccount": "Revenue account",
             "interestAccount": "Pay interest to",
             "tooltips": {
-                "paidEvery": "The day of the month that interest will be paid on. Interest is calculated for the month up to the preceeding day.",
+                "paidEvery": "The day of the month that interest is paid on (typically day 1). Set as 31 for end of month payment.",
+                "startDay": "Interest is calculated daily from this day (typically day 1).",
                 "interestAccount": "Pay interest to a different account. Default is the current account.",
                 "incomeAccount": "The Revenue Account to track interest earned. Default is none."
             }
@@ -325,11 +327,13 @@
             "paidFrequency": "Charge frequency",
             "paidDay": "Charged day",
             "paidEvery": "Charged every month",
-            "paidOn": "on day",
+            "paidOn": "Charged on day",
+            "startDay": "Calculated from day",
             "incomeAccount": "Expense account",
             "interestAccount": "Charge interest to",
             "tooltips": {
-                "paidEvery": "The day of the month that interest will be charged on. Interest is calculated for the month up to the preceeding day.",
+                "paidEvery": "The day of the month that interest is charged on (typically either day 1 or the day of the loan anniversary). Set as 31 for end of month payments.",
+                "startDay": "Interest is calculated daily from this day (typically day 1).",
                 "interestAccount": "Charge interest to a different account. Default is the current account.",
                 "incomeAccount": "The Expense Account to track interest charged. Default is none."
             }
@@ -353,6 +357,7 @@
             "startDateRequired": "Start date is required",
             "rateRequired": "Interest rate is required",
             "paidDayRequired": "Paid on day must be between 1 and 31",
+            "startDayRequired": "Start day must be between 1 and 31",
             "descriptionRequired": "Description is required"
         }
     },

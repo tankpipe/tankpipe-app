@@ -60,8 +60,9 @@
         realEndDate: null,
         rate: "0.0",
         calculated: "Daily",
-        paid_period: "Months",
-        paid_frequency: 1,
+        period: "Months",
+        frequency: 1,
+        period_start_day: 1,
         paid_day: 1,
         description: "",
         income_account_id: null,
@@ -120,6 +121,10 @@
                 interestErrors.addError(i + "_paidDay", $_('interest.errors.paidDayRequired'))
             }
 
+            if (!terms.period_start_day || (terms.period_start_day < 1 || terms.period_start_day > 31)) {
+                interestErrors.addError(i + "_startDay", $_('interest.errors.startDayRequired'))
+            }
+
             if (!terms.description || terms.description.length < 1) {
                 interestErrors.addError(i + "_description", $_('interest.errors.descriptionRequired'))
             }
@@ -145,8 +150,9 @@
                     end_date: endDateStr,
                     rate: terms.rate / 100,
                     calculated: terms.calculated,
-                    paid_period: terms.paid_period,
-                    paid_frequency: terms.paid_frequency,
+                    period: terms.period,
+                    frequency: terms.frequency,
+                    period_start_day: terms.period_start_day,
                     paid_day: terms.paid_day,
                     description: terms.description,
                     income_account_id: terms.income_account_id || null,
@@ -327,8 +333,8 @@
         </div>
     </div>
     <div class="form-row2">
-        <div class="widget"  title={$_('interest.' + curAccountNormalBalance + '.tooltips.paidEvery')}>
-            {$_('interest.' + curAccountNormalBalance + '.paidEvery')}&nbsp;{$_('interest.' + curAccountNormalBalance + '.paidOn')}&nbsp;&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" max="31"/>
+        <div class="widget">
+            {$_('interest.' + curAccountNormalBalance + '.startDay')}&nbsp;<input id="startDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_startDay")}  bind:value={curInterestTerms.period_start_day} placeholder="1" min="1" max="31" title={$_('interest.' + curAccountNormalBalance + '.tooltips.startDay')}/>&nbsp;&nbsp;&nbsp;{$_('interest.' + curAccountNormalBalance + '.paidOn')}&nbsp;<input id="paidDay"  class="number-input" type="number" class:error={interestErrors.isInError(index + "_paidDay")}  bind:value={curInterestTerms.paid_day} placeholder="1" min="1" max="31" title={$_('interest.' + curAccountNormalBalance + '.tooltips.paidEvery')}/>
         </div>
     </div>
     <hr/>
@@ -460,7 +466,7 @@
     }
 
     .number-input {
-        width: 55px;
+        width: 50px;
         text-align: right;
         background-color: var(--color-text-strong);
     }
