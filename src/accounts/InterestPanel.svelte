@@ -17,6 +17,10 @@
     let interestErrors = $state(new Errors())
     let interest = $state()
     let curInterestTerms = $state()
+    let originalInterest = $state()
+    let dirty = $derived.by(() => {
+        return JSON.stringify(interest) !== JSON.stringify(originalInterest)
+    })
     let format = dateFormat($config)
     const zeros = '00000000-0000-0000-0000-000000000000'
     const INCOME_ACCOUNT_TYPES_ASSET = new Set(["Revenue"])
@@ -102,6 +106,9 @@
         } else {
             interest = null
         }
+
+        originalInterest = Object.assign({}, interest)
+        originalInterest.terms = interest?.terms?.map(term => Object.assign({}, term)) || []
     }
 
     const saveInterest = async () => {
@@ -258,7 +265,13 @@
 
 </script>
 
-<div class="info-title">{$_('interest.title')}</div>
+<div class="section-title">{$_('interest.title')}</div>
+<div class="toolbar terms-toolbar" style="float: right; ">
+    <button class="toolbar-icon {dirty ? 'toolbar-icon-on' : ''}" onclick={saveInterest} title={$_('interest.save')} disabled={!dirty}>
+        <Icon icon={dirty ? "mdi:content-save" : "mdi:content-save-outline"}  width="24"/>
+    </button>
+</div>
+
 {#if !interest}
     <div class="toolbar" >
         <button class="toolbar-icon" onclick="{addInterest}" title={$_('interest.addTerms')}>
@@ -267,7 +280,7 @@
     </div>
 {/if}
 {#if interest}
-<div>
+<div class="table-container">
     <table class="csv-table" style="max-width: 450px;">
         <tbody>
             <tr>
@@ -311,7 +324,7 @@
     <div class="form-row">
         <div class="widget">
             <label for="startDate">{$_('interest.startDate')}</label>
-            <div class="date-input" class:error={interestErrors.isInError(index + "_startDate")}  title={$_('interest.tooltips.startDate')}><DateInput bind:value={curInterestTerms["realStartDate"]} {format} placeholder="" disabled={false} closeOnSelection={true} title={$_('interest.tooltips.startDate')} /></div>
+            <div class="date-input" class:error={interestErrors.isInError(index + "_startDate")}  title={$_('interest.tooltips.startDate')}><DateInput bind:value={curInterestTerms["realStartDate"]} {format} placeholder="" disabled={false} closeOnSelection={true} title={$_('interest.tooltips.startDate')} onchange/></div>
         </div>
         <div class="widget">
             <label for="endDate" class="optional tooltip">{$_('interest.endDate')}</label>
@@ -377,16 +390,17 @@
 {/if}
 
 <style>
-    .info-title {
-        white-space: nowrap;
-        font-weight: 200;
+    .section-title {
         font-size: 1em;
+        font-weight: 500;
+        margin: 0px 0 10px 0;
+        text-align: left;
         color: var(--color-text-subtle);
-        margin-bottom: 10px;
-        display: inline-flex;
         float: left;
-        width: 100%;
-        clear: both;
+    }
+
+    .table-container {
+        clear:both;
     }
 
     .csv-table td {

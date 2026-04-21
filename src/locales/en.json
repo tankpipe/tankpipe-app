@@ -301,6 +301,7 @@
         "endDate": "End",
         "description": "Transaction description",
         "rate": "Rate %",
+        "save": "Apply interest changes",
         "saved": "Interest details updated",
         "addTerms": "Add an interest entry",
         "removeTerms": "Remove the last interest entry",
