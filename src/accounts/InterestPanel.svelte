@@ -49,9 +49,15 @@
             .filter(a => INTEREST_ACCOUNT_TYPES.has(a.account_type))
             .map(a => ({id: a.id, name: a.name}))
     })
+    let lastLoadedInterestKey = null
 
     $effect(() => {
         if (curAccount && curAccount.id) {
+            const interestKey = `${curAccount.id}:${curAccount.interest_id || ''}`
+            if (interestKey === lastLoadedInterestKey) {
+                return
+            }
+            lastLoadedInterestKey = interestKey
             loadInterestInternal()
         }
     })
@@ -75,13 +81,13 @@
 
     const loadInterestInternal = async () => {
         if (!curAccount || !curAccount.id) return
-        console.log("loadInterest: " + curAccount.interest_id)
+        let loadedInterest = null
         if (curAccount.interest_id) {
             await invoke('get_interest', {interestId: curAccount.interest_id}).then(
                 (result) => {
-                    interest = result
-                    if (interest.terms && interest.terms.length > 0) {
-                        interest.terms.forEach((term) => {
+                    loadedInterest = result
+                    if (loadedInterest?.terms && loadedInterest.terms.length > 0) {
+                        loadedInterest.terms.forEach((term) => {
                             if (term.end_date === "null") {
                                 term.end_date = null
                             }
@@ -103,12 +109,11 @@
                     interestErrors.addError("interest", error)
                 }
             )
-        } else {
-            interest = null
         }
 
-        originalInterest = Object.assign({}, interest)
-        originalInterest.terms = interest?.terms?.map(term => Object.assign({}, term)) || []
+        interest = loadedInterest
+        originalInterest = Object.assign({}, loadedInterest)
+        originalInterest.terms = loadedInterest?.terms?.map(term => Object.assign({}, term)) || []
     }
 
     const saveInterest = async () => {

@@ -19,7 +19,7 @@ it('restricts income and interest account selects by account_type', async () => 
 
   const mountAndStartEditing = async (curAccount) => {
     const { container } = render(InterestPanel, { curAccount, loadAccounts })
-    const addButton = container.querySelector('.toolbar button.toolbar-icon')
+    const addButton = container.querySelector('button.toolbar-icon[title="Add an interest entry"]')
     addButton.click()
     await new Promise((r) => setTimeout(r, 0))
     return { container }
