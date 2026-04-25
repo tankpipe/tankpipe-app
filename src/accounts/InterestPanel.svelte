@@ -271,12 +271,6 @@
 </script>
 
 <div class="section-title">{$_('interest.title')}</div>
-<div class="toolbar terms-toolbar" style="float: right; ">
-    <button class="toolbar-icon {dirty ? 'toolbar-icon-on' : ''}" onclick={saveInterest} title={$_('interest.save')} disabled={!dirty}>
-        <Icon icon={dirty ? "mdi:content-save" : "mdi:content-save-outline"}  width="24"/>
-    </button>
-</div>
-
 {#if !interest}
     <div class="toolbar" >
         <button class="toolbar-icon" onclick="{addInterest}" title={$_('interest.addTerms')}>
@@ -286,14 +280,17 @@
 {/if}
 {#if interest}
 <div class="table-container">
-    <table class="csv-table" style="max-width: 450px;">
+    <table class="csv-table">
         <tbody>
             <tr>
                 <th colspan="2"></th>
                 <th>
-                    <div class="toolbar terms-toolbar" style="float: right; ">
+                    <div class="toolbar terms-toolbar">
                         <button class="toolbar-icon" onclick="{addTerms}" title={$_('interest.addTerms')}>
                             <Icon icon="mdi:plus"  width="18"/>
+                        </button>
+                        <button class="toolbar-icon {dirty ? 'toolbar-icon-on' : ''}" onclick={saveInterest} title={$_('interest.save')} disabled={!dirty}>
+                            <Icon icon={dirty ? "mdi:content-save" : "mdi:content-save-outline"}  width="24"/>
                         </button>
                     </div>
                 </th>
@@ -313,11 +310,11 @@
         {/each}
         </tbody>
     </table>
-</div>
+
 {#if curInterestTerms}
 {@const index = interest.terms.indexOf(curInterestTerms)}
 <div class="info-row">&nbsp;</div>
-<div class="interest-form">
+<div class="form interest-form">
     <div class="toolbar toolbar-right" style="padding: 0">
         <button class="toolbar-icon" onclick={() => deleteTerm(index)} title={$_('interest.removeTerms')} disabled={!interest.terms || interest.terms.length === 0}>
             <Icon icon="mdi:trash-can-outline"  width="24"/>
@@ -392,12 +389,13 @@
         <button class="og-button" onclick={saveInterest}>{$_('buttons.update')}</button>
     </div>
 </div>
+</div>
 {/if}
 
 <style>
     .section-title {
         font-size: 1em;
-        font-weight: 500;
+        font-weight: 200;
         margin: 0px 0 10px 0;
         text-align: left;
         color: var(--color-text-subtle);
@@ -429,8 +427,8 @@
     }
 
     table {
-        padding-right: 10px;
         width: 100%;
+        max-width: 450px;
     }
 
     td {
@@ -495,7 +493,8 @@
         color: var(--color-text);
         background-color: var(--color-surface);
         float: left;
-        padding: 10px;
+        padding: 10px 10px 10px 10px;
+        max-width: 430px;
     }
 
     .interest-form hr {
@@ -513,6 +512,8 @@
 
     .terms-toolbar {
         margin: 3px 0 0 -5px;
+        padding-right: 0;
+        float: right;
     }
 
     :global(.date-time-field input) {

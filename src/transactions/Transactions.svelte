@@ -485,12 +485,12 @@
 
     :global(.toolbar-icon-disabled) {
         margin-left: 5px;
-        color: var(--color-surface-2);
+        color: var(--color-icon-disabled);
     }
 
     :global(.toolbar-icon:disabled) {
         margin-left: 5px;
-        color: var(--color-surface-2);
+        color: var(--color-icon-disabled);
         cursor: default;
     }
 

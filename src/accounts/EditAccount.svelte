@@ -173,7 +173,6 @@
 {#if $accounts.length < 1 && $config.recent_files.length < 2}
 <div class="message">{$_('account.firstAccountMessage')}</div>
 {/if}
-
 <div class="form">
     <div class="form-heading">{$page.mode === modes.EDIT ? $_('account.form.title.edit') : $_('account.form.title.new')}</div>
     <div class="toolbar toolbar-right">
@@ -231,12 +230,14 @@
         </div>
         <div class="info-row">&nbsp;</div>
     {/if}
-    {#if curAccount && canSupportInterest()}
-        <hr/>
-        <InterestPanel {curAccount} {loadAccounts} />
-    {/if}
+
 </div>
-<hr/>
+{#if curAccount && canSupportInterest()}
+<hr class="section-hr"/>
+<div class="scroller">
+    <InterestPanel {curAccount} {loadAccounts} />
+</div>
+{/if}
 
 <style>
 
@@ -298,6 +299,9 @@
         text-align: right;
     }
 
+    .section-hr {
+        /* width: unset; */
+    }
 
     :global(.info-row) {
         padding: 5px 0 0px 10px;
