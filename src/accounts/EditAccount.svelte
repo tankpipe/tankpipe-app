@@ -26,6 +26,7 @@
     let addButtonLabel = $state($_('buttons.add'))
     let transactions = $state([])
     let rollbackDate = $state()
+    let showReconciliation = $state(true)
     let format = dateFormat($config)
 
     onMount(() => {
@@ -207,7 +208,14 @@
     </div>
     {#if curAccount && curAccount.reconciliation_info}
         <hr/>
-        <div class="info-title">{$_('account.reconciliationInfo')}</div>
+        <div class="info-title">{$_('account.reconciliationInfo')}
+            <div class="toolbar" style="margin: 0px" >
+                <button class="toolbar-icon" onclick={() => showReconciliation = !showReconciliation}>
+                    <Icon icon={showReconciliation ? "mdi:chevron-up" : "mdi:chevron-down"} width="24"/>
+                </button>
+            </div>
+        </div>
+        {#if showReconciliation}
         <div class="info-row">
             <div class="info-label">{$_('account.reconciledTo')}&nbsp;</div>
             <div class="info-value">{formatDate(curAccount.reconciliation_info.date)}</div>
@@ -229,6 +237,7 @@
             </div>
         </div>
         <div class="info-row">&nbsp;</div>
+        {/if}
     {/if}
 
 </div>
