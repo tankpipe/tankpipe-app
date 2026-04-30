@@ -1,6 +1,6 @@
-import { render, fireEvent, waitFor, vi } from 'vitest'
+import { vi } from 'vitest'
 import '@testing-library/jest-dom'
-import { render as svelteRender } from '@testing-library/svelte'
+import { render as svelteRender, fireEvent, waitFor } from '@testing-library/svelte'
 import EditAccount from '../src/accounts/EditAccount.svelte'
 import {accounts} from '../src/stores/accounts.js'
 import {page, views, modes} from '../src/stores/page.js'
@@ -72,12 +72,14 @@ it('displays reconciliation info when account has reconciliation', async () => {
         initialize: true,
         close: () => {}
     })
-    
+
+    const expandButton = container.querySelector('.info-title .toolbar button.toolbar-icon')
+    await fireEvent.click(expandButton)
+    await waitFor(() => expect(getByText('Reconciled to')).toBeInTheDocument())
+
     expect(getByText('Reconciliation')).toBeInTheDocument()
     expect(getByText('Reconciled to')).toBeInTheDocument()
     expect(getByText('Reconciled balance')).toBeInTheDocument()
-    // Check for either date format
-    //expect(() => getByText('04/06/2022') || getByText('6/4/2022')).not.toThrow()
     expect(getByText('1,000.00')).toBeInTheDocument()
 });
 
@@ -100,7 +102,11 @@ it('displays rollback section when account has reconciliation', async () => {
         initialize: true,
         close: () => {}
     })
-    
+
+    const expandButton = container.querySelector('.info-title .toolbar button.toolbar-icon')
+    await fireEvent.click(expandButton)
+    await waitFor(() => expect(getByText('Rollback reconciliation to')).toBeInTheDocument())
+
     expect(getByText('Rollback reconciliation to')).toBeInTheDocument()
     expect(getByText('Rollback')).toBeInTheDocument()
     expect(getByText('Rollback')).toBeDisabled()

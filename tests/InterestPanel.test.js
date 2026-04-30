@@ -1,4 +1,4 @@
-import { render } from '@testing-library/svelte'
+import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import InterestPanel from '../src/accounts/InterestPanel.svelte'
 import { accounts } from '../src/stores/accounts.js'
 import { locale } from 'svelte-i18n'
@@ -18,10 +18,10 @@ it('restricts income and interest account selects by account_type', async () => 
   const loadAccounts = () => {}
 
   const mountAndStartEditing = async (curAccount) => {
-    const { container } = render(InterestPanel, { curAccount, loadAccounts })
+    const { container } = render(InterestPanel, { curAccount, loadAccounts, editMode: true })
     const addButton = container.querySelector('button.toolbar-icon[title="Add an interest entry"]')
-    addButton.click()
-    await new Promise((r) => setTimeout(r, 0))
+    await fireEvent.click(addButton)
+    await waitFor(() => expect(container.querySelectorAll('select')).toHaveLength(1))
     return { container }
   }
 
@@ -43,8 +43,8 @@ it('restricts income and interest account selects by account_type', async () => 
 
     const advancedLabel = container.querySelector('label.toggle-label')
     const advancedToggle = advancedLabel.closest('.toolbar').querySelector('button.toolbar-icon')
-    advancedToggle.click()
-    await new Promise((r) => setTimeout(r, 0))
+    await fireEvent.click(advancedToggle)
+    await waitFor(() => expect(container.querySelectorAll('select')).toHaveLength(2))
 
     const selectsAfterAdvanced = Array.from(container.querySelectorAll('select'))
     expect(selectsAfterAdvanced).toHaveLength(2)
