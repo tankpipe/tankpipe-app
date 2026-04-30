@@ -11,7 +11,7 @@
 </script>
 
 <script>
-    let { curAccount, loadAccounts } = $props()
+    let { curAccount, loadAccounts, editMode=$bindable() } = $props()
 
     let interestMsg = $state("")
     let interestErrors = $state(new Errors())
@@ -204,8 +204,11 @@
         interestErrors.addError("all", result)
     }
 
-    const selectTerms = (term) => {
+    const onTermsClick = (term) => {
         curInterestTerms = term
+        if (!editMode) {
+            editMode = true
+        }
     }
 
     const addTerms = () => {
@@ -270,18 +273,33 @@
 
 </script>
 
+{#if ! editMode}
 <div class="section-title">{$_('interest.title')}</div>
-{#if !interest}
-    <div class="toolbar" >
-        <button class="toolbar-icon" onclick="{addInterest}" title={$_('interest.addTerms')}>
-            <Icon icon="mdi:plus"  width="18"/>
-        </button>
-    </div>
+{:else}
+<div class="panel-title" style="margin: -10px 0 -5px 1px;">{curAccount.name}</div>
 {/if}
+
+
+{#if interest && ! editMode}
+<div class="toolbar" style="display: inline;margin-left:50px;">
+    <button class="toolbar-icon" onclick={() => { editMode = true }} title={$_('buttons.editInterest')}>
+        <Icon icon="mdi:edit"  width="18"/>
+    </button>
+</div>
+{/if}
+{#if !interest}
+<div class="toolbar">
+    <button class="toolbar-icon" onclick="{addInterest}" title={$_('interest.addTerms')}>
+        <Icon icon="mdi:plus"  width="18"/>
+    </button>
+</div>
+{/if}
+
 {#if interest}
 <div class="table-container">
     <table class="csv-table">
         <tbody>
+        {#if editMode}
             <tr>
                 <th colspan="2"></th>
                 <th>
@@ -292,9 +310,20 @@
                         <button class="toolbar-icon {dirty ? 'toolbar-icon-on' : ''}" onclick={saveInterest} title={$_('interest.save')} disabled={!dirty}>
                             <Icon icon={dirty ? "mdi:content-save" : "mdi:content-save-outline"}  width="24"/>
                         </button>
+                        <button class="toolbar-icon" onclick={() => { editMode = false }} title={$_('buttons.close')}>
+                            <Icon icon="mdi:close-box-outline"  width="24"/>
+                        </button>
                     </div>
                 </th>
             </tr>
+            {/if}
+        </tbody>
+    </table>
+    </div>
+<div class="scroller" style="height: auto;">
+<div class="table-container">
+    <table class="csv-table">
+        <tbody>
             <tr>
                 <th>{$_('interest.startDate')}</th>
                 <th>{$_('interest.endDate')}</th>
@@ -302,7 +331,7 @@
             </tr>
             <tr class="spacer"></tr>
         {#each interest.terms as t, i}
-            <tr class="csv-row {curInterestTerms === t ? 'selected-row' : ''}" onclick={() => selectTerms(t)}>
+            <tr class="csv-row {curInterestTerms === t ? 'selected-row' : ''}" onclick={() => onTermsClick(t)}>
                 <td><div class:error={interestErrors.isInError(i + "_startDate")}>{formatDate(t["realStartDate"])}</div></td>
                 <td><div class:error={interestErrors.isInError(i + "_endDate")}>{formatDate(t["realEndDate"])}</div></td>
                 <td><div class:error={interestErrors.isInError(i + "_rate")}>{t.rate ? t.rate + '%' : ''}</div></td>
@@ -310,8 +339,9 @@
         {/each}
         </tbody>
     </table>
-
-{#if curInterestTerms}
+</div>
+</div>
+{#if curInterestTerms && editMode}
 {@const index = interest.terms.indexOf(curInterestTerms)}
 <div class="info-row">&nbsp;</div>
 <div class="form interest-form">
@@ -381,6 +411,7 @@
     {/if}
 </div>
 {/if}
+{#if editMode}
 <div class="form-button-row">
     <div class="msg-panel sele">
         <MessagePanel errors={interestErrors} msg={interestMsg} />
@@ -389,7 +420,7 @@
         <button class="og-button" onclick={saveInterest}>{$_('buttons.update')}</button>
     </div>
 </div>
-</div>
+{/if}
 {/if}
 
 <style>
@@ -427,8 +458,7 @@
     }
 
     table {
-        width: 100%;
-        max-width: 450px;
+        min-width: 450px;
     }
 
     td {

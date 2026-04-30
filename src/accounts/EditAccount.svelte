@@ -26,8 +26,8 @@
     let addButtonLabel = $state($_('buttons.add'))
     let transactions = $state([])
     let rollbackDate = $state()
-    let showReconciliation = $state(true)
-    let format = dateFormat($config)
+    let showReconciliation = $state(false)
+    let editInterestMode = $state(false)
 
     onMount(() => {
         if ($page.mode !== modes.EDIT) {
@@ -169,13 +169,18 @@
         return curAccount && (curAccount.account_type === "Asset" || curAccount.account_type === "Liability")
     }
 
+    const editInterest = () => {
+        editInterestMode = true
+    }
+
 </script>
 
 {#if $accounts.length < 1 && $config.recent_files.length < 2}
 <div class="message">{$_('account.firstAccountMessage')}</div>
 {/if}
-<div class="form">
-    <div class="form-heading">{$page.mode === modes.EDIT ? $_('account.form.title.edit') : $_('account.form.title.new')}</div>
+<div class="form" style="max-width: 550px;">
+    <div class="form-heading">{$page.mode === modes.EDIT ? editInterestMode ? $_('account.form.title.editInterest') : $_('account.form.title.edit') : $_('account.form.title.new')}</div>
+    {#if ! editInterestMode}
     <div class="toolbar toolbar-right">
         {#if transactions.length < 1}
         <button class="toolbar-icon" onclick={deleteAccount(curAccount)} title={$_('account.form.deleteTooltip')}><Icon icon="mdi:trash-can-outline"  width="24"/></button>
@@ -206,7 +211,8 @@
             <button class="og-button" onclick={onAdd}>{addButtonLabel}</button>
         </div>
     </div>
-    {#if curAccount && curAccount.reconciliation_info}
+    {/if}
+    {#if curAccount && curAccount.reconciliation_info && !editInterestMode}
         <hr/>
         <div class="info-title">{$_('account.reconciliationInfo')}
             <div class="toolbar" style="margin: 0px" >
@@ -242,10 +248,10 @@
 
 </div>
 {#if curAccount && canSupportInterest()}
+{#if !editInterestMode}
 <hr class="section-hr"/>
-<div class="scroller">
-    <InterestPanel {curAccount} {loadAccounts} />
-</div>
+{/if}
+<InterestPanel {curAccount} {loadAccounts} bind:editMode={editInterestMode} />
 {/if}
 
 <style>
@@ -294,7 +300,6 @@
         margin-right: 0px;
     }
 
-
     .widget {
         display: inline-block;
         padding: 5px 0px 5px 10px;
@@ -306,10 +311,6 @@
 
     .money-input {
         text-align: right;
-    }
-
-    .section-hr {
-        /* width: unset; */
     }
 
     :global(.info-row) {

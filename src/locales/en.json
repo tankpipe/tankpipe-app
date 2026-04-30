@@ -77,7 +77,8 @@
         "form": {
             "title": {
                 "edit": "Edit Account",
-                "new": "New Account"
+                "new": "New Account",
+                "editInterest": "Edit Account Interest"
             },
             "deleteTooltip": "Delete account",
             "labels": {
