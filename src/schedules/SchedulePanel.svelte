@@ -5,13 +5,13 @@
     import { onMount } from 'svelte';
     import { periods } from '../utils/dates.js'
 
-    let { 
-        frequency =$bindable(), 
-        period =$bindable(), 
-        date =$bindable(), 
-        hasEnd =$bindable(), 
-        endDate =$bindable(), 
-        errors =$bindable() 
+    let {
+        frequency =$bindable(),
+        period =$bindable(),
+        date =$bindable(),
+        hasEnd =$bindable(),
+        endDate =$bindable(),
+        errors =$bindable()
     } = $props()
 
     let max = $state(new Date())
@@ -33,7 +33,6 @@
         </div>
     </div>
     <div class="form-row2">
-        
         <div class="widget2">
             <input id="noEnd" type="radio" bind:group={hasEnd} value={false} class="" name="endType"/>
             <label for="noEnd">{$_('schedule.no_end_date')}&nbsp;&nbsp;&nbsp;&nbsp;</label>
@@ -54,13 +53,6 @@
         padding: 5px 0px 5px 10px;
     }
 
-    .widget p {
-        max-width: 500px;
-        font-size: 0.9em;
-    }
-
-    
-
     .widget2 label {
         display: inline-block;
         font-size: 1.0em;
@@ -75,8 +67,6 @@
         text-align: right;
         background-color: var(--color-text-strong);
     }
-
-    
 
     .left {
         padding-left: 0px;
